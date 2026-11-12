@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f7f8" />
+  <meta name="description" content="An offline solo tabletop campaign companion." />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>SoloBridgeKit</title>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">SB</span><span>SoloBridgeKit</span></div>
+      <nav id="desktop-nav" class="nav"></nav>
+      <div class="sidebar-foot">Offline campaign toolkit</div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <span class="mobile-brand">SoloBridgeKit</span>
+        <div class="current-label"><span class="eyebrow">Campaign</span><strong id="campaign-label">None selected</strong></div>
+        <span id="save-status" class="save-status" role="status">Ready</span>
+      </header>
+      <main id="content" tabindex="-1"></main>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"></nav>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+  <dialog id="pdf-dialog" class="pdf-dialog" aria-label="PDF reader">
+    <div class="dialog-head"><strong id="pdf-title">Document</strong><button id="close-pdf" type="button" class="button subtle">Close</button></div>
+    <iframe id="pdf-frame" title="Imported PDF" loading="lazy"></iframe>
+  </dialog>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>

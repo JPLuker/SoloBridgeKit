@@ -1,0 +1,11 @@
+{
+  "id": "./",
+  "name": "SoloBridgeKit",
+  "short_name": "SoloBridgeKit",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f8",
+  "theme_color": "#f7f7f8",
+  "description": "Offline companion for solo tabletop roleplaying."
+}
