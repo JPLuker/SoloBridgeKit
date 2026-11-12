@@ -98,3 +98,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs:renderShipBuilder()` saves private class data from class step and applies selected templates without overwriting ship name, registry, traits or talents.
 - `app.mjs:renderPrivateShips()` lists saved private class templates in Library. `storage.mjs`/`model.mjs` preserve and validate these only with the associated private book.
 - Static build, offline precache, distribution audit and tests include the private ship schema; no specific publisher class data appears in public assets.
+
+## 0.13.0 — Shared mission task actions
+
+- `mission-actions.mjs:commitTaskToMission()` returns an updated episode, task record and previous resources without mutating original records.
+- `app.mjs:recordMissionTask()` persists the shared result for both Dice and in-mission roll panels, including the state needed for a Momentum reroll.
+- `app.mjs:renderMissionActions()` provides task controls and privately compiled random tables next to the active captain's log. Recorded table references never copy publisher text into exported campaign data.
+- Unit tests cover pure task persistence; rendered UI and full PDF imports remain to be verified in a real browser.

@@ -1,3 +1,12 @@
+## [0.13.0] - 2026-11-12
+### Added
+- In-mission task rolling with source-backed outcome recording and history.
+- Direct private random-table rolling and page references inside the active scene workspace.
+- Shared pure mission-task recording model with focused unit tests.
+### Changed
+- Dice-screen task recording and mission-screen task recording now use one implementation.
+- Mission log references omit publisher table text and store only source page and rolled value.
+
 ## [0.12.0] - 2026-11-12
 ### Added
 - Save source-verified starship and station class ratings as private reusable templates.

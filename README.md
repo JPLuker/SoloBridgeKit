@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.12.0
+## Current build: 0.13.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -109,3 +109,9 @@ No species, career-event, talent, or other copyrighted options are shipped with 
 After entering and checking a starship or station's published class ratings in **Guided ship setup**, save the class as a private template. Other ships can load the same verified system/department ratings and scale without retyping the book's numbers. Existing ship names, registries, traits and talent choices are preserved when applying a class. Saved classes appear under Library for review or deletion.
 
 Class templates live inside the owner's locally prepared source PDF record, not in the public build. They are included only in opt-in private PDF backups. No publisher stat blocks are distributed.
+
+## In-mission actions (0.13.0)
+
+The Captain's Log screen now includes **Scene actions**: choose Attribute and Discipline, apply the active mission's difficulty/Focus, and roll directly without leaving the mission. The same mission-recording function powers the separate Dice screen, keeping Momentum, Threat and task history consistent. Saved private random tables can be rolled from the mission screen, with source-page access. Recording a random result into the mission stores **only the private table title, source page and roll number**, not the publisher's result text.
+
+All saved mission results remain part of the player's ordinary campaign history; book-derived table rows and private option catalogs remain inside the local documents database and optional private PDF backup only.

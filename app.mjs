@@ -6,13 +6,14 @@ import { updateScenePlan, toggleMissionScene } from './missions.mjs';
 import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
 import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
 import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from './bookmarks.mjs';
-import { createTaskRecord, appendTaskRecord, rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
+import { rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
 import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption } from './private-options.mjs';
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
+import { commitTaskToMission } from './mission-actions.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -743,10 +744,109 @@ function renderLog() {
     entries,
     form
   ]));
+  root.append(renderMissionActions(selected));
   root.append(renderSceneTracker(selected));
   root.append(renderTaskHistory(selected));
   root.append(missionForm);
   return root;
+}
+
+async function recordMissionTask(episode, labels, params, outcome) {
+  const saved = commitTaskToMission(episode, labels, params, outcome);
+  Object.assign(episode, saved.updatedEpisode);
+  state.taskRoll = outcome;
+  state.taskMeta = { episodeId: episode.id, params, recordId: saved.record.id,
+    before: saved.before, rerolled: false };
+  await persist();
+  return outcome;
+}
+
+function ratingPicker(names, label, source) {
+  const wrapper = el('label', { class: 'field' }, [el('span', { text: label })]);
+  const select = el('select', { 'aria-label': label });
+  for (const name of names) {
+    const score = String(source[name.toLowerCase()] ?? '').trim();
+    select.append(el('option', { value: name.toLowerCase(),
+      text: score ? `${name} (${score})` : `${name} (unset)` }));
+  }
+  wrapper.append(select);
+  return { wrapper, select };
+}
+function renderMissionActions(mission) {
+  const cardNode = card([el('h2', { text: 'Scene actions' })]);
+  const scene = mission.scenes.find(x => `${x.act}:${x.number}` === state.activeScene) ||
+    mission.scenes.find(x => !x.completed) || mission.scenes[0];
+  if (scene) cardNode.append(line('Current scene', `Act ${scene.act} · Scene ${scene.number}`));
+  cardNode.append(el('div', { class: 'actions' }, [
+    button('Open full dice tools', () => go('dice'), 'secondary'),
+    button('Open character sheet', () => go('character'), 'secondary')
+  ]));
+  const character = state.campaign.character;
+  const attribute = ratingPicker(CHARACTER_ATTRIBUTES, 'Attribute', character.attributes);
+  const discipline = ratingPicker(CHARACTER_DISCIPLINES, 'Discipline', character.disciplines);
+  const difficulty = el('select', { 'aria-label': 'Difficulty' }, [
+    el('option', { value: '1', text: 'Normal (1)' }),
+    el('option', { value: '2', text: 'Increased (2)' })
+  ]);
+  if (mission.nextTaskHard) { difficulty.value = '2'; difficulty.disabled = true; }
+  const focusCheck = el('input', { type: 'checkbox' });
+  const result = el('div', { class: 'results', 'aria-live': 'polite' });
+  const taskForm = el('form', { class: 'form-stack' }, [
+    el('div', { class: 'field-grid' }, [
+      attribute.wrapper, discipline.wrapper,
+      el('label', { class: 'field' }, [el('span', { text: 'Difficulty' }), difficulty])
+    ]),
+    el('label', { class: 'check-field' }, [focusCheck, el('span', { text: 'Relevant focus applies' })]),
+    el('button', { type: 'submit', class: 'button primary', text: 'Roll task' }), result
+  ]);
+  taskForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    try {
+      const a = String(character.attributes[attribute.select.value] ?? '').trim();
+      const d = String(character.disciplines[discipline.select.value] ?? '').trim();
+      if (!a || !d) throw new Error('Set both ratings on your character sheet first.');
+      const params = { attribute: Number(a), discipline: Number(d),
+        difficulty: taskDifficulty(mission, difficulty.value === '2'),
+        focusApplies: focusCheck.checked };
+      const outcome = resolveTask({ ...params, dice: rollDice(2, 20) });
+      await recordMissionTask(mission, { attribute: attribute.select.value,
+        discipline: discipline.select.value }, params, outcome);
+      notify(outcome.success ? 'Task succeeded and was recorded.' : 'Task failed and was recorded.');
+    } catch (error) { failure(error); }
+  });
+  cardNode.append(taskForm);
+  const book = state.documents.find(d => d.role === 'corebook' && d.bookPack);
+  const tables = book ? normalizePrivateTables(book.tables, book.bookPack.sourceSha256) : [];
+  if (tables.length) {
+    const choose = el('select', { 'aria-label': 'Private random table' });
+    for (const table of tables) choose.append(el('option', { value: table.id, text: table.title }));
+    const rolledResult = el('div', { class: 'results', 'aria-live': 'polite' });
+    const row = el('div', { class: 'actions' }, [
+      choose,
+      button('Roll table', () => {
+        try {
+          const table = tables.find(t => t.id === choose.value);
+          if (!table) throw new Error('Select a private table.');
+          const roll = rollPrivateTable(table);
+          rolledResult.replaceChildren(
+            line('Result', `${roll.value} / ${table.sides}`),
+            el('p', { text: roll.entry.text }),
+            button('Open source page', () => openPdf(book, table.page).catch(failure), 'secondary'),
+            button('Record reference', async () => {
+              try {
+                // The default campaign export contains a reference, never table prose.
+                mission.entries.push(createEntry(`Table: ${table.title}, PDF page ${table.page}, roll ${roll.value}`));
+                await persist();
+                notify('Table reference added to the mission.');
+              } catch (error) { failure(error); }
+            }, 'secondary')
+          );
+        } catch (error) { failure(error); }
+      }, 'secondary')
+    ]);
+    cardNode.append(el('h3', { text: 'Random tables' }), row, rolledResult);
+  }
+  return cardNode;
 }
 
 function renderSceneTracker(mission) {
@@ -1224,20 +1324,8 @@ function renderDice() {
   if (campaign) {
     const char = campaign.character;
     const taskCard = card([el('h2', { text: 'Task roll' })]);
-    const picker = (names, label, source) => {
-      const wrapper = el('label', { class: 'field' });
-      wrapper.append(el('span', { text: label }));
-      const select = el('select', { 'aria-label': label });
-      for (const name of names) {
-        const score = String(source[name.toLowerCase()] ?? '').trim();
-        const option = el('option', { value: name.toLowerCase(), text: score ? `${name} (${score})` : `${name} (unset)` });
-        select.append(option);
-      }
-      wrapper.append(select);
-      return { wrapper, select };
-    };
-    const attribute = picker(CHARACTER_ATTRIBUTES, 'Attribute', char.attributes);
-    const discipline = picker(CHARACTER_DISCIPLINES, 'Discipline', char.disciplines);
+    const attribute = ratingPicker(CHARACTER_ATTRIBUTES, 'Attribute', char.attributes);
+    const discipline = ratingPicker(CHARACTER_DISCIPLINES, 'Discipline', char.disciplines);
     const difficulty = el('select', { 'aria-label': 'Difficulty' }, [
       el('option', { value: '1', text: 'Normal (1 success)' }),
       el('option', { value: '2', text: 'Increased (2 successes)' })
@@ -1296,13 +1384,8 @@ function renderDice() {
         const outcome = resolveTask({ ...params, dice: rollDice(2, 20) });
         state.taskRoll = outcome;
         if (episode) {
-          const record = createTaskRecord({ attribute: attribute.select.value, discipline: discipline.select.value,
-            focusApplies: focus.checked, result: outcome });
-          state.taskMeta = { episodeId: episode.id, params, recordId: record.id,
-            before: { momentum: episode.momentum, threat: episode.threat, nextTaskHard: episode.nextTaskHard }, rerolled: false };
-          episode.taskHistory = appendTaskRecord(episode.taskHistory, record);
-          Object.assign(episode, applyTaskOutcome(episode, outcome));
-          await persist();
+          await recordMissionTask(episode, { attribute: attribute.select.value,
+            discipline: discipline.select.value }, params, outcome);
         } else {
           state.taskMeta = null;
           showResult(outcome);
@@ -1431,7 +1514,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.12.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.13.0' })]));
   return root;
 }
 

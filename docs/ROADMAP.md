@@ -126,3 +126,12 @@
 1. Provide source-specific play actions directly in the active mission scene, without duplicating the Library interface.
 2. Add recovery-safe import and export flows and a browser smoke-test harness.
 3. Complete option-specific source-data checks and exercise the full 2026 PDF on real Android/desktop browsers.
+
+## 0.13.0 — In-mission game actions
+
+- Captain's Log now provides current-scene task rolls and privately sourced random tables in one mission workspace.
+- Task history, Momentum and Threat use the same recording implementation as the Dice screen.
+- Table roll logs store the table reference, source PDF page and rolled number rather than extracted publisher prose.
+
+### Next quality target
+- Add browser automation in CI to validate the full one-file corebook import, offline reload, character/mission navigation and screenshot layout, using a generated non-copyright test PDF.

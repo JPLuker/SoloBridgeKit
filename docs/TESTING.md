@@ -87,3 +87,10 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Reject invalid scales, ratings outside allowed ranges, wrong-source templates and duplicate IDs.
 - [ ] Delete a template; already-created starships retain their data.
 - [ ] Validate private PDF backup includes class templates, default campaign-only export does not.
+
+## 0.13.0 in-mission actions
+
+- [ ] Start a mission, roll a task on the Captain's Log screen and compare saved result, Momentum/Threat, and history with the separate Dice screen.
+- [ ] Use a source-derived private table from the mission scene; ensure roll and page reference display correctly and the mission log records only title/page/number.
+- [ ] Reroll from the Dice screen after a mission-screen task, when Momentum is available, and verify history preserves original results.
+- [ ] Reload the campaign and verify mission task history remains unchanged.
