@@ -15,3 +15,9 @@ export function hasCorebook(documents) {
 }
 export function requiresCorebook(page) { return RULEBOOK_PAGES.has(page); }
 export function shouldIncludeDocuments(options = {}) { return options?.includeDocuments === true; }
+
+export function shouldReplaceDocumentsInRestore(bundle) {
+  // Old backups did not have the includesDocuments flag.
+  return bundle?.includesDocuments === true ||
+    (bundle?.includesDocuments == null && Array.isArray(bundle?.documents) && bundle.documents.length > 0);
+}

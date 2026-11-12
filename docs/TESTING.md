@@ -31,3 +31,9 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Default JSON export contains `documents: []`; checking private PDF backup includes original PDFs. Both restore successfully, as do pre-0.7 backups.
 - [ ] No commercial PDFs, extracted book prose, tables, stat blocks or licensed art in code, static deploy, service-worker shell or public release artifacts.
 - [ ] `npm run check` and `npm test` pass, followed by real-browser import/export checks.
+
+## v0.7.1 focused test
+
+- [ ] Importing a PDF with the default **Other reference** type does not unlock gameplay until designated **Core rulebook**.
+- [ ] Restoring a data-only backup preserves already imported PDFs and their page bookmarks on that device.
+- [ ] Restoring a PDF-inclusive backup explicitly replaces the local documents and warns first.

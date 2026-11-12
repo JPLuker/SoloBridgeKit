@@ -144,7 +144,8 @@ function secureRandom(sides) {
 
 export function validateBundle(bundle) {
   if (!bundle || bundle.format !== 'solobridgekit' || bundle.version !== DATA_VERSION ||
-      !Array.isArray(bundle.campaigns) || !Array.isArray(bundle.documents)) {
+      !Array.isArray(bundle.campaigns) || !Array.isArray(bundle.documents) ||
+      (bundle.includesDocuments != null && typeof bundle.includesDocuments !== 'boolean')) {
     throw new Error('Unsupported or damaged SoloBridgeKit backup.');
   }
   const ids = new Set();

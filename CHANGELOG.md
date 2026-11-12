@@ -1,3 +1,9 @@
+## [0.7.1] - 2026-11-12
+### Fixed
+- Data-only backup restores now preserve PDFs already imported on the device.
+- Corebook type must be explicitly selected during import, instead of preselected.
+- Restore confirmation distinguishes data-only and PDF-inclusive backups.
+
 ## [0.7.0] - 2026-11-12
 ### Added
 - Required private corebook import before book-dependent gameplay.

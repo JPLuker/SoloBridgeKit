@@ -7,7 +7,7 @@ import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './
 import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
 import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from './bookmarks.mjs';
 import { createTaskRecord, appendTaskRecord, rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
-import { normalizeDocumentRole, hasCorebook, requiresCorebook } from './content-policy.mjs';
+import { normalizeDocumentRole, hasCorebook, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -742,7 +742,7 @@ function renderLibrary() {
   for (const [value, label] of [
     ['corebook', 'Core rulebook'], ['supplement', 'Supplement'], ['forms', 'Forms'], ['reference', 'Other reference']
   ]) roleSelect.append(el('option', { value, text: label }));
-  roleSelect.value = hasCorebook(state.documents) ? 'reference' : 'corebook';
+  roleSelect.value = 'reference'; // User must explicitly identify the core rulebook.
   const roleField = el('label', { class: 'field' }, [el('span', { text: 'Document type' }), roleSelect]);
   const fileInput = el('input', { type: 'file', accept: '.pdf,application/pdf', multiple: '', 'aria-label': 'Choose PDF files' });
   fileInput.addEventListener('change', async () => {
@@ -1081,7 +1081,10 @@ function renderSettings() {
     const file = restoreInput.files?.[0]; if (!file) return;
     try {
       const raw = JSON.parse(await file.text());
-      if (!confirm('Restore this backup? Your current local campaigns and PDFs will be replaced. Export a backup first.')) return;
+      const effect = shouldReplaceDocumentsInRestore(raw)
+        ? 'Your campaigns and imported PDFs will be replaced.'
+        : 'Your campaigns will be replaced. Your imported PDFs will be kept.';
+      if (!confirm(`Restore this backup? ${effect} Export a backup first.`)) return;
       await restoreBackup(raw);
       state.activeId = null; state.activeEpisodeId = null;
       await refresh(); notify('Backup restored.');

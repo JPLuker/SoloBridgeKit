@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DOCUMENT_ROLES, normalizeDocumentRole, hasCorebook, requiresCorebook, shouldIncludeDocuments } from '../content-policy.mjs';
+import { DOCUMENT_ROLES, normalizeDocumentRole, hasCorebook, requiresCorebook, shouldIncludeDocuments, shouldReplaceDocumentsInRestore } from '../content-policy.mjs';
 
 test('corebook is never assumed from a file name alone', () => {
   const pdf = { name: 'Captain Log.pdf', blob: new Blob(['%PDF-1.7']) };
@@ -27,4 +27,11 @@ test('PDF-inclusive backups require a real opt-in', () => {
   assert.equal(shouldIncludeDocuments({ includeDocuments: false }), false);
   assert.equal(shouldIncludeDocuments({ includeDocuments: true }), true);
   assert.equal(shouldIncludeDocuments({ includeDocuments: 'true' }), false);
+});
+
+test('data-only restore preserves existing local PDF imports', () => {
+  assert.equal(shouldReplaceDocumentsInRestore({ documents: [], includesDocuments: false }), false);
+  assert.equal(shouldReplaceDocumentsInRestore({ documents: [], includesDocuments: true }), true);
+  assert.equal(shouldReplaceDocumentsInRestore({ documents: [{ id: 'old' }] }), true);
+  assert.equal(shouldReplaceDocumentsInRestore({ documents: [] }), false);
 });

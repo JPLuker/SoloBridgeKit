@@ -48,3 +48,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `storage.mjs`: data-only backup by default; optional private PDF export; backward-compatible restore preserves document roles.
 - `scripts/audit-public-bundle.mjs`: reject book/ebook/archive files from public checkout; integrated into `npm run check` and GitHub CI.
 - Still required: human inspection of copyrighted extracts not detectable by file types and user testing of import and backup UI.
+
+## v0.7.1 data safety follow-up
+
+- Data-only backups are marked `includesDocuments: false` and restoring them keeps existing device-local imported PDFs.
+- PDF-inclusive backups replace PDFs; older backups lacking the marker remain backward-compatible.
+- New Library imports default to **Other reference** so classifying a file as **Core rulebook** is a deliberate choice.

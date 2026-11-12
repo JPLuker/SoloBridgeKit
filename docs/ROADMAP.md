@@ -60,3 +60,8 @@
 - The Library allows explicit document-type classification for corebook, supplement, forms and references.
 - Default backups include campaign data only. PDF-inclusive backups require an explicit private-backup checkbox; pre-0.7 backups still restore.
 - Public source audit is part of the required checks. Manual copyright/source review remains necessary before each release.
+
+## v0.7.1 data-safety refinement
+
+- Existing imported PDFs are retained on restore of a data-only backup. PDF-inclusive backups still replace document records.
+- Corebook designation during import is now opt-in, preventing accidentally treating forms or unrelated PDFs as the required corebook.

@@ -1,6 +1,6 @@
 import { DATA_VERSION, validateBundle } from './model.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
-import { normalizeDocumentRole, shouldIncludeDocuments } from './content-policy.mjs';
+import { normalizeDocumentRole, shouldIncludeDocuments, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
@@ -85,7 +85,7 @@ export async function createBackup(options = {}) {
       role: normalizeDocumentRole(doc.role), bookmarks: normalizeBookmarks(doc.bookmarks), base64: bytesToBase64(bytes) });
   }
   return { format: 'solobridgekit', version: DATA_VERSION, createdAt: new Date().toISOString(),
-    campaigns, documents };
+    includesDocuments: shouldIncludeDocuments(options), campaigns, documents };
 }
 
 export async function restoreBackup(raw) {
@@ -95,9 +95,13 @@ export async function restoreBackup(raw) {
   const db = await database();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAMES, 'readwrite');
-    for (const name of STORE_NAMES) tx.objectStore(name).clear();
+    for (const name of STORE_NAMES) {
+      if (name !== 'documents' || shouldReplaceDocumentsInRestore(bundle)) tx.objectStore(name).clear();
+    }
     for (const c of bundle.campaigns) tx.objectStore('campaigns').put(c);
-    for (const d of docs) tx.objectStore('documents').put(d);
+    if (shouldReplaceDocumentsInRestore(bundle)) {
+      for (const d of docs) tx.objectStore('documents').put(d);
+    }
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error ?? new Error('Restore failed.'));
     tx.onabort = () => reject(tx.error ?? new Error('Restore failed.'));
