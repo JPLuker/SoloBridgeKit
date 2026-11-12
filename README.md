@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.15.1
+## Current build: 0.16.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -127,3 +127,7 @@ Run the same check locally with Chrome installed: `npm install --ignore-scripts 
 From **Home**, choose **Export journal** to save your character, starship, crew, missions, scenes, captain's logs and task-roll history as a readable Markdown file. Within an episode, **Export episode** saves just that mission. These exports are separate from full JSON backups and intentionally exclude all imported books, extracted PDF page text, player-curated private tables, class templates and option catalogs. Any content the player personally typed into their own notes is included.
 
 Journals use open, non-proprietary Markdown and contain no externally hosted assets. Keep a JSON campaign backup as well if you need to restore editable game state.
+
+## Download verification (0.16.0)
+
+The headless Chrome CI test now saves and inspects a downloaded single-episode Markdown journal, a full-campaign Markdown journal and a default JSON backup. It checks that exports contain the expected player-created character and episode data, but **never the privately imported PDF, extracted page text, private tables or options**. The default backup must explicitly report `includesDocuments:false` and `documents:[]`. The same browser run then confirms the PWA loads offline.

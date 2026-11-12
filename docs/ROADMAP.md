@@ -164,3 +164,8 @@
 ## 0.15.1 — Save/navigation race fix
 
 - Prevent stale asynchronous saves from redrawing a subsequent page while the user is typing. Strengthen browser smoke timing and input retention assertions.
+
+## 0.16.0 — Export verification
+
+- Add real Chrome download checks for the exported episode/campaign journals and data-only JSON backup. Verify content and absence of privately compiled book text, then offline reload.
+- Next: inspect failed test screenshots, expand private-backup/restore and interrupted-import coverage, and improve device-level UX before a tested release.

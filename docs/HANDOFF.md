@@ -134,3 +134,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs` tracks `navigationVersion`; `persist()` captures it and `refresh(expectedNavigationVersion)` suppresses stale redraws after navigation while still refreshing stored data and campaign state.
 - The v0.15.0 browser smoke failed because the mission title was blank at submission after navigating immediately from an in-flight character save. The failure screenshot showed native required-field validation, no JavaScript exception.
 - Browser smoke now waits for explicit **Campaign created**, **Character saved**, and **Mission started** toasts and checks that the mission title input wasn't cleared. Verify the next CI run before labeling this fixed.
+
+## 0.16.0 — Browser download/content verification
+
+- `scripts/browser-smoke.mjs` uses Chrome DevTools download behavior and inspects the downloaded episode Markdown, campaign Markdown and default campaign-only JSON backup.
+- Asserts exports contain player-authored character/mission data and task records but no imported PDF-derived page text. Default backup must have `includesDocuments:false` and `documents:[]`.
+- This is the first browser-level export verification; tests continue using only a synthetic PDF. A failing browser export/download blocks the CI preview.

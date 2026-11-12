@@ -2,14 +2,16 @@
 // GitHub's Ubuntu runner has Google Chrome installed at /usr/bin/google-chrome.
 import puppeteer from 'puppeteer-core';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { syntheticPdf } from './synthetic-book.mjs';
 
 const origin = 'http://127.0.0.1:4173';
 const output = 'test-output';
+const downloads = join(process.cwd(), output, 'downloads');
 mkdirSync(output, { recursive: true });
+mkdirSync(downloads, { recursive: true });
 const chrome = process.env.CHROME_BIN || '/usr/bin/google-chrome';
 if (!existsSync(chrome)) throw new Error('Chrome is required for browser smoke tests: ' + chrome);
 const server = spawn('python3', ['-m', 'http.server', '4173', '--bind', '127.0.0.1', '--directory', 'dist'], { stdio: 'ignore' });
@@ -38,6 +40,15 @@ async function heading(text) {
 async function waitForSave(message) {
   await page.waitForFunction(label => document.querySelector('#toast')?.textContent?.includes(label), { timeout: 20000 }, message);
 }
+async function waitForDownload(filename, limit = 12000) {
+  const start = Date.now();
+  while (Date.now() - start < limit) {
+    const matches = readdirSync(downloads).filter(name => name === filename && !name.endsWith('.crdownload'));
+    if (matches.length) return readFileSync(join(downloads, filename), 'utf8');
+    await sleep(100);
+  }
+  throw new Error('Expected browser download was not received: ' + filename);
+}
 try {
   await sleep(500);
   browser = await puppeteer.launch({
@@ -47,6 +58,8 @@ try {
       '--no-first-run', '--no-default-browser-check', '--disable-background-networking']
   });
   page = await browser.newPage();
+  const devtools = await page.createCDPSession();
+  await devtools.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads });
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   await page.goto(origin, { waitUntil: 'networkidle0', timeout: 30000 });
@@ -102,13 +115,37 @@ try {
   }));
   check(geometry.document <= geometry.viewport + 4,
     `Desktop layout overflow: ${JSON.stringify(geometry)}`);
+  await clickText('Export episode');
+  const episodeMarkdown = await waitForDownload('synthetic-test-mission-episode.md');
+  check(episodeMarkdown.includes('Synthetic test mission') && episodeMarkdown.includes('Task rolls') && episodeMarkdown.includes('control + command'),
+    'Episode export omitted player-created mission or dice data.');
+  check(!episodeMarkdown.includes('Synthetic sample page lifepath mission'),
+    'Episode export leaked private indexed book content.');
+  await navigate('Home');
+  await heading('Home');
+  await clickText('Export journal');
+  const campaignMarkdown = await waitForDownload('synthetic-test-campaign-journal.md');
+  check(campaignMarkdown.includes('Synthetic Officer') && campaignMarkdown.includes('Synthetic test mission'),
+    'Campaign journal omitted saved character or mission content.');
+  check(!campaignMarkdown.includes('Synthetic sample page lifepath mission'),
+    'Campaign journal leaked private indexed book content.');
+  await navigate('Settings');
+  await heading('Settings');
+  await clickText('Export backup');
+  const backupName = 'solobridgekit-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  const backup = JSON.parse(await waitForDownload(backupName));
+  check(backup.includesDocuments === false && backup.documents.length === 0,
+    'Default campaign backup must exclude imported books and private compiled data.');
+  check(backup.campaigns.some(c => c.title === 'Synthetic test campaign'),
+    'Backup did not contain the campaign.');
+  await navigate('Home');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload({ waitUntil: 'networkidle0' });
   await page.setOfflineMode(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic test campaign'), { timeout: 15000 });
   check(errors.length === 0, 'Browser runtime errors: ' + errors.join(' | '));
-  console.log('Browser smoke passed: import, prepared search, campaign, character, mission, task roll, offline reload.');
+  console.log('Browser smoke passed: import, prepared search, campaign, character, mission, task roll, Markdown downloads, data-only backup and offline reload.');
 } catch (error) {
   console.error('Browser smoke failed:', error);
   if (page) {

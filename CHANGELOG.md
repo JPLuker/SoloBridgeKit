@@ -1,3 +1,11 @@
+## [0.16.0] - 2026-11-12
+### Tests
+- Headless Chrome now exercises actual Markdown episode/campaign downloads and default JSON backup exports.
+- CI inspects downloaded content and rejects accidental private book-text inclusion.
+- Default backup is verified to omit PDF-derived data while retaining the player's campaign.
+### Quality
+- Original import, gameplay and offline browser smoke checks remain required.
+
 ## [0.15.1] - 2026-11-12
 ### Fixed
 - An earlier campaign save cannot asynchronously redraw a different page and erase text being typed.
