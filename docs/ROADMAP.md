@@ -93,3 +93,15 @@
 2. Interactive rule and random-table tools driven exclusively by that private local data.
 3. Validate PDF.js parsing and real-browser flows on Android/desktop, particularly storage quota and offline installation.
 4. Move toward automated section extraction using source-driven parsing with confirmation for ambiguous data.
+
+## 0.10.0 — Private, source-dependent random tables
+
+- Use source-book text stored only in the user's IndexedDB to propose numbered table rows; require correction and confirmation before storing playable tables.
+- Each private table is tied to its source PDF SHA-256, has contiguous non-overlapping numerical ranges, and can be rolled without copying publisher text to mission logs.
+- Private tables are kept with document records and included only in explicitly requested PDF-inclusive backups; no table material is shipped publicly.
+
+### Next developer tasks
+1. In-app structured option extraction and verification for lifepath and ships, with source/page provenance and manual review of ambiguous options.
+2. Improve input validation, 2026-edition source compatibility, multi-book references and compile progress/error recovery.
+3. Integrate selected private source options directly into character/ship builders and mission workspace.
+4. Browser and Android testing of the actual parser, private tables, backup/restore and offline behavior.

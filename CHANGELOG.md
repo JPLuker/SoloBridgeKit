@@ -1,3 +1,12 @@
+## [0.10.0] - 2026-11-12
+### Added
+- Local, source-page-linked private random-table creator from the user's prepared PDF.
+- Editable numbered entries with ranges, gap/overlap validation and cryptographically unbiased rolls.
+- Optional mission roll references that do not copy publisher table prose into campaign logs.
+- Private table persistence tied to source PDF fingerprints and opt-in private backups.
+### Security
+- No table content bundled in the repository or public application artifact.
+
 ## [0.9.0] - 2026-11-12
 ### Added
 - One-file local PDF preparation from the Library, with per-page progress and cancellation.

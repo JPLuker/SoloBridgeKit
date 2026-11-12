@@ -1,11 +1,11 @@
 {
   "name": "solobridgekit",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check app.mjs && node --check storage.mjs && node --check model.mjs && node --check lifepath.mjs && node --check missions.mjs && node --check resources.mjs && node --check shipbuilder.mjs && node --check bookmarks.mjs && node --check rollhistory.mjs && node --check sw.js && node --check content-policy.mjs && node --check scripts/audit-public-bundle.mjs && node scripts/audit-public-bundle.mjs && node --check book-data.mjs && node --check scripts/prepare-corebook.mjs && node --check browser-compiler.mjs && node --check scripts/build-static.mjs && node --check scripts/audit-dist.mjs",
+    "check": "node --check app.mjs && node --check storage.mjs && node --check model.mjs && node --check lifepath.mjs && node --check missions.mjs && node --check resources.mjs && node --check shipbuilder.mjs && node --check bookmarks.mjs && node --check rollhistory.mjs && node --check sw.js && node --check content-policy.mjs && node --check scripts/audit-public-bundle.mjs && node scripts/audit-public-bundle.mjs && node --check book-data.mjs && node --check scripts/prepare-corebook.mjs && node --check browser-compiler.mjs && node --check scripts/build-static.mjs && node --check scripts/audit-dist.mjs && node --check private-tables.mjs",
     "start": "npm run build && python3 -m http.server 4173 --directory dist",
     "prepare:corebook": "node scripts/prepare-corebook.mjs",
     "build": "node scripts/build-static.mjs",

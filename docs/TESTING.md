@@ -61,3 +61,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] With cached PWA disconnected from internet, prepare a new private PDF and search it.
 - [ ] On Android Chrome and desktop Chromium/Firefox, verify PDF worker, scroll, extraction, native reader, 200% zoom and safe areas.
 - [ ] `npm run build && npm run audit:dist` completes; archive/manifest contain no private PDFs or exported game-data indexes.
+
+## 0.10.0 user smoke testing (private table system)
+
+- [ ] From a prepared book, choose a page with a numbered table, click **Find rows on page**, and inspect candidate numbering and text.
+- [ ] Repair a deliberately imperfect extraction, save a table with 1–6 contiguous ranges, and verify it persists after a reload.
+- [ ] Roll the table multiple times. Confirm the displayed entry corresponds to the rolled number and source page.
+- [ ] With an active mission, record a table roll; the mission log must contain only title/page/number, not publisher table text.
+- [ ] Export a campaign-only backup: no private tables or indexed page text. Opt in to private PDF backup: table data is included and restores with the matching PDF.
+- [ ] Try duplicate or overlapping ranges, missing values, and wrong-book table data; all must fail without writing data.

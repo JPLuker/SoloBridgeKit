@@ -76,3 +76,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/audit-dist.mjs`: output whitelist, forbid unexpected PDFs and documents, require PDF.js files; CI uploads clearly UNTESTED preview.
 - Source checkout does not contain runtime node dependencies; run `npm install --ignore-scripts --no-audit --no-fund && npm run check && npm test && npm run build && npm run audit:dist`.
 - Real browser/Android validation is still pending; do not call this a tested release.
+
+## 0.10.0 — Private table compilation
+
+- `private-tables.mjs` provides private candidate detection, user-reviewed range parsing, deterministic validation, secure roll selection and table lifecycle methods.
+- `app.mjs:renderPrivateTables()` appears under Library once a privately prepared book is available. Players select a PDF source page, review candidate rows, save a private table and roll it. Mission log references contain page and roll number, not publisher result prose.
+- `storage.mjs` and `model.mjs` validate table data and include it only in opt-in private PDF backups, not campaign-only JSON backups.
+- `scripts/build-static.mjs`, `scripts/audit-dist.mjs`, `sw.js`, CI, README and source checks updated for the extra code module. The runtime bundle still contains no book data.
+- Need actual browser testing and more robust source-table recognition before automating complex publisher table layouts.

@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.9.0
+## Current build: 0.10.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -91,3 +91,9 @@ The generated rules index is only created and stored by the user. Campaign-only 
 Run `npm install --ignore-scripts --no-audit --no-fund && npm run build && npm run audit:dist`. This creates the complete static, offline-capable site in `dist/`, including local open-source PDF.js and fonts/character maps. No user's books or extracted rulebook indexes enter this directory. `npm start` serves the generated build at `http://localhost:4173`.
 
 GitHub Actions checks the code and uploads a clearly labeled **UNTESTED** `dist/` preview artifact. Do not call that artifact a tested release until the exact build has run on actual browser devices.
+
+## Private random tables (0.10.0)
+
+A prepared corebook now powers **Private random tables** within Library. Choose a source page and use **Find rows on page** to propose numbered entries extracted from your own PDF. Review, edit and confirm every row before saving. You can also enter ranges manually (such as `1-2 | your result`, `3 | your result`). Table rolls use locally generated unbiased randomness; results can be referred to by page and roll number inside a mission.
+
+No publisher table text is included in the public app. The owner-created table collection belongs to the imported book's SHA-256 fingerprint and stays locally inside that document record. It is included only with an explicitly chosen private PDF backup, not a default campaign-only export. Table parsing is deliberately conservative and requires review; ambiguous typesetting is not treated as an accurate completed table.

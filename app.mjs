@@ -10,6 +10,7 @@ import { createTaskRecord, appendTaskRecord, rerollTaskRecord, deleteTaskRecord 
 import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
+import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -931,8 +932,97 @@ function renderLibrary() {
       } catch (error) { failure(error); }
     });
     searchCard.append(form, results);
-    root.append(searchCard);
+    root.append(searchCard, renderPrivateTables(readyBook));
   }
+  return root;
+}
+
+function renderPrivateTables(book) {
+  const sourceSha = book.bookPack.sourceSha256;
+  const tables = normalizePrivateTables(book.tables, sourceSha);
+  const root = card([el('h2', { text: 'Private random tables' })]);
+  const form = el('form', { class: 'form-stack' }, [
+    el('div', { class: 'field-grid' }, [
+      field('Table title', 'title', '', { required: true }),
+      field('Source PDF page', 'page', '1', { number: true, required: true })
+    ]),
+    field('Entries (one per line: 1 | result)', 'rows', '', { multiline: true }),
+    el('div', { class: 'actions' }, [
+      button('Find rows on page', () => {
+        try {
+          const page = Number(form.querySelector('[name=page]').value);
+          const found = suggestRowsFromPage(book.bookPack, page);
+          if (found.length < 2) throw new Error('No usable numbered rows detected. Enter table rows manually.');
+          form.querySelector('[name=rows]').value = formatCandidateRows(found);
+          notify('Review the extracted rows and numbering before saving.');
+        } catch (error) { failure(error); }
+      }, 'secondary'),
+      el('button', { type: 'submit', class: 'button primary', text: 'Save private table' })
+    ])
+  ]);
+  form.querySelector('[name=page]').max = String(book.bookPack.pageCount);
+  form.querySelector('[name=rows]').rows = 6;
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    try {
+      const fields = new FormData(form);
+      const latest = await get('documents', book.id);
+      if (!latest?.bookPack || latest.bookPack.sourceSha256 !== sourceSha)
+        throw new Error('Prepared source book is unavailable.');
+      const table = makePrivateTable({ title: fields.get('title'), page: fields.get('page'),
+        rows: fields.get('rows'), sourceSha256: sourceSha });
+      if (table.page > latest.bookPack.pageCount) throw new Error('PDF page is outside this book.');
+      latest.tables = addPrivateTable(latest.tables, table, sourceSha);
+      await put('documents', latest);
+      await refresh();
+      notify('Private table saved.');
+    } catch (error) { failure(error); }
+  });
+  root.append(el('p', { class: 'hint', text: 'Table entries come only from your locally imported book. Extracted candidates must be checked before saving.' }), form);
+  if (!tables.length) return root;
+  const list = el('div', { class: 'document-list' });
+  for (const table of tables) {
+    const result = el('div', { class: 'results', 'aria-live': 'polite' });
+    const controls = el('div', { class: 'actions' }, [
+      button('Roll', () => {
+        try {
+          const rolled = rollPrivateTable(table);
+          result.replaceChildren(line('Roll', `${rolled.value} / ${table.sides}`),
+            el('p', { text: rolled.entry.text }));
+          const campaign = state.campaign;
+          const episode = campaign?.episodes.find(e => e.id === state.activeEpisodeId) ||
+            campaign?.episodes.find(e => e.status === 'active');
+          if (episode) {
+            result.append(button('Record roll in mission', async () => {
+              try {
+                // Save only the page reference and roll number, not publisher table prose.
+                episode.entries.push(createEntry(`Private table: ${table.title}, PDF page ${table.page}, roll ${rolled.value}`));
+                await persist();
+                notify('Reference recorded in mission log.');
+              } catch (error) { failure(error); }
+            }, 'secondary'));
+          }
+        } catch (error) { failure(error); }
+      }),
+      button('Open source page', () => openPdf(book, table.page).catch(failure), 'secondary'),
+      button('Remove', async () => {
+        if (!confirm(`Remove private table "${table.title}"? Your PDF is unaffected.`)) return;
+        try {
+          const latest = await get('documents', book.id);
+          if (!latest) throw new Error('Document not found.');
+          latest.tables = removePrivateTable(latest.tables, table.id, sourceSha);
+          await put('documents', latest);
+          await refresh();
+        } catch (error) { failure(error); }
+      }, 'danger subtle')
+    ]);
+    list.append(el('div', { class: 'document-item' }, [
+      el('strong', { text: table.title }),
+      el('p', { class: 'hint', text: `PDF page ${table.page} · d${table.sides} · ${table.entries.length} rows` }),
+      controls, result
+    ]));
+  }
+  root.append(list);
   return root;
 }
 let pdfUrl;
@@ -1185,7 +1275,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.9.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.10.0' })]));
   return root;
 }
 

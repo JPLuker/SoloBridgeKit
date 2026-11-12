@@ -2,6 +2,7 @@ import { DATA_VERSION, validateBundle } from './model.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeDocumentRole, shouldIncludeDocuments, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 import { validateBookPack, verifyPreparedBook } from './book-data.mjs';
+import { normalizePrivateTables } from './private-tables.mjs';
 
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
@@ -84,7 +85,8 @@ export async function createBackup(options = {}) {
     const bytes = new Uint8Array(await doc.blob.arrayBuffer());
     documents.push({ id: doc.id, name: doc.name, size: doc.size, importedAt: doc.importedAt,
       role: normalizeDocumentRole(doc.role), bookmarks: normalizeBookmarks(doc.bookmarks),
-      ...(doc.bookPack ? { bookPack: validateBookPack(doc.bookPack) } : {}), base64: bytesToBase64(bytes) });
+      ...(doc.bookPack ? { bookPack: validateBookPack(doc.bookPack),
+        tables: normalizePrivateTables(doc.tables, doc.bookPack.sourceSha256) } : {}), base64: bytesToBase64(bytes) });
   }
   return { format: 'solobridgekit', version: DATA_VERSION, createdAt: new Date().toISOString(),
     includesDocuments: shouldIncludeDocuments(options), campaigns, documents };
@@ -94,7 +96,8 @@ export async function restoreBackup(raw) {
   const bundle = validateBundle(raw);
   const docs = bundle.documents.map(d => ({ id: d.id, name: d.name, size: d.size,
     importedAt: d.importedAt, role: normalizeDocumentRole(d.role), bookmarks: normalizeBookmarks(d.bookmarks),
-    ...(d.bookPack ? { bookPack: validateBookPack(d.bookPack) } : {}),
+    ...(d.bookPack ? { bookPack: validateBookPack(d.bookPack),
+      tables: normalizePrivateTables(d.tables, d.bookPack.sourceSha256) } : {}),
     blob: new Blob([base64ToBytes(d.base64)], { type: 'application/pdf' }) }));
   // Validate every private index against its restored PDF before replacing any local records.
   for (const doc of docs) {

@@ -3,6 +3,7 @@ import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeTaskHistory } from './rollhistory.mjs';
 import { normalizeDocumentRole } from './content-policy.mjs';
 import { validateBookPack } from './book-data.mjs';
+import { normalizePrivateTables } from './private-tables.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -168,7 +169,8 @@ export function validateBundle(bundle) {
     }
     normalizeBookmarks(d.bookmarks);
     normalizeDocumentRole(d.role);
-    if (d.bookPack) validateBookPack(d.bookPack);
+    if (d.bookPack) { validateBookPack(d.bookPack); normalizePrivateTables(d.tables, d.bookPack.sourceSha256); }
+    else if (d.tables != null && d.tables.length) throw new Error('Private tables require a prepared corebook.');
     docIds.add(d.id);
   }
   return bundle;
