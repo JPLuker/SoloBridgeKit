@@ -107,3 +107,8 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 
 - [ ] At 390px, the three scene-count fields and **Set scenes** control remain within the mission card.
 - [ ] Browser smoke verifies document width at 390px and saves screenshots for inspection.
+
+## 0.14.2 browser startup
+
+- [ ] Headless Chrome launches reliably on ubuntu-latest, completes import and phone overflow assertion, then uploads screenshots.
+- [ ] If startup fails again, inspect Chrome stderr and runner health before changing app code.

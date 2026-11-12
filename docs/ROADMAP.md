@@ -145,3 +145,7 @@
 ## 0.14.1 — Mobile overflow fix
 
 - Browser screenshot issue: three scene-count fields exceeded the phone viewport. Fixed width constraints and added CI assertion for 390px horizontal overflow.
+
+## 0.14.2 — CI browser start resilience
+
+- Adjusted headless Chrome launch transport and timeout to address an intermittent hosted-runner startup failure. The 390px overflow regression remains gated by the browser smoke step.

@@ -1,3 +1,9 @@
+## [0.14.2] - 2026-11-12
+### Fixed
+- Browser smoke launches Chrome with a DevTools pipe, a longer startup limit and diagnostic output to reduce hosted-runner startup failures.
+### Tests
+- Phone viewport overflow still must pass an actual browser run before the v0.14.1 layout fix can be marked verified.
+
 ## [0.14.1] - 2026-11-12
 ### Fixed
 - Scene-count inputs no longer force the mission screen wider than a phone.

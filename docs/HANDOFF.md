@@ -117,3 +117,7 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 
 - The first v0.14.0 browser screenshots revealed the mission screen's document width expanded to 475px on a 390px viewport. `.inline-form input` imposed 220px minimum width on three scene-plan inputs.
 - `styles.css` now constrains the inputs to their grid cells. `scripts/browser-smoke.mjs` checks mobile horizontal overflow before desktop tests.
+
+## 0.14.2 — Browser launcher reliability
+
+- v0.14.1 browser smoke failed during Chrome startup, before any page or UI assertion. `scripts/browser-smoke.mjs` now uses `pipe:true`, 90-second launch timeout and diagnostic stderr. Re-check the next GitHub Actions run to confirm browser reaches the synthetic PDF flow.

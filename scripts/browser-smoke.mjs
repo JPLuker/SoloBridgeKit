@@ -38,8 +38,10 @@ async function heading(text) {
 try {
   await sleep(500);
   browser = await puppeteer.launch({
-    executablePath: chrome, headless: true,
-    args: ['--no-sandbox', '--disable-dev-shm-usage']
+    executablePath: chrome, headless: true, pipe: true,
+    timeout: 90000, dumpio: true,
+    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+      '--no-first-run', '--no-default-browser-check', '--disable-background-networking']
   });
   page = await browser.newPage();
   page.on('pageerror', error => errors.push(error.message));
