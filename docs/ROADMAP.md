@@ -160,3 +160,7 @@
 1. Expand browser smoke to exercise journal downloads, storage reload and UI controls on narrow screens.
 2. Strengthen multi-document backup safety, large PDF quota failures, interrupted import, recovery and overwrite protections.
 3. Continue source-linked progression and character/ship advancement after source-mechanics verification.
+
+## 0.15.1 — Save/navigation race fix
+
+- Prevent stale asynchronous saves from redrawing a subsequent page while the user is typing. Strengthen browser smoke timing and input retention assertions.

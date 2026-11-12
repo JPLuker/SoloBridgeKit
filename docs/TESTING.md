@@ -120,3 +120,8 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Check exported Markdown contains no full PDFs, private page text, table entries or private compiled options. User-authored narrative is expected.
 - [ ] Filenames are safe; generated journals open in standard Markdown/text editors.
 - [ ] Keep JSON backups as the supported editable restore format.
+
+## 0.15.1 save/navigation regression
+
+- [ ] Save a character, immediately switch to Captain's Log, enter a mission title, and confirm the field is never cleared by the completed save.
+- [ ] Browser smoke confirms completion messages and mission title retention before starting the mission.

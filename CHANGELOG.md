@@ -1,3 +1,9 @@
+## [0.15.1] - 2026-11-12
+### Fixed
+- An earlier campaign save cannot asynchronously redraw a different page and erase text being typed.
+### Tests
+- Browser smoke now waits for the campaign and character saves to finish before switching screens, and confirms the mission title field retains its input.
+
 ## [0.15.0] - 2026-11-12
 ### Added
 - Export complete campaigns or individual episodes to portable Markdown.

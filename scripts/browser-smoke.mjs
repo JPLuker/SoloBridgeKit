@@ -35,6 +35,9 @@ async function clickText(text) {
 async function heading(text) {
   await page.waitForFunction(label => document.querySelector('#content h1')?.textContent.trim() === label, {}, text);
 }
+async function waitForSave(message) {
+  await page.waitForFunction(label => document.querySelector('#toast')?.textContent?.includes(label), { timeout: 20000 }, message);
+}
 try {
   await sleep(500);
   browser = await puppeteer.launch({
@@ -68,6 +71,7 @@ try {
   await heading('Home');
   await page.type('input[placeholder="New campaign name"]', 'Synthetic test campaign');
   await clickText('Create campaign');
+  await waitForSave('Campaign created.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic test campaign'));
   await navigate('Character');
   await heading('Character');
@@ -75,10 +79,13 @@ try {
   await page.type('input[name=attribute_control]', '10');
   await page.type('input[name=discipline_command]', '3');
   await clickText('Save character');
+  await waitForSave('Character saved.');
   await navigate("Captain's log");
   await heading("Captain's log");
   await page.type('input[placeholder="New mission title"]', 'Synthetic test mission');
+  check(await page.$eval('input[placeholder="New mission title"]', x => x.value) === 'Synthetic test mission', 'Mission input was unexpectedly cleared.');
   await clickText('Start mission');
+  await waitForSave('Mission started.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Scene actions'), { timeout: 10000 });
   await clickText('Roll task');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20:'), { timeout: 20000 });

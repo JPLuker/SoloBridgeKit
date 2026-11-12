@@ -22,7 +22,7 @@ const PAGES = [
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
-  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false };
+  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false, navigationVersion: 0 };
 const $ = selector => document.querySelector(selector);
 const content = $('#content');
 
@@ -88,7 +88,7 @@ function download(name, contents, type) {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-async function refresh() {
+async function refresh(expectedNavigationVersion = null) {
   state.campaigns = (await all('campaigns')).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   state.documents = await all('documents');
   state.campaign = state.campaigns.find(c => c.id === state.activeId) || null;
@@ -98,16 +98,19 @@ async function refresh() {
   }
   if (state.campaign) state.campaign = normalizeCampaign(state.campaign);
   $('#campaign-label').textContent = state.campaign?.title || 'None selected';
-  render();
+  // A save from another page must not redraw and erase inputs on the current page.
+  if (expectedNavigationVersion === null || expectedNavigationVersion === state.navigationVersion) render();
 }
 async function persist() {
   if (!state.campaign) return;
+  const navigationAtSave = state.navigationVersion;
   $('#save-status').textContent = 'Saving…';
   await saveCampaign(state.campaign);
   $('#save-status').textContent = 'Saved locally';
-  await refresh();
+  await refresh(navigationAtSave);
 }
 function go(page) {
+  state.navigationVersion++;
   state.page = page;
   render();
   content.focus({ preventScroll: true });
@@ -1527,7 +1530,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.15.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.15.1' })]));
   return root;
 }
 

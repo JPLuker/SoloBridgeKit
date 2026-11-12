@@ -128,3 +128,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs`: **Export journal** on Home campaign overview; **Export episode** next to selected mission status. Both download `.md` content without source documents.
 - `tests/campaign-export.test.mjs`: verifies user-authored fields, safe filenames, and omission of private book data.
 - Added module to service worker offline assets, distributable allowlist/build, syntax checks, documentation. Browser export/download remains to be exercised in a follow-up smoke test.
+
+## 0.15.1 — Save/navigation race protection
+
+- `app.mjs` tracks `navigationVersion`; `persist()` captures it and `refresh(expectedNavigationVersion)` suppresses stale redraws after navigation while still refreshing stored data and campaign state.
+- The v0.15.0 browser smoke failed because the mission title was blank at submission after navigating immediately from an in-flight character save. The failure screenshot showed native required-field validation, no JavaScript exception.
+- Browser smoke now waits for explicit **Campaign created**, **Character saved**, and **Mission started** toasts and checks that the mission title input wasn't cleared. Verify the next CI run before labeling this fixed.
