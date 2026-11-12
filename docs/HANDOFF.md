@@ -1,44 +1,39 @@
 # Handoff
 
-## What this is
+## Project
 
-SoloBridgeKit is an independent, offline-first digital solo RPG companion, intended to reach the convenience of D&D Beyond for Star Trek Adventures: Captain's Log. Current scope includes a private, user-imported PDF library and campaign data.
+SoloBridgeKit is an unofficial D&D Beyond-style, offline-first companion for the owner's purchased 2026 *Star Trek Adventures: Captain's Log* books. The application cannot contain or publish the commercial PDFs, full table contents, or publisher artwork.
 
-## Hard rules
+## Firm rules
 
-No copyrighted book content in public repo; no unverified mechanics; no AI-authored story or art; local-first privacy. Refer to `AGENTS.md` and InternalDesignGuidelines.
+Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-first, no AI-generated art or narrative, copyright separation and proof before claims. Do not apply an unapproved visual restyle.
 
-## Where we are
+## Current state — 0.3.0
 
-**0.2.0 scaffold**: dependency-free PWA with IndexedDB in `storage.mjs`, data model and unbiased raw die rolls in `model.mjs`, UI in `app.mjs`, styling in `styles.css`, offline shell worker in `sw.js`, and tests in `tests/model.test.mjs`.
+- `app.mjs`: `renderLifepath()` for the seven-step wizard (career events have separate pages), `renderSceneTracker()` for per-act scene planning, `renderDice()` for source-grounded task rolls, reroll and Momentum/Threat controls. Source jumps call `openPdf(document, page)`.
+- `lifepath.mjs`: `LIFEPATH_STEPS`, `createLifepath()`, `normalizeLifepath()`, `validateLifepathStep()`, `lifepathReview()`, `applyLifepathToCharacter()`; source corebook PDF pp. 97–98, 109, 113, 121, 128–129, 135.
+- `missions.mjs`: `createMissionScenes()`, `normalizeMissionScenes()`, `updateScenePlan()`, `toggleMissionScene()`; source corebook PDF pp. 191–193. Old missions with only `tracker` are migrated.
+- `resources.mjs`: `taskDifficulty()`, `applyTaskOutcome()`, `spendMomentum()`, `spendThreat()`; source corebook PDF pp. 198–200.
+- `model.mjs`: source-form fields, campaign/mission creation, task resolution and backup validation. `storage.mjs`: IndexedDB with transaction-complete reads/writes and atomic multi-store backup restore.
+- Offline shell cache updated to v0.3.0 and includes all the new module files.
+- `npm run check && npm test` passes **38 tests** locally (source edition: 2026). No GitHub Issues were open at the start of this session.
 
-The user has supplied a ZIP containing the entire searchable 336-page 2026 corebook, a 19-page supplemental and both blank forms. The book stays PRIVATE; none of its bytes or copyrighted tables belong in the public repository. Core task resolution implemented and unit tested based on Rules of Play (PDF pages 194, 198–200), Focuses (PDF p. 203). The app still requires a user-imported PDF to read the source and has not implemented lifepath, table contents or complete combat.
+## Known limits
 
-## Next work that does not need PDFs
+- The lifepath builder validates allocation patterns, final 56/16 totals, four values/six focuses and the one-at-12/one-at-5 caps. It does *not* automate every option-dependent restriction, species or career event. The UI clearly directs the player to their imported book.
+- Ship creation is still a manual sheet. No integrated PDF text search or licensed tables.
+- Visual/browser interaction is not verified: local Chromium navigation returns `ERR_BLOCKED_BY_ADMINISTRATOR` under this environment, including localhost. CI unit tests are not a substitute for device tests.
+- Browser-specific quota behavior, real PDF rendering and offline upgrades need further verification.
+- Code license, visual identity, and optional self-hosted sync remain user decisions. None has been assumed.
 
-Improve backup integrity checks, storage quota handling, UI interactions and tests; add local PDF file management and safe import deduplication; expand responsive E2E test coverage.
+## Next tasks, developer first
 
-## Source-verified work remaining
+1. Gain approved browser smoke/visual tests; inspect all pages on 390px and desktop widths, run a11y measurements and resolve actual failures.
+2. Finish lifepath option restrictions and source-linked guidance without bundling copyrighted tables.
+3. Ship-builder and crew management, then advancement, then PDF search.
+4. Confirm real browser IndexedDB backups and interrupted restore; add undo where needed.
 
-- Implement and validate the seven-step lifepath against the 2026 corebook (starts PDF p. 97).
-- Model starship creation (PDF pp. 145–185) and combat (PDF pp. 205–222).
-- Expand the three-act scene tracker to user-configurable scene counts and outcomes (PDF pp. 191–193).
-- Use user-imported private PDFs for references and table lookups. Never ship copyrighted text/tables.
+## User inputs later
 
-## User decisions needed later
-
-Visual identity (LCARS influence versus neutral layout); code license; whether to add opt-in self-hosted sync. No immediate decision required for the foundation.
-
-## 2026-11-11 initial update
-
-- Received privately: Captain\'s Log blank forms v1.1 and fillable v1.2. Both 3 pages. At that time, the corebook upload was failing; the later ZIP resolved it.
-- Added all identifiable character/ship fields, manual ratings, episode log sections, values markers and 0–15 mission tracker, without filling in unknown rules.
-- `npm run check` and 8 model tests pass. Chromium UI preview is **blocked by local browser policy**, not verified. Do not claim real device testing.
-- Superseded by later source-verification work below.
-
-## 2026-11-11, later update: ZIP corebook received
-
-- Archive verified: 336-page corebook, 19-page supplemental, both forms. Full ZIP integrity passed; 329 corebook pages have selectable text.
-- Implemented `resolveTask` for two d20, Attribute + Discipline target, 1/2 successes, focus advantage, Momentum and Threat. Scene progression remains player-controlled.
-- Added persistent mission Momentum/Threat flags and task-roll UI. No copyrighted table results bundled.
-- Unit coverage extended from 8 to 15 tests. Browser UI not verified on physical hardware.
+- Visual identity approval, code license, and whether optional self-hosted synchronization is desired.
+- One focused test pass per milestone when a real build is available; avoid repeated test requests.

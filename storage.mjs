@@ -4,12 +4,6 @@ const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
 let dbPromise;
 
-function requestPromise(request) {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Storage operation failed.'));
-  });
-}
 
 export function database() {
   if (!dbPromise) {
@@ -32,9 +26,15 @@ export function database() {
 
 async function run(store, mode, action) {
   const db = await database();
-  const transaction = db.transaction(store, mode);
-  const objectStore = transaction.objectStore(store);
-  return requestPromise(action(objectStore));
+  return new Promise((resolve, reject) => {
+    let result;
+    const transaction = db.transaction(store, mode);
+    const request = action(transaction.objectStore(store));
+    request.onsuccess = () => { result = request.result; };
+    transaction.oncomplete = () => resolve(result);
+    transaction.onerror = () => reject(transaction.error ?? new Error('Storage operation failed.'));
+    transaction.onabort = () => reject(transaction.error ?? new Error('Storage operation aborted.'));
+  });
 }
 
 export const all = store => run(store, 'readonly', objectStore => objectStore.getAll());

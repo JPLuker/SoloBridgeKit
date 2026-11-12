@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] — 2026-11-12
+
+- Added a saved, source-linked seven-step character lifepath with point allocation, finishing caps and explicit sheet application.
+- Added individually tracked scenes, per-act scene count choices, saved scene notes and legacy tracker migration.
+- Added Momentum and Threat spending, one-die task reroll and next-task increased difficulty.
+- Hardened IndexedDB transaction completion and PDF backup validation.
+- Expanded the model tests from 15 to 38.
+
 ## [0.2.0] — 2026-11-11
 
 - Read the privately supplied 2026 edition and supplemental ZIP.
@@ -7,9 +15,7 @@
 - Track Momentum and Threat with each mission.
 - Added rule tests and updated documentation.
 
-# Changelog
-
-## 0.1.0 — 2026-11-11
+## [0.1.0] — 2026-11-11
 
 - Added a local-first companion for campaigns, character and starship records, missions and logs.
 - Added a PDF library and native reader, with private local storage.

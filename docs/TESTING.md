@@ -1,24 +1,24 @@
 # Testing
 
-## Automated baseline
+## Local automated results — v0.3.0
 
-Run `npm run check && npm test`. Eight model tests now cover campaign and mission construction, source-form fields, sparse-save compatibility, manual tracking, raw dice boundaries and backup schema checks.
+Run `npm run check && npm test`. Results: 38/38 unit tests passed, JavaScript syntax checks passed. The tests cover source-form models, 2d20 task resolution, valid/invalid lifepath allocations, final caps/totals, legacy scene tracker migration, scene count editing and loss prevention, Momentum/Threat resource transitions, basic backup schema checks and raw dice bounds.
 
-## User-facing smoke test (current build)
+## Focused user smoke test (once the browser UI can be tested)
 
-1. Create a campaign, then switch tabs and return.
-2. Save a character and starship, refresh browser, verify persistence.
-3. Start a mission, add an entry, refresh and confirm it remains.
-4. Roll 2d20, confirm two individual die results and total.
-5. Import a real PDF and open it in Library.
-6. Export everything, restore it and verify campaigns and PDF remain available.
+1. Create a campaign and refresh; verify it remains.
+2. Open Guided lifepath; save an incomplete step, switch tabs and return.
+3. Complete seven steps (including two career events), apply, and confirm 56/16 totals on character sheet.
+4. Create a mission; change Act One scene count, complete a scene and add notes.
+5. Refresh, reopen the scene and verify that notes/completion persist.
+6. Roll a task; spend Momentum/Threat and test one reroll when available.
+7. Import a purchased PDF; open it at a lifepath source-page link.
+8. Export a backup, restore it and verify the campaign and imported PDF.
+9. Test without network after first load; verify offline shell runs.
 
-## Not tested yet
+## Not yet verified
 
-- Real-device Android or iOS browser.
-- Large commercial rulebook PDFs and browser quota failures.
-- Cross-browser native PDF reader reliability.
-- Offline mode on a real device after service worker install.
-- User playtest against rulebook rules (no mechanics implemented yet).
-
-- Browser UI rendering could not be completed in this environment: Chromium navigation returned ERR_BLOCKED_BY_ADMINISTRATOR for localhost, file and routed URLs. This is an environment limitation, not evidence that the UI works. Real browser smoke test required before a release.
+- Browser UI rendering and click-through: Chromium reports `ERR_BLOCKED_BY_ADMINISTRATOR` for localhost/file/routed URLs in this execution environment, not proof the app works.
+- Android hardware and narrow-screen overflow, native PDF page navigation, large commercial PDF quota failures and interrupted IndexedDB transactions.
+- Accuracy of all option-specific lifepath bonuses for non-default species/upbringing/career events, ship rules, progression and combat; those features are not automated.
+- Accessibility measurements and E2E tests in a supported browser are still required for a release.

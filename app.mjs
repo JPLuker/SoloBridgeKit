@@ -1,6 +1,9 @@
 import { createCampaign, createEpisode, createEntry, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
 import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database } from './storage.mjs';
+import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
+import { updateScenePlan, toggleMissionScene } from './missions.mjs';
+import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'],
@@ -8,7 +11,7 @@ const PAGES = [
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
-  activeEpisodeId: null, roll: null, taskRoll: null, busy: false };
+  activeEpisodeId: null, activeScene: null, lifepathIndex: 0, roll: null, taskRoll: null, taskMeta: null, busy: false };
 const $ = selector => document.querySelector(selector);
 const content = $('#content');
 
@@ -102,7 +105,7 @@ function go(page) {
 function navigation() {
   const makeButton = ([id, label]) => {
     const item = button(label, () => go(id), 'nav-button');
-    if (state.page === id || (id === 'more' && ['more', 'starship', 'dice', 'settings'].includes(state.page))) {
+    if (state.page === id || (state.page === 'lifepath' && id === 'character') || (id === 'more' && ['more', 'starship', 'dice', 'settings'].includes(state.page))) {
       item.classList.add('active');
       item.setAttribute('aria-current', 'page');
     }
@@ -116,7 +119,7 @@ function campaignRequired() {
 }
 function render() {
   navigation();
-  const views = { home: renderHome, character: renderCharacter, starship: renderStarship,
+  const views = { home: renderHome, character: renderCharacter, lifepath: renderLifepath, starship: renderStarship,
     log: renderLog, library: renderLibrary, dice: renderDice, settings: renderSettings, more: renderMore };
   content.replaceChildren(views[state.page]());
 }
@@ -130,7 +133,7 @@ function renderHome() {
     if (state.activeId === c.id) option.selected = true;
     select.append(option);
   }
-  select.addEventListener('change', () => { state.activeId = select.value; state.activeEpisodeId = null; refresh().catch(failure); });
+  select.addEventListener('change', () => { state.activeId = select.value; state.activeEpisodeId = null; state.taskRoll = null; state.taskMeta = null; refresh().catch(failure); });
   const createForm = el('form', { class: 'inline-form' });
   const input = el('input', { name: 'title', placeholder: 'New campaign name', maxlength: '100', required: '' });
   createForm.append(input, el('button', { class: 'button primary', type: 'submit', text: 'Create campaign' }));
@@ -176,6 +179,7 @@ function flatValues(values, names) {
 function renderCharacter() {
   const root = el('div', { class: 'page' });
   root.append(title('Character'));
+  if (state.campaign) root.append(el('div', { class: 'actions' }, [button('Guided lifepath', () => go('lifepath'), 'secondary')]));
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const c = state.campaign.character;
   const form = el('form', { class: 'form-stack' });
@@ -220,6 +224,125 @@ function renderCharacter() {
   root.append(form);
   return root;
 }
+function renderLifepath() {
+  const root = el('div', { class: 'page' });
+  root.append(title('Character lifepath'));
+  if (!state.campaign) { root.append(campaignRequired()); return root; }
+  const c = state.campaign.character;
+  const path = normalizeLifepath(c.lifepath || createLifepath());
+  const current = LIFEPATH_STEPS[state.lifepathIndex] || LIFEPATH_STEPS[0];
+  const saved = path.stages[current.id];
+  const review = lifepathReview(path);
+  const nav = el('div', { class: 'step-navigation', 'aria-label': 'Lifepath steps' });
+  const form = el('form', { class: 'form-stack' });
+  const readStep = () => {
+    const raw = Object.fromEntries(new FormData(form));
+    const bonuses = prefix => Object.fromEntries((prefix === 'attribute' ? CHARACTER_ATTRIBUTES : CHARACTER_DISCIPLINES)
+      .map(name => [name.toLowerCase(), Number(raw[`${prefix}_${name.toLowerCase()}`] || 0)]));
+    return { choice: String(raw.choice || ''), attributes: bonuses('attribute'), disciplines: bonuses('discipline'),
+      value: String(raw.value || ''), focuses: String(raw.focuses || ''), notes: String(raw.notes || '') };
+  };
+  const report = el('div', { class: 'lifepath-validation', 'aria-live': 'polite' });
+  const validateDraft = () => {
+    try {
+      const draft = readStep();
+      const issues = validateLifepathStep(current.id, draft);
+      report.replaceChildren(...(issues.length ? issues.map(e => el('p', { class: 'hint', text: e })) :
+        [el('p', { class: 'hint', text: 'Step ready.' })]));
+    } catch (error) { report.replaceChildren(el('p', { class: 'hint', text: error.message })); }
+  };
+  const saveStep = async () => {
+    const next = readStep();
+    // Save incomplete drafts as well. Invalid drafts never modify the campaign.
+    validateLifepathStep(current.id, next);
+    path.stages[current.id] = next;
+    path.appliedAt = null;
+    c.lifepath = path;
+    await persist();
+  };
+  for (let i = 0; i < LIFEPATH_STEPS.length; i++) {
+    const step = LIFEPATH_STEPS[i];
+    const buttonNode = button(step.title, async () => {
+      try { await saveStep(); state.lifepathIndex = i; render(); }
+      catch (error) { failure(error); }
+    }, i === state.lifepathIndex ? 'secondary selected-step' : 'subtle');
+    buttonNode.setAttribute('aria-current', i === state.lifepathIndex ? 'step' : 'false');
+    const errors = review.stageStatus[step.id];
+    buttonNode.textContent = `${step.title}${errors.length ? '' : ' ✓'}`;
+    nav.append(buttonNode);
+  }
+  root.append(nav);
+  const selectRef = state.documents.find(d => /captain.*log.*(2026|solo)/i.test(d.name)) || state.documents[0];
+  const heading = el('div', { class: 'row between' }, [
+    el('h2', { text: current.title }),
+    selectRef ? button(`Open PDF · page ${current.page}`, () => openPdf(selectRef, current.page).catch(failure), 'secondary') :
+      el('span', { class: 'hint', text: `Corebook PDF page ${current.page}` })
+  ]);
+  form.append(card([
+    heading,
+    field(current.id === 'finishing' ? 'Final notes (optional)' : 'Selected option', 'choice', saved.choice),
+    el('p', { class: 'hint', text: 'Use your purchased book for the legal option and its specific bonuses. The builder checks totals and final caps, not every species or career-event restriction.' }),
+    ...(current.attributes ? [el('h2', { text: `Attribute bonuses · ${current.attributes} points` }),
+      el('div', { class: 'field-grid ratings' }, CHARACTER_ATTRIBUTES.map(name => {
+        const control = field(name, `attribute_${name.toLowerCase()}`, String(saved.attributes[name.toLowerCase()]), { number: true });
+        const number = control.querySelector('input'); number.max = current.id === 'species' || current.id === 'finishing' ? '1' : '2';
+        return control;
+      }))] : []),
+    ...(current.disciplines ? [el('h2', { text: `Discipline bonuses · ${current.disciplines} points` }),
+      el('div', { class: 'field-grid ratings' }, CHARACTER_DISCIPLINES.map(name => {
+        const control = field(name, `discipline_${name.toLowerCase()}`, String(saved.disciplines[name.toLowerCase()]), { number: true });
+        control.querySelector('input').max = current.id === 'education' ? '2' : '1';
+        return control;
+      }))] : []),
+    ...(current.values ? [field('Value', 'value', saved.value)] : []),
+    ...(current.focuses ? [field(`Focuses · ${current.focuses} line${current.focuses > 1 ? 's' : ''}`, 'focuses', saved.focuses, { multiline: true })] : []),
+    field('Notes', 'notes', saved.notes, { multiline: true }), report
+  ]));
+  form.addEventListener('input', validateDraft);
+  const actions = el('div', { class: 'actions' }, [
+    button('Save step', () => saveStep().then(() => notify('Lifepath saved.')).catch(failure), 'secondary'),
+    button(state.lifepathIndex < LIFEPATH_STEPS.length - 1 ? 'Save and next' : 'Save and review', async () => {
+      try {
+        await saveStep();
+        if (state.lifepathIndex < LIFEPATH_STEPS.length - 1) state.lifepathIndex++;
+        render();
+      } catch (error) { failure(error); }
+    })
+  ]);
+  form.append(actions);
+  root.append(form);
+  validateDraft();
+  const total = (list) => Object.values(list).reduce((a, b) => a + b, 0);
+  const totals = card([
+    el('h2', { text: 'Final review' }),
+    line('Attributes', `${total(review.attributes)} / 56`),
+    line('Disciplines', `${total(review.disciplines)} / 16`),
+    line('Values', `${review.values.length} / 4`),
+    line('Focuses', `${review.focuses.length} / 6`),
+    el('div', { class: 'field-grid ratings' }, [
+      ...CHARACTER_ATTRIBUTES.map(name => line(name, String(review.attributes[name.toLowerCase()]))),
+      ...CHARACTER_DISCIPLINES.map(name => line(name, String(review.disciplines[name.toLowerCase()])))
+    ]),
+    ...(review.ready ? [el('p', { class: 'hint', text: 'All totals and caps pass. Check option-specific bonuses in the book before applying.' })] :
+      [el('p', { class: 'hint', text: `${review.errors.length} remaining checks. Complete the steps before applying.` })]),
+    button('Apply to character sheet', async () => {
+      try {
+        await saveStep();
+        const latest = lifepathReview(c.lifepath);
+        if (!latest.ready) throw new Error(latest.errors[0]);
+        if (Object.values(c.attributes).some(v => v !== '') || Object.values(c.disciplines).some(v => v !== '')) {
+          if (!confirm('Replace the current character ratings, values and focuses with the lifepath results?')) return;
+        }
+        state.campaign.character = applyLifepathToCharacter(c, c.lifepath);
+        await persist(); notify('Lifepath applied to character.'); go('character');
+      } catch (error) { failure(error); }
+    }, review.ready ? 'primary' : 'secondary')
+  ]);
+  totals.querySelector('button').disabled = !review.ready;
+  root.append(totals);
+  return root;
+}
+
 function renderStarship() {
   const root = el('div', { class: 'page' });
   root.append(title('Starship / station'));
@@ -265,7 +388,7 @@ function renderLog() {
     event.preventDefault();
     try {
       const episode = createEpisode(missionName.value);
-      campaign.episodes.unshift(episode); state.activeEpisodeId = episode.id;
+      campaign.episodes.unshift(episode); state.activeEpisodeId = episode.id; state.taskRoll = null; state.taskMeta = null;
       await persist(); notify('Mission started.');
     } catch (error) { failure(error); }
   });
@@ -275,7 +398,7 @@ function renderLog() {
     if ((state.activeEpisodeId || campaign.episodes[0]?.id) === episode.id) option.selected = true;
     missionSelect.append(option);
   }
-  missionSelect.addEventListener('change', () => { state.activeEpisodeId = missionSelect.value; render(); });
+  missionSelect.addEventListener('change', () => { state.activeEpisodeId = missionSelect.value; state.taskRoll = null; state.taskMeta = null; render(); });
   root.append(card([el('h2', { text: 'Missions' }), createForm, ...(campaign.episodes.length ? [missionSelect] : [])]));
   const selected = campaign.episodes.find(e => e.id === state.activeEpisodeId) || campaign.episodes[0];
   if (!selected) { root.append(empty('No missions yet.')); return root; }
@@ -291,14 +414,12 @@ function renderLog() {
       return label;
     })
   ]);
-  const tracker = field('Mission tracker (0–15)', 'tracker', String(selected.tracker), { number: true });
-  tracker.querySelector('input').max = '15';
   missionForm.append(card([
     el('h2', { text: 'Mission record' }),
     field('Summary', 'summary', selected.summary, { multiline: true }),
     field('Development', 'development', selected.development, { multiline: true }),
     field('Career events', 'careerEvents', selected.careerEvents, { multiline: true }),
-    el('div', { class: 'field' }, [el('span', { text: 'Values' }), marksRow]), tracker
+    el('div', { class: 'field' }, [el('span', { text: 'Values' }), marksRow])
   ]));
   missionForm.append(card([
     el('h2', { text: 'Episode logs' }),
@@ -312,9 +433,6 @@ function renderLog() {
   missionForm.addEventListener('submit', async event => {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(missionForm));
-    const n = Number(values.tracker);
-    if (!Number.isInteger(n) || n < 0 || n > 15) { failure(new Error('Mission tracker must be 0–15.')); return; }
-    selected.tracker = n;
     Object.assign(selected, flatValues(values, ['summary', 'development', 'careerEvents']));
     selected.valueMarks = { minus: !!values.mark_minus, plus: !!values.mark_plus, challenged: !!values.mark_challenged };
     selected.actLogs = flatValues(values, ['actOne', 'actTwo', 'actThree', 'closing', 'valuesChallenged']);
@@ -348,8 +466,71 @@ function renderLog() {
     entries,
     form
   ]));
+  root.append(renderSceneTracker(selected));
   root.append(missionForm);
   return root;
+}
+
+function renderSceneTracker(mission) {
+  const tracker = card([el('h2', { text: 'Scenes' }), line('Progress', `${mission.tracker} / ${mission.scenes.length}`)]);
+  const form = el('form', { class: 'inline-form scene-plan' });
+  for (let i = 0; i < 3; i++) {
+    const f = field(`Act ${i + 1}`, `act${i + 1}`, mission.scenePlan[i], { number: true });
+    f.querySelector('input').min = '1'; f.querySelector('input').max = '30';
+    form.append(f);
+  }
+  form.append(el('button', { type: 'submit', class: 'button secondary', text: 'Set scenes' }));
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    try {
+      const values = new FormData(form);
+      Object.assign(mission, updateScenePlan(mission, [1,2,3].map(n => Number(values.get(`act${n}`)))));
+      state.activeScene = null; await persist();
+    } catch (error) { failure(error); }
+  });
+  tracker.append(form);
+  const scenes = el('div', { class: 'scene-acts' });
+  for (let act = 1; act <= 3; act++) {
+    const group = el('div', { class: 'scene-act' }, [el('h3', { text: `Act ${act}` })]);
+    const buttons = el('div', { class: 'scene-buttons' });
+    for (const scene of mission.scenes.filter(s => s.act === act)) {
+      const key = `${act}:${scene.number}`;
+      const control = button(`${scene.completed ? '✓ ' : ''}${scene.number}`, () => { state.activeScene = key; render(); },
+        `${state.activeScene === key ? 'selected-step' : 'secondary'} ${scene.completed ? 'scene-completed' : ''}`);
+      control.setAttribute('aria-label', `Act ${act} scene ${scene.number}, ${scene.completed ? 'complete' : 'pending'}`);
+      control.setAttribute('aria-pressed', String(state.activeScene === key));
+      buttons.append(control);
+    }
+    group.append(buttons); scenes.append(group);
+  }
+  tracker.append(scenes);
+  const active = mission.scenes.find(s => `${s.act}:${s.number}` === state.activeScene) || mission.scenes.find(s => !s.completed) || mission.scenes[0];
+  if (active) {
+    const editor = el('form', { class: 'form-stack scene-editor' }, [
+      el('h3', { text: `Act ${active.act} · Scene ${active.number}` }),
+      field('Scene title', 'title', active.title),
+      field('Scene notes', 'notes', active.notes, { multiline: true })
+    ]);
+    editor.append(el('div', { class: 'actions' }, [
+      el('button', { type: 'submit', class: 'button secondary', text: 'Save scene' }),
+      button(active.completed ? 'Reopen scene' : 'Complete scene', async () => {
+        try {
+          const values = new FormData(editor);
+          active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
+          Object.assign(mission, toggleMissionScene(mission, active.act, active.number, !active.completed));
+          state.activeScene = `${active.act}:${active.number}`; await persist();
+        } catch (error) { failure(error); }
+      })
+    ]));
+    editor.addEventListener('submit', async event => {
+      event.preventDefault();
+      const values = new FormData(editor);
+      active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
+      try { await persist(); notify('Scene saved.'); } catch (error) { failure(error); }
+    });
+    tracker.append(editor);
+  }
+  return tracker;
 }
 
 function renderLibrary() {
@@ -392,13 +573,13 @@ function renderLibrary() {
   return root;
 }
 let pdfUrl;
-async function openPdf(doc) {
+async function openPdf(doc, page = null) {
   const record = await get('documents', doc.id);
   if (!record) throw new Error('PDF not found.');
   if (pdfUrl) URL.revokeObjectURL(pdfUrl);
   pdfUrl = URL.createObjectURL(record.blob);
   $('#pdf-title').textContent = doc.name;
-  $('#pdf-frame').src = pdfUrl;
+  $('#pdf-frame').src = page ? `${pdfUrl}#page=${Number(page)}` : pdfUrl;
   $('#pdf-dialog').showModal();
 }
 $('#close-pdf').addEventListener('click', () => $('#pdf-dialog').close());
@@ -435,6 +616,7 @@ function renderDice() {
       el('option', { value: '1', text: 'Normal (1 success)' }),
       el('option', { value: '2', text: 'Increased (2 successes)' })
     ]);
+    if (episode?.nextTaskHard) { difficulty.value = '2'; difficulty.disabled = true; }
     const focusLabel = el('label', { class: 'check-field' });
     const focus = el('input', { type: 'checkbox' });
     focusLabel.append(focus, el('span', { text: 'Relevant focus applies' }));
@@ -448,38 +630,7 @@ function renderDice() {
     attribute.select.addEventListener('change', updateTarget);
     discipline.select.addEventListener('change', updateTarget);
     updateTarget();
-    const roll = button('Roll task', async () => {
-      try {
-        const a = String(char.attributes[attribute.select.value] ?? '').trim();
-        const d = String(char.disciplines[discipline.select.value] ?? '').trim();
-        if (a === '' || d === '') throw new Error('Set both ratings on the character sheet first.');
-        const outcome = resolveTask({ attribute: Number(a), discipline: Number(d),
-          dice: rollDice(2, 20), difficulty: Number(difficulty.value), focusApplies: focus.checked });
-        preview.replaceChildren(
-          el('div', { class: 'dice-row' }, outcome.dice.map(n => el('span', { class: 'die', text: String(n) }))),
-          line('Target', String(outcome.target)),
-          line('Result', outcome.success ? 'Success' : 'Failure'),
-          line('Successes', `${outcome.successes} / ${outcome.difficulty}`),
-          line('Momentum', outcome.momentumEarned ? 'Generated' : 'None generated'),
-          line('Threat', outcome.threatGenerated ? 'Generated' : 'None generated'),
-          ...(outcome.focusAdvantage ? [line('Focus', 'Advantage triggered')] : [])
-        );
-        if (episode && (outcome.momentumEarned || outcome.threatGenerated)) {
-          episode.momentum ||= outcome.momentumEarned;
-          episode.threat ||= outcome.threatGenerated;
-          await persist();
-          // persist refreshes the view, so keep the result visible after rendering.
-          state.taskRoll = outcome;
-          render();
-        } else {
-          state.taskRoll = outcome;
-        }
-      } catch (error) { failure(error); }
-    });
-    taskCard.append(el('div', { class: 'field-grid' }, [attribute.wrapper, discipline.wrapper, el('label', { class: 'field' }, [el('span', { text: 'Difficulty' }), difficulty])]),
-      focusLabel, target, roll, preview);
-    if (state.taskRoll) {
-      const result = state.taskRoll;
+    const showResult = result => {
       preview.replaceChildren(
         el('div', { class: 'dice-row' }, result.dice.map(n => el('span', { class: 'die', text: String(n) }))),
         line('Target', String(result.target)), line('Result', result.success ? 'Success' : 'Failure'),
@@ -488,26 +639,93 @@ function renderDice() {
         line('Threat', result.threatGenerated ? 'Generated' : 'None generated'),
         ...(result.focusAdvantage ? [line('Focus', 'Advantage triggered')] : [])
       );
-    }
+      const meta = state.taskMeta;
+      if (episode && episode.momentum && meta && meta.episodeId === episode.id && !meta.rerolled) {
+        const rerollRow = el('div', { class: 'actions' });
+        for (let index = 0; index < 2; index++) {
+          rerollRow.append(button(`Reroll die ${index + 1} (Momentum)`, async () => {
+            try {
+              const revised = [...state.taskRoll.dice];
+              revised[index] = rollDice(1, 20)[0];
+              const nextResult = resolveTask({...meta.params, dice: revised});
+              const baseline = {...episode, ...meta.before, momentum: false};
+              Object.assign(episode, applyTaskOutcome(baseline, nextResult));
+              state.taskRoll = nextResult; state.taskMeta.rerolled = true;
+              await persist();
+              notify(`Die ${index + 1} rerolled. New result applies.`);
+            } catch (error) { failure(error); }
+          }, 'secondary'));
+        }
+        preview.append(rerollRow);
+      }
+    };
+    const roll = button('Roll task', async () => {
+      try {
+        const a = String(char.attributes[attribute.select.value] ?? '').trim();
+        const d = String(char.disciplines[discipline.select.value] ?? '').trim();
+        if (a === '' || d === '') throw new Error('Set both ratings on the character sheet first.');
+        const params = { attribute: Number(a), discipline: Number(d),
+          difficulty: taskDifficulty(episode, difficulty.value === '2'), focusApplies: focus.checked };
+        const outcome = resolveTask({ ...params, dice: rollDice(2, 20) });
+        state.taskRoll = outcome;
+        state.taskMeta = episode ? { episodeId: episode.id, params,
+          before: { momentum: episode.momentum, threat: episode.threat, nextTaskHard: episode.nextTaskHard }, rerolled: false } : null;
+        if (episode) {
+          Object.assign(episode, applyTaskOutcome(episode, outcome));
+          await persist();
+        } else showResult(outcome);
+      } catch (error) { failure(error); }
+    });
+    taskCard.append(el('div', { class: 'field-grid' }, [attribute.wrapper, discipline.wrapper, el('label', { class: 'field' }, [el('span', { text: 'Difficulty' }), difficulty])]),
+      focusLabel, target, ...(episode?.nextTaskHard ? [el('p', { class: 'hint', text: 'Threat is increasing this task’s difficulty.' })] : []),
+      roll, preview);
+    if (state.taskRoll && (!state.taskMeta || !episode || state.taskMeta.episodeId === episode.id)) showResult(state.taskRoll);
     root.append(taskCard);
     if (episode) {
+      const updateResources = async changes => {
+        Object.assign(episode, changes);
+        state.taskMeta = null;
+        await persist();
+      };
       const tokenCard = card([el('h2', { text: 'Mission resources' }),
         line('Mission', episode.title),
         line('Momentum', episode.momentum ? 'Available' : 'None'),
-        line('Threat', episode.threat ? 'Pending' : 'None'),
+        line('Threat', episode.threat ? (episode.nextTaskHard ? 'Next task increased' : 'Pending') : 'None'),
         el('div', { class: 'actions' }, [
-          button('Spend Momentum', async () => {
-            if (!episode.momentum) return;
-            episode.momentum = false;
-            try { await persist(); } catch (error) { failure(error); }
+          button('Momentum: advantage', async () => {
+            try { await updateResources(spendMomentum(episode, 'advantage')); notify('Momentum spent. Add the advantage to your story.'); }
+            catch (error) { failure(error); }
           }, 'secondary'),
-          button('Resolve Threat', async () => {
-            if (!episode.threat) return;
-            episode.threat = false;
-            try { await persist(); } catch (error) { failure(error); }
+          button('Momentum: clear Threat', async () => {
+            try { await updateResources(spendMomentum(episode, 'remove-threat')); }
+            catch (error) { failure(error); }
+          }, 'secondary'),
+          button('Threat: next task harder', async () => {
+            try { await updateResources(spendThreat(episode, 'increase-difficulty')); }
+            catch (error) { failure(error); }
           }, 'secondary')
         ])
       ]);
+      const resourceButtons = tokenCard.querySelectorAll('.actions button');
+      resourceButtons[0].disabled = !episode.momentum;
+      resourceButtons[1].disabled = !(episode.momentum && episode.threat);
+      resourceButtons[2].disabled = !episode.threat || episode.nextTaskHard;
+      const complication = el('form', { class: 'form-stack' }, [
+        field('Complication note', 'complication', '', { multiline: true }),
+        el('button', { class: 'button secondary', type: 'submit', text: 'Threat: record complication' })
+      ]);
+      complication.querySelector('button').disabled = !episode.threat || episode.nextTaskHard;
+      complication.addEventListener('submit', async event => {
+        event.preventDefault();
+        try {
+          const note = String(new FormData(complication).get('complication') || '').trim();
+          if (!note) throw new Error('Write the complication before spending Threat.');
+          episode.entries.push(createEntry(note));
+          await updateResources(spendThreat(episode, 'complication'));
+          notify('Complication recorded.');
+        } catch (error) { failure(error); }
+      });
+      tokenCard.append(complication);
       root.append(tokenCard);
     }
   } else {
@@ -573,7 +791,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.2.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.3.0' })]));
   return root;
 }
 

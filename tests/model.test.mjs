@@ -62,7 +62,7 @@ test('new mission has blank three-act logs and 15-step tracker is not auto-advan
   assert.deepEqual(ep.valueMarks, { minus: false, plus: false, challenged: false });
   assert.equal(ep.tracker, 0);
   assert.equal(ep.actLogs.actOne, '');
-  assert.equal(normalizeEpisode({ ...ep, tracker: 3 }).tracker, 3);
+  assert.equal(normalizeEpisode({ ...ep, scenes: undefined, tracker: 3 }).tracker, 3); // legacy counter migration
 });
 
 // Source: Captain's Log (2026), Rules of Play PDF pp. 194, 198-200; Focuses p. 203.

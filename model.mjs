@@ -1,3 +1,4 @@
+import { normalizeMissionScenes } from './missions.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -16,7 +17,7 @@ export function createCharacter() {
     name: '', species: '', pronouns: '', traits: '', rank: '', assignment: '',
     environment: '', earlyOutlook: '', education: '', careerLength: '',
     careerEvents: '', focuses: '', values: '', equipment: '',
-    background: '', notes: '',
+    background: '', notes: '', lifepath: null,
     attributes: emptyRatings(CHARACTER_ATTRIBUTES),
     disciplines: emptyRatings(CHARACTER_DISCIPLINES)
   };
@@ -49,12 +50,12 @@ export function normalizeCampaign(campaign) {
 
 export function normalizeEpisode(episode) {
   return {
-    ...episode,
+    ...episode, ...normalizeMissionScenes(episode),
     summary: episode.summary ?? '', development: episode.development ?? '',
     careerEvents: episode.careerEvents ?? '',
     valueMarks: { minus: false, plus: false, challenged: false, ...episode.valueMarks },
-    tracker: episode.tracker ?? 0,
     momentum: episode.momentum === true, threat: episode.threat === true,
+    nextTaskHard: episode.nextTaskHard === true,
     actLogs: { actOne: '', actTwo: '', actThree: '', closing: '', valuesChallenged: '', ...episode.actLogs }
   };
 }
@@ -143,11 +144,16 @@ export function validateBundle(bundle) {
     }
     ids.add(c.id);
   }
+  const docIds = new Set();
   for (const d of bundle.documents) {
     if (!d || typeof d.id !== 'string' || typeof d.name !== 'string' ||
-        typeof d.base64 !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(d.base64)) {
+        typeof d.base64 !== 'string' || d.base64.length % 4 !== 0 ||
+        !/^[A-Za-z0-9+/]*={0,2}$/.test(d.base64) || !d.base64.startsWith('JVBERi0') ||
+        !Number.isSafeInteger(d.size) || d.size < 5 ||
+        d.size !== (d.base64.length / 4 * 3 - (d.base64.endsWith('==') ? 2 : d.base64.endsWith('=') ? 1 : 0)) || docIds.has(d.id)) {
       throw new Error('The backup contains an invalid document.');
     }
+    docIds.add(d.id);
   }
   return bundle;
 }
