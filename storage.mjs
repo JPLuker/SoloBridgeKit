@@ -1,7 +1,7 @@
 import { DATA_VERSION, validateBundle } from './model.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeDocumentRole, shouldIncludeDocuments, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
-import { validateBookPack } from './book-data.mjs';
+import { validateBookPack, verifyPreparedBook } from './book-data.mjs';
 
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
@@ -96,6 +96,10 @@ export async function restoreBackup(raw) {
     importedAt: d.importedAt, role: normalizeDocumentRole(d.role), bookmarks: normalizeBookmarks(d.bookmarks),
     ...(d.bookPack ? { bookPack: validateBookPack(d.bookPack) } : {}),
     blob: new Blob([base64ToBytes(d.base64)], { type: 'application/pdf' }) }));
+  // Validate every private index against its restored PDF before replacing any local records.
+  for (const doc of docs) {
+    if (doc.bookPack) await verifyPreparedBook(doc.blob, doc.bookPack);
+  }
   const db = await database();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAMES, 'readwrite');

@@ -63,3 +63,7 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `storage.mjs`: opt-in private book backup includes private index, default campaign-only export excludes everything from documents. `model.mjs` validates optional restored indexes.
 - `scripts/audit-public-bundle.mjs` rejects `.solobridge-book.json` files. The shipped PWA offline shell caches the parser/validator code, not extracted data.
 - Current limitation: desktop Poppler preparation, not yet a single mobile in-app PDF upload. Browser/UI behavior must still be device-tested; CI tests cover the pure validator and existing mechanics.
+
+## 0.8.1 restore integrity
+
+- `storage.restoreBackup()` verifies each imported `bookPack` against its corresponding PDF SHA-256 before starting the IndexedDB replacement transaction. Corrupt or mismatched private indexes abort restore without touching existing saves.

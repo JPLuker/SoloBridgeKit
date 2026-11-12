@@ -77,3 +77,7 @@
 2. Use the private index as the data source for table/choice lookups (human-reviewed parser rules, no licensed entries in public source).
 3. Browser end-to-end testing of source mismatch, import failures, offline play, and restore from private backups.
 4. Source-version compatibility, in-app preparation progress and file-integrity failure recovery.
+
+## 0.8.1 shipped
+
+- PDF-inclusive restore now pairs every imported private rules index with its PDF fingerprint before destructive database replacement.

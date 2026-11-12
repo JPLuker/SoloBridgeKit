@@ -1,3 +1,8 @@
+## [0.8.1] - 2026-11-12
+### Fixed
+- Private PDF-inclusive backup restores now verify that the prepared index belongs to the restored PDF before changing local saves.
+- Clarified that the downloadable app shell needs no build step, but preparing private book data currently requires Node.js and Poppler.
+
 ## [0.8.0] - 2026-11-12
 ### Added
 - Source-dependent boot: gameplay only unlocks with a private rules index prepared from the player's own corebook PDF.

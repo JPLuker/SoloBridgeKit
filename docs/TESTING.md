@@ -48,3 +48,7 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Export default backup: no PDF or book-derived text. Export opt-in private backup: includes PDF and index. Restore both in a separate browser profile.
 - [ ] Place a generated `.solobridge-book.json` file in source checkout: public-source audit fails.
 - [ ] Review the public deploy bundle for publisher text, images, random tables and assets. Do not treat a green test run as proof of copyright compliance.
+
+## 0.8.1 restore integrity
+
+- [ ] A private backup containing a mismatched PDF/index is rejected before any local campaign or PDF is replaced. A valid private backup restores.
