@@ -116,3 +116,13 @@
 1. Extend source-linked private presets to ship class statistics and selected talents.
 2. Integrate dice/table choices into active scene workflow.
 3. Verify real Android and desktop browser flows; test PDF.js memory use with the full 2026 corebook.
+
+## 0.12.0 — Private starship class reuse
+
+- Player-entered, source-verified class data can be saved with PDF page and fingerprint, then applied to another ship without overwriting its personal identity.
+- Library lists and removes class templates. No publisher class statistics are bundled; stored template data is included only in explicit private PDF backup exports.
+
+### Next
+1. Provide source-specific play actions directly in the active mission scene, without duplicating the Library interface.
+2. Add recovery-safe import and export flows and a browser smoke-test harness.
+3. Complete option-specific source-data checks and exercise the full 2026 PDF on real Android/desktop browsers.

@@ -6,7 +6,7 @@ const allowed = new Set([
   'index.html', 'styles.css', 'app.mjs', 'storage.mjs', 'model.mjs',
   'lifepath.mjs', 'missions.mjs', 'resources.mjs', 'shipbuilder.mjs',
   'bookmarks.mjs', 'rollhistory.mjs', 'content-policy.mjs',
-  'book-data.mjs', 'browser-compiler.mjs', 'private-tables.mjs', 'private-options.mjs', 'manifest.webmanifest', 'sw.js'
+  'book-data.mjs', 'browser-compiler.mjs', 'private-tables.mjs', 'private-options.mjs', 'private-ships.mjs', 'manifest.webmanifest', 'sw.js'
 ]);
 const errors = [];
 function walk(folder) {

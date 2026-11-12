@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.11.0
+## Current build: 0.12.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -103,3 +103,9 @@ No publisher table text is included in the public app. The owner-created table c
 A completed lifepath stage can be saved as a source-linked **private choice**, including the player-verified point allocations, value, focuses, and notes. In subsequent character creations, select the saved option to populate the relevant stage. Both career-event steps share the same private option category. Saved choices can be reviewed or removed from Library.
 
 No species, career-event, talent, or other copyrighted options are shipped with the app. Private choices are created only after the player fills in a step using their imported book; they are tied to that book's SHA-256 and included only in explicit private PDF backups. The app still checks the completed character's allocations and caps before applying it to a sheet.
+
+## Reusable private starship classes (0.12.0)
+
+After entering and checking a starship or station's published class ratings in **Guided ship setup**, save the class as a private template. Other ships can load the same verified system/department ratings and scale without retyping the book's numbers. Existing ship names, registries, traits and talent choices are preserved when applying a class. Saved classes appear under Library for review or deletion.
+
+Class templates live inside the owner's locally prepared source PDF record, not in the public build. They are included only in opt-in private PDF backups. No publisher stat blocks are distributed.

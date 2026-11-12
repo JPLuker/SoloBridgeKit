@@ -12,6 +12,7 @@ import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption } from './private-options.mjs';
+import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -489,7 +490,34 @@ function renderShipBuilder() {
     nav.append(control);
   });
   root.append(nav);
-  const source=state.documents.find(d=>/captain.*log.*(2026|solo)/i.test(d.name))||state.documents[0];
+  const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
+  if (idx === 1 && corebook) {
+    const savedClasses = normalizePrivateShips(corebook.ships, corebook.bookPack.sourceSha256);
+    if (savedClasses.length) {
+      const choose = el('select', { 'aria-label': 'Saved private starship or station class' });
+      savedClasses.forEach(x => choose.append(el('option', { value: x.id, text: `${x.className} (${x.kind})` })));
+      root.append(card([
+        el('h2', { text: 'Saved private classes' }), choose,
+        el('div', { class: 'actions' }, [
+          button('Apply saved class', async () => {
+            try {
+              const selection = savedClasses.find(x => x.id === choose.value);
+              if (!selection) throw new Error('Select a saved class.');
+              if (builder.className && !confirm('Replace your current class ratings with this saved template?')) return;
+              ship.builder = applyPrivateShip(builder, selection);
+              await persist();
+              notify('Class loaded. Review its ratings before continuing.');
+            } catch (error) { failure(error); }
+          }),
+          button('Open source page', () => {
+            const selection = savedClasses.find(x => x.id === choose.value);
+            if (selection) openPdf(corebook, selection.page).catch(failure);
+          }, 'secondary')
+        ])
+      ]));
+    }
+  }
+  const source=corebook||state.documents.find(d=>/captain.*log.*(2026|solo)/i.test(d.name))||state.documents[0];
   const refs=el('div',{class:'row between'},[
     el('h2',{text:SHIP_STEPS[idx][0]}),
     source ? button(`Open PDF · page ${SHIP_STEPS[idx][1]}`,()=>openPdf(source,SHIP_STEPS[idx][1]).catch(failure),'secondary')
@@ -517,12 +545,31 @@ function renderShipBuilder() {
   if(idx===4)sections.push(field('Ship talents · one per line','talents',builder.talents,{multiline:true}));
   if(idx===5)sections.push(field('Name','name',builder.name),field('Registry (starship)','registry',builder.registry));
   form.append(card(sections));
-  form.append(el('div',{class:'actions'},[
+  const shipActions = el('div',{class:'actions'},[
     button('Save step',()=>save().then(()=>notify('Ship setup saved.')).catch(failure),'secondary'),
     button(idx===5?'Save and review':'Save and next',async()=>{
       try{await save();if(state.shipStep<5)state.shipStep++;render();}catch(error){failure(error);}
     })
-  ]));
+  ]);
+  if (idx === 1 && corebook) {
+    shipActions.append(button('Save private class', async () => {
+      try {
+        const next = read();
+        const latest = await get('documents', corebook.id);
+        if (!latest?.bookPack) throw new Error('Prepared corebook unavailable.');
+        const template = makePrivateShip({ sourceSha256: latest.bookPack.sourceSha256,
+          page: SHIP_STEPS[idx][1], kind: next.kind, era: next.era,
+          className: next.className, scale: next.scale,
+          systems: next.systems, departments: next.departments });
+        latest.ships = addPrivateShip(latest.ships, template, latest.bookPack.sourceSha256);
+        await put('documents', latest);
+        ship.builder = next;
+        await persist();
+        notify('Class saved for other starships.');
+      } catch (error) { failure(error); }
+    }, 'secondary'));
+  }
+  form.append(shipActions);
   root.append(form);
   const review=reviewShipBuilder(builder);
   const summary=card([
@@ -985,7 +1032,7 @@ function renderLibrary() {
       } catch (error) { failure(error); }
     });
     searchCard.append(form, results);
-    root.append(searchCard, renderPrivateTables(readyBook), renderPrivateOptions(readyBook));
+    root.append(searchCard, renderPrivateTables(readyBook), renderPrivateOptions(readyBook), renderPrivateShips(readyBook));
   }
   return root;
 }
@@ -1097,6 +1144,34 @@ function renderPrivateOptions(book) {
             const latest = await get('documents', book.id);
             if (!latest?.bookPack) throw new Error('Prepared book not found.');
             latest.options = removePrivateOption(latest.options, option.id, latest.bookPack.sourceSha256);
+            await put('documents', latest);
+            await refresh();
+          } catch (error) { failure(error); }
+        }, 'danger subtle')
+      ])
+    ]));
+  }
+  return panel;
+}
+function renderPrivateShips(book) {
+  const classes = normalizePrivateShips(book.ships, book.bookPack.sourceSha256);
+  const panel = card([el('h2', { text: 'Saved private ship classes' })]);
+  if (!classes.length) {
+    panel.append(el('p', { class: 'hint', text: 'Valid class statistics can be saved from guided ship setup and reused for other ships.' }));
+    return panel;
+  }
+  for (const ship of classes) {
+    panel.append(el('div', { class: 'document-item' }, [
+      el('div', {}, [el('strong', { text: ship.className }),
+        el('p', { class: 'hint', text: `${ship.era} · ${ship.kind} · scale ${ship.scale} · PDF page ${ship.page}` })]),
+      el('div', { class: 'actions' }, [
+        button('Open source', () => openPdf(book, ship.page).catch(failure), 'secondary'),
+        button('Remove', async () => {
+          if (!confirm(`Remove saved class "${ship.className}"? Existing ships will not change.`)) return;
+          try {
+            const latest = await get('documents', book.id);
+            if (!latest?.bookPack) throw new Error('Prepared corebook not found.');
+            latest.ships = removePrivateShip(latest.ships, ship.id, latest.bookPack.sourceSha256);
             await put('documents', latest);
             await refresh();
           } catch (error) { failure(error); }
@@ -1356,7 +1431,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.11.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.12.0' })]));
   return root;
 }
 

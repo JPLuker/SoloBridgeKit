@@ -1,3 +1,11 @@
+## [0.12.0] - 2026-11-12
+### Added
+- Save source-verified starship and station class ratings as private reusable templates.
+- Apply class templates to new ships while preserving player-defined identity and talents.
+- Review and delete private ship class templates from the Library.
+### Security
+- Ship class stats remain tied to the user's local source PDF and are never included in public bundles.
+
 ## [0.11.0] - 2026-11-12
 ### Added
 - Save validated lifepath steps as private, reusable source-book choices.

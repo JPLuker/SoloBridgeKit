@@ -79,3 +79,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Verify an event-1 choice can be used in event 2 but cannot be used in a species step.
 - [ ] Delete a private choice; existing characters remain unchanged.
 - [ ] Private PDF backup contains the choice; default campaign backup does not.
+
+## 0.12.0 private ship templates
+
+- [ ] Save valid published class statistics, including all six systems and six departments, as a private template.
+- [ ] Apply it to a second ship; verify identical ratings and scale, but keep that ship's name, registry, traits and talents.
+- [ ] Reject invalid scales, ratings outside allowed ranges, wrong-source templates and duplicate IDs.
+- [ ] Delete a template; already-created starships retain their data.
+- [ ] Validate private PDF backup includes class templates, default campaign-only export does not.

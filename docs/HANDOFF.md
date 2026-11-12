@@ -91,3 +91,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs:renderLifepath()` now offers **Save as private choice** for a fully valid stage and **Apply saved choice** for matching imported-source options; existing drafts require confirmation before replacement.
 - `app.mjs:renderPrivateOptions()` lists/removes personal choices under Library. `storage.mjs` and `model.mjs` include source-matched options only in explicit private book backups.
 - New module included in static build, offline cache, distribution whitelist and unit tests.
+
+## 0.12.0 — Source-dependent private ship classes
+
+- `private-ships.mjs` verifies starship/station class templates with source page, PDF SHA-256, scale and system/department ratings.
+- `app.mjs:renderShipBuilder()` saves private class data from class step and applies selected templates without overwriting ship name, registry, traits or talents.
+- `app.mjs:renderPrivateShips()` lists saved private class templates in Library. `storage.mjs`/`model.mjs` preserve and validate these only with the associated private book.
+- Static build, offline precache, distribution audit and tests include the private ship schema; no specific publisher class data appears in public assets.
