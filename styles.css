@@ -28,3 +28,8 @@
 .bookmark-row span{font-size:14px;overflow-wrap:anywhere}.bookmark-form{margin-top:12px;align-items:end}.bookmark-form .field{flex:1;min-width:145px}.bookmark-form .field:nth-child(2){flex:0 1 120px;min-width:100px}
 .pdf-page-form{display:flex;align-items:center;gap:8px;white-space:nowrap}.pdf-page-form label{font-size:13px}.pdf-page-form input{width:82px;min-height:42px;padding:8px}
 @media(max-width:620px){.pdf-dialog .dialog-head{flex-wrap:wrap}.pdf-dialog .dialog-head strong{flex:1 1 calc(100% - 88px)}.pdf-dialog .pdf-page-form{order:3;width:100%}.bookmark-row{align-items:flex-start;flex-direction:column}.bookmark-form .field,.bookmark-form .field:nth-child(2){min-width:0;flex:1 1 100%}.bookmark-form .button{width:100%}}
+/* Source: v0.14.0 browser screenshot. Three scene-count inputs were 220px wide
+   because of .inline-form input; constrain each to its own grid column. */
+.scene-plan .field { min-width:0 }
+.scene-plan input[type=number] { min-width:0; width:100%; max-width:100%; }
+@media(max-width:520px) { .scene-plan { grid-template-columns:repeat(3,minmax(0,1fr)); } }

@@ -1,3 +1,9 @@
+## [0.14.1] - 2026-11-12
+### Fixed
+- Scene-count inputs no longer force the mission screen wider than a phone.
+### Tests
+- Headless browser smoke fails on horizontal overflow at 390px, not just desktop.
+
 ## [0.14.0] - 2026-11-12
 ### Added
 - Headless Chrome end-to-end smoke test against the complete built PWA.

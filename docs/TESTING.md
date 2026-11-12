@@ -102,3 +102,8 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Offline reload works when the service worker has cached the distributable.
 - [ ] Screenshot captures are inspected at 390x844 and 1280x720 for clipping, contrast, and overlapping controls.
 - [ ] Still obtain one actual Android and desktop hardware run before any tested release. Headless Chrome is not hardware verification.
+
+## 0.14.1 phone overflow regression
+
+- [ ] At 390px, the three scene-count fields and **Set scenes** control remain within the mission card.
+- [ ] Browser smoke verifies document width at 390px and saves screenshots for inspection.

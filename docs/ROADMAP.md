@@ -141,3 +141,7 @@
 - CI starts the compiled PWA in headless Chrome and uses a fully synthetic 210-page PDF to test local import, indexing, prepared search, campaign/character/mission creation, task rolls and an offline reload.
 - Phone and desktop screenshot artifacts captured. A failed browser flow fails the CI job; no commercial source material is used.
 - Still outstanding: real Android/device verification, accessibility measurements, and more extensive recovery tests.
+
+## 0.14.1 — Mobile overflow fix
+
+- Browser screenshot issue: three scene-count fields exceeded the phone viewport. Fixed width constraints and added CI assertion for 390px horizontal overflow.

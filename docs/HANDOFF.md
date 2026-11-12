@@ -112,3 +112,8 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/browser-smoke.mjs` launches system Chrome through pinned `puppeteer-core`, serves the packaged `dist/`, verifies import/search/campaign/character/mission/task-roll/offline flows, and writes screenshots.
 - `.github/workflows/ci.yml` runs browser smoke after the static distribution audit and uploads phone/desktop captures even if the test fails. The untested application preview is uploaded only on a successful run.
 - This is headless verification, **not** a real-device/Android acceptance test.
+
+## 0.14.1 phone layout correction
+
+- The first v0.14.0 browser screenshots revealed the mission screen's document width expanded to 475px on a 390px viewport. `.inline-form input` imposed 220px minimum width on three scene-plan inputs.
+- `styles.css` now constrains the inputs to their grid cells. `scripts/browser-smoke.mjs` checks mobile horizontal overflow before desktop tests.

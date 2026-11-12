@@ -81,6 +81,11 @@ try {
   await clickText('Roll task');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20:'), { timeout: 20000 });
   await page.screenshot({ path: join(output, 'phone-mission.png'), fullPage: true });
+  const phoneGeometry = await page.evaluate(() => ({
+    viewport: window.innerWidth, document: document.documentElement.scrollWidth
+  }));
+  check(phoneGeometry.document <= phoneGeometry.viewport + 4,
+    `Phone layout overflow: ${JSON.stringify(phoneGeometry)}`);
   await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
   await page.screenshot({ path: join(output, 'desktop-mission.png'), fullPage: true });
   const geometry = await page.evaluate(() => ({

@@ -1514,7 +1514,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.14.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.14.1' })]));
   return root;
 }
 
