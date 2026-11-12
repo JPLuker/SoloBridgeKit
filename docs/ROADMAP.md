@@ -15,11 +15,18 @@
 - IndexedDB record operations wait for transaction completion; import backup validation checks PDF signatures, sizes and duplicate document IDs.
 - 38 automated model tests and JS syntax checks passing locally. Browser navigation and real-device behavior still unverified.
 
+## Implemented in 0.4.0
+
+- Six-step source-linked ship/station setup based on the 2026 book (era, class, polity trait, unique trait, talents and name/registry). Player enters class stats and talent names from private books; the public repository does not contain licensed stat blocks.
+- Validates ship ratings (systems 6–12, departments 1–5), talent count equals ship scale, and stations use up to half their scale rounded down.
+- Persistent editable crew roster for multiple officers with rank, role, department, relationship and notes.
+- 47 model tests and JavaScript checks pass locally; browser UI still cannot be reached from the restricted Chromium runtime.
+
 ## Next: application quality
 
 1. Resolve blocked browser end-to-end testing; verify navigation, lifepath workflow, storage, PDFs and scenes with actual Chromium/Android screenshots.
 2. Validate the complete education and upbringing option-specific constraints, using the owner's private rulebook at runtime instead of reproducing copyrighted reference data publicly.
-3. Build source-checked ship creation, crew roster and advancement.
+3. Continue source-checked crew statistics, ship milestones and character advancement.
 4. Test IndexedDB export/import with a large PDF and interrupted storage operations on real browsers; improve rollback/undo for destructive actions.
 5. Add PDF text search/bookmarks with private on-device indexing, and user-created random generators linked to the appropriate pages.
 6. Continue solo mission play integration and optional self-hosted sync only after explicit approval.

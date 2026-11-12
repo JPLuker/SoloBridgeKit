@@ -1,17 +1,18 @@
-import { createCampaign, createEpisode, createEntry, rollDice, resolveTask, makeId, normalizeCampaign,
+import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
 import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database } from './storage.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
 import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
+import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
 
 const PAGES = [
-  ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'],
+  ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
   ['log', "Captain's log"], ['library', 'Library'], ['dice', 'Dice'], ['settings', 'Settings']
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
-  activeEpisodeId: null, activeScene: null, lifepathIndex: 0, roll: null, taskRoll: null, taskMeta: null, busy: false };
+  activeEpisodeId: null, activeScene: null, activeCrewId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false };
 const $ = selector => document.querySelector(selector);
 const content = $('#content');
 
@@ -105,7 +106,7 @@ function go(page) {
 function navigation() {
   const makeButton = ([id, label]) => {
     const item = button(label, () => go(id), 'nav-button');
-    if (state.page === id || (state.page === 'lifepath' && id === 'character') || (id === 'more' && ['more', 'starship', 'dice', 'settings'].includes(state.page))) {
+    if (state.page === id || (state.page === 'lifepath' && id === 'character') || (state.page === 'shipbuilder' && id === 'starship') || (id === 'more' && ['more', 'starship', 'shipbuilder', 'crew', 'dice', 'settings'].includes(state.page))) {
       item.classList.add('active');
       item.setAttribute('aria-current', 'page');
     }
@@ -120,7 +121,7 @@ function campaignRequired() {
 function render() {
   navigation();
   const views = { home: renderHome, character: renderCharacter, lifepath: renderLifepath, starship: renderStarship,
-    log: renderLog, library: renderLibrary, dice: renderDice, settings: renderSettings, more: renderMore };
+    crew: renderCrew, shipbuilder: renderShipBuilder, log: renderLog, library: renderLibrary, dice: renderDice, settings: renderSettings, more: renderMore };
   content.replaceChildren(views[state.page]());
 }
 
@@ -346,6 +347,7 @@ function renderLifepath() {
 function renderStarship() {
   const root = el('div', { class: 'page' });
   root.append(title('Starship / station'));
+  if (state.campaign) root.append(el('div', { class: 'actions' }, [button('Guided ship setup', () => go('shipbuilder'), 'secondary'), button('Crew roster', () => go('crew'), 'secondary')]));
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const c = state.campaign.ship;
   const form = el('form', { class: 'form-stack' });
@@ -376,6 +378,163 @@ function renderStarship() {
   root.append(form);
   return root;
 }
+const SHIP_STEPS = [
+  ['Setting', 147], ['Class and ratings', 149], ['Polity', 147], ['Unique trait', 174], ['Talents', 175], ['Identity', 180]
+];
+function renderShipBuilder() {
+  const root = el('div', { class: 'page' }, [title('Guided ship setup')]);
+  if (!state.campaign) { root.append(campaignRequired()); return root; }
+  const ship = state.campaign.ship;
+  const builder = normalizeShipBuilder(ship.builder || createShipBuilder());
+  const idx = state.shipStep;
+  const form = el('form', { class: 'form-stack' });
+  const read = () => {
+    const fields = Object.fromEntries(new FormData(form));
+    const next = normalizeShipBuilder(builder);
+    const assign = keys => keys.forEach(key => {if (Object.hasOwn(fields,key)) next[key]=String(fields[key]);});
+    if (idx === 0) assign(['kind','era']);
+    if (idx === 1) {
+      assign(['className','scale']);
+      for (const [prefix,keys,target] of [['system', SHIP_SYSTEMS,'systems'],['department',SHIP_DEPARTMENTS,'departments']]) {
+        for (const label of keys) {
+          const key=label.toLowerCase();next[target][key]=String(fields[`${prefix}_${key}`] || '');
+        }
+      }
+    }
+    if (idx === 2) assign(['polityTrait']);
+    if (idx === 3) assign(['uniqueTrait']);
+    if (idx === 4) assign(['talents']);
+    if (idx === 5) assign(['name','registry']);
+    next.appliedAt=null;
+    return next;
+  };
+  const save = async () => {ship.builder=read();await persist();};
+  const nav=el('div',{class:'step-navigation'});
+  SHIP_STEPS.forEach(([label],i) => {
+    const control=button(`${i+1}. ${label}`,async()=>{
+      try { await save();state.shipStep=i;render(); }catch(error){failure(error);}
+    }, i===idx?'secondary selected-step':'subtle');
+    control.setAttribute('aria-current', i===idx?'step':'false');
+    nav.append(control);
+  });
+  root.append(nav);
+  const source=state.documents.find(d=>/captain.*log.*(2026|solo)/i.test(d.name))||state.documents[0];
+  const refs=el('div',{class:'row between'},[
+    el('h2',{text:SHIP_STEPS[idx][0]}),
+    source ? button(`Open PDF · page ${SHIP_STEPS[idx][1]}`,()=>openPdf(source,SHIP_STEPS[idx][1]).catch(failure),'secondary')
+      : el('span',{class:'hint',text:`Corebook PDF page ${SHIP_STEPS[idx][1]}`})
+  ]);
+  const sections=[refs];
+  if(idx===0){
+    const label=el('label',{class:'field'},[el('span',{text:'Home type'})]);
+    const select=el('select',{name:'kind','aria-label':'Home type'});
+    for(const [value,text] of [['starship','Starship'],['station','Station / starbase']]){
+      const o=el('option',{value,text});if(value===builder.kind)o.selected=true;select.append(o);
+    }
+    label.append(select);
+    sections.push(label,field('Era', 'era',builder.era));
+  }
+  if(idx===1){
+    sections.push(field('Class (if applicable)','className',builder.className),field('Scale','scale',builder.scale,{number:true}));
+    const scaleInput=sections.at(-1).querySelector('input');scaleInput.max='100';scaleInput.min='1';
+    sections.push(el('p',{class:'hint',text:'Enter the published class statistics from your copy. Do not guess ratings.'}),
+      el('h2',{text:'Systems'}), ratingFields(SHIP_SYSTEMS,builder.systems,'system'),
+      el('h2',{text:'Departments'}),ratingFields(SHIP_DEPARTMENTS,builder.departments,'department'));
+  }
+  if(idx===2)sections.push(field('Polity trait','polityTrait',builder.polityTrait));
+  if(idx===3)sections.push(field('Additional trait (optional)','uniqueTrait',builder.uniqueTrait));
+  if(idx===4)sections.push(field('Ship talents · one per line','talents',builder.talents,{multiline:true}));
+  if(idx===5)sections.push(field('Name','name',builder.name),field('Registry (starship)','registry',builder.registry));
+  form.append(card(sections));
+  form.append(el('div',{class:'actions'},[
+    button('Save step',()=>save().then(()=>notify('Ship setup saved.')).catch(failure),'secondary'),
+    button(idx===5?'Save and review':'Save and next',async()=>{
+      try{await save();if(state.shipStep<5)state.shipStep++;render();}catch(error){failure(error);}
+    })
+  ]));
+  root.append(form);
+  const review=reviewShipBuilder(builder);
+  const summary=card([
+    el('h2',{text:'Ship review'}),
+    line('Type',builder.kind==='station'?'Station / starbase':'Starship'),
+    line('Class',builder.className),line('Scale',builder.scale),
+    line('Talents',`${review.talentCount} / ${review.talentLimit}${builder.kind==='station'?' maximum':''}`),
+    el('p',{class:'hint',text:review.ready?'Ready to apply after checking the ratings and talent restrictions in your book.':`${review.errors.length} items need attention.`}),
+    ...(review.ready?[]:review.errors.slice(0,5).map(x=>el('p',{class:'hint',text:x}))),
+    button('Apply to ship sheet',async()=>{
+      try{
+        await save();
+        const draft=ship.builder;
+        const checked=reviewShipBuilder(draft);
+        if(!checked.ready)throw new Error(checked.errors[0]);
+        if(ship.name||ship.className||ship.registry){
+          if(!confirm('Replace the current ship sheet with these selections?'))return;
+        }
+        state.campaign.ship=applyShipBuilder(ship,draft);
+        await persist();go('starship');notify('Ship setup applied.');
+      }catch(error){failure(error);}
+    },review.ready?'primary':'secondary')
+  ]);
+  summary.querySelector('button').disabled=!review.ready;
+  root.append(summary);
+  return root;
+}
+
+function renderCrew() {
+  const root = el('div',{class:'page'},[title('Crew')]);
+  if(!state.campaign){root.append(campaignRequired());return root;}
+  const crew=state.campaign.crew;
+  const createForm=el('form',{class:'inline-form'},[
+    el('input',{name:'name',required:'',maxlength:'120',placeholder:'Crew member name','aria-label':'Crew member name'}),
+    el('button',{class:'button primary',type:'submit',text:'Add crew member'})
+  ]);
+  createForm.addEventListener('submit',async e=>{
+    e.preventDefault();try{
+      const created=createCrewMember(new FormData(createForm).get('name'));
+      crew.push(created);state.activeCrewId=created.id;
+      await persist();notify('Crew member added.');
+    }catch(error){failure(error);}
+  });
+  root.append(card([el('h2',{text:'Roster'}),createForm]));
+  if(!crew.length)return root;
+  const roster=el('div',{class:'list'});
+  for(const member of crew){
+    roster.append(el('div',{class:'list-row'},[
+      el('div',{},[el('strong',{text:member.name}),el('p',{class:'muted',text:[member.rank,member.role].filter(Boolean).join(' · ')||'Details not set'})]),
+      el('div',{class:'actions'},[
+        button('Edit',()=>{state.activeCrewId=member.id;render();},'secondary'),
+        button('Remove',async()=>{
+          if(!confirm(`Remove ${member.name} from this crew?`))return;
+          state.campaign.crew=crew.filter(c=>c.id!==member.id);
+          if(state.activeCrewId===member.id)state.activeCrewId=null;
+          try{await persist();}catch(error){failure(error);}
+        },'danger subtle')
+      ])
+    ]));
+  }
+  root.append(card([el('h2',{text:'Members'}),roster]));
+  const active=crew.find(m=>m.id===state.activeCrewId)||crew[0];
+  const editor=el('form',{class:'form-stack'},[
+    el('h2',{text:active.name}),
+    el('div',{class:'field-grid'},[
+      field('Name','name',active.name,{required:true}),field('Rank','rank',active.rank),
+      field('Role','role',active.role),field('Department','department',active.department)
+    ]),
+    field('Relationship','relationship',active.relationship,{multiline:true}),
+    field('Notes','notes',active.notes,{multiline:true}),
+    el('button',{type:'submit',class:'button primary',text:'Save crew member'})
+  ]);
+  editor.addEventListener('submit',async e=>{
+    e.preventDefault();const values=Object.fromEntries(new FormData(editor));
+    try{
+      if(!String(values.name).trim())throw new Error('Enter a crew member name.');
+      Object.assign(active,flatValues(values,['name','rank','role','department','relationship','notes']));
+      await persist();notify('Crew member saved.');
+    }catch(error){failure(error);}
+  });
+  root.append(card([editor]));return root;
+}
+
 function renderLog() {
   const root = el('div', { class: 'page' });
   root.append(title("Captain's log"));
@@ -753,6 +912,7 @@ function showRoll(container, roll) {
 function renderMore() {
   return el('div', { class: 'page' }, [title('More'), card([
     button('Starship / station', () => go('starship'), 'secondary'),
+    button('Crew', () => go('crew'), 'secondary'),
     button('Dice', () => go('dice'), 'secondary'),
     button('Settings', () => go('settings'), 'secondary')
   ])]);
@@ -791,7 +951,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.3.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.4.0' })]));
   return root;
 }
 

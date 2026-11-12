@@ -26,6 +26,7 @@ export function createCharacter() {
 export function createShip() {
   return {
     name: '', registry: '', className: '', scale: '', traits: '', talents: '', notes: '',
+    kind: 'starship', era: '', builder: null,
     systems: emptyRatings(SHIP_SYSTEMS), departments: emptyRatings(SHIP_DEPARTMENTS)
   };
 }
@@ -44,6 +45,7 @@ export function normalizeCampaign(campaign) {
       systems: {...emptyRatings(SHIP_SYSTEMS), ...ship.systems},
       departments: {...emptyRatings(SHIP_DEPARTMENTS), ...ship.departments}
     },
+    crew: Array.isArray(campaign.crew) ? campaign.crew : [],
     episodes: episodes.map(normalizeEpisode)
   };
 }
@@ -73,7 +75,7 @@ export function createCampaign(name) {
     id: makeId(), title, createdAt: now, updatedAt: now,
     character: createCharacter(),
     ship: createShip(),
-    episodes: []
+    crew: [], episodes: []
   };
 }
 
@@ -81,6 +83,12 @@ export function createEpisode(title) {
   const value = String(title ?? '').trim();
   if (!value || value.length > 140) throw new Error('Mission title must be 1–140 characters.');
   return normalizeEpisode({ id: makeId(), title: value, status: 'active', createdAt: new Date().toISOString(), entries: [] });
+}
+
+export function createCrewMember(name) {
+  const value = String(name ?? '').trim();
+  if (!value || value.length > 120) throw new Error('Crew name must be 1–120 characters.');
+  return { id: makeId(), name: value, role: '', rank: '', department: '', relationship: '', notes: '' };
 }
 
 export function createEntry(text) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0] — 2026-11-12
+
+- Added a source-linked, six-step guided starship/station builder with player-entered class stats and scale-based talent validation.
+- Added a persistent crew roster with rank, role, department, relationship and notes.
+- Preserved manual ship/character sheets and old campaign saves; expanded local tests from 38 to 47.
+
 ## [0.3.0] — 2026-11-12
 
 - Added a saved, source-linked seven-step character lifepath with point allocation, finishing caps and explicit sheet application.
