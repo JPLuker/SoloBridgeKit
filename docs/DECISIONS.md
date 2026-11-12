@@ -10,3 +10,5 @@
 
 - 2026-11-12 (user): Make the application actually depend on user-supplied game data, like a game recompilation project; simply selecting a PDF as corebook must not unlock play. The user provides their own legally obtained files and locally derives the usable rules data.
 - 2026-11-12 (implementation): First pass uses Poppler on the user's computer to generate a private, SHA-256-bound search index. A native in-browser preparation flow is planned before the full mobile release.
+
+- 2026-11-12 (implementation): Bundle open-source PDF.js at build time, not a remote CDN. Prepare user-supplied PDF content locally in the PWA and retain the desktop Poppler preparation as fallback. No publisher content in build/release outputs.

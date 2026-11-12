@@ -9,3 +9,6 @@ node_modules/
 
 # Book-derived private generated data. Never commit or publish.
 *.solobridge-book.json
+
+# Built distribution is created locally/CI, never committed.
+dist/

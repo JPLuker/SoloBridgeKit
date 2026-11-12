@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const blockedExtensions = /\.(?:pdf|epub|mobi|azw|azw3|cbz|cbr|zip|rar|7z|docx|odt)$/i;
 const forbiddenFolders = new Set(['private', 'licensed-books', 'rulebook-pdfs', 'book-pdfs']);
-const ignored = new Set(['.git', 'node_modules', '.cache', 'coverage', '.DS_Store']);
+const ignored = new Set(['.git', 'node_modules', 'dist', '.cache', 'coverage', '.DS_Store']);
 const errors = [];
 function scan(folder) {
   for (const name of readdirSync(folder)) {

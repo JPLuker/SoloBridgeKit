@@ -52,3 +52,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 ## 0.8.1 restore integrity
 
 - [ ] A private backup containing a mismatched PDF/index is rejected before any local campaign or PDF is replaced. A valid private backup restores.
+
+## 0.9.0 single-file corebook preparation
+
+- [ ] Import one legally obtained corebook PDF as **Core rulebook**; verify page progress, compilation, local search and gameplay unlock.
+- [ ] Use a form or unrelated PDF as **Core rulebook**; validator rejects it without enabling game screens.
+- [ ] Cancel midway through a large book; no partial prepared corebook or campaign data loss.
+- [ ] With cached PWA disconnected from internet, prepare a new private PDF and search it.
+- [ ] On Android Chrome and desktop Chromium/Firefox, verify PDF worker, scroll, extraction, native reader, 200% zoom and safe areas.
+- [ ] `npm run build && npm run audit:dist` completes; archive/manifest contain no private PDFs or exported game-data indexes.

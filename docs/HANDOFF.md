@@ -67,3 +67,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 ## 0.8.1 restore integrity
 
 - `storage.restoreBackup()` verifies each imported `bookPack` against its corresponding PDF SHA-256 before starting the IndexedDB replacement transaction. Corrupt or mismatched private indexes abort restore without touching existing saves.
+
+## 0.9.0 — One-file preparation and offline build
+
+- `browser-compiler.mjs`: local PDF.js extraction and private book-pack validation, with optional progress updates and cancellation; it dynamically imports the locally bundled parser at `vendor/pdf.mjs`.
+- `app.mjs:renderLibrary()`: importing a **Core rulebook** now compiles the private index automatically. Previously imported documents can be prepared via **Prepare as corebook**. Existing CLI-generated index import remains available.
+- `scripts/build-static.mjs`: copies application sources and pinned PDF.js 5.4.296 runtime, worker, cmaps, and standard fonts into `dist/`; an asset manifest allows the service worker to precache the entire source-free runtime.
+- `scripts/audit-dist.mjs`: output whitelist, forbid unexpected PDFs and documents, require PDF.js files; CI uploads clearly UNTESTED preview.
+- Source checkout does not contain runtime node dependencies; run `npm install --ignore-scripts --no-audit --no-fund && npm run check && npm test && npm run build && npm run audit:dist`.
+- Real browser/Android validation is still pending; do not call this a tested release.

@@ -81,3 +81,15 @@
 ## 0.8.1 shipped
 
 - PDF-inclusive restore now pairs every imported private rules index with its PDF fingerprint before destructive database replacement.
+
+## 0.9.0 — In-browser preparation and packaged offline PWA
+
+- Browser-local single-PDF corebook preparation, text extraction, progress and cancellation; SHA-256-bound private rules index stored in IndexedDB.
+- Prepared existing documents without reimporting. CLI index import remains available.
+- Build-time PDF.js vendoring, offline asset precache, auditable `dist/` output, CI-uploaded UNTESTED preview.
+
+### Next — game-data layer
+1. Private structured records authored from the user's compiled book index (with page provenance); do not ship species, talents, tables or copyrighted source text.
+2. Interactive rule and random-table tools driven exclusively by that private local data.
+3. Validate PDF.js parsing and real-browser flows on Android/desktop, particularly storage quota and offline installation.
+4. Move toward automated section extraction using source-driven parsing with confirmation for ambiguous data.

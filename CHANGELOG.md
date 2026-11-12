@@ -1,3 +1,14 @@
+## [0.9.0] - 2026-11-12
+### Added
+- One-file local PDF preparation from the Library, with per-page progress and cancellation.
+- Bundled PDF.js parser, worker, maps, and fonts for offline use without runtime CDNs.
+- Static application build and downloadable UNTESTED CI preview, with distribution audit.
+### Changed
+- Corebook import compiles a private page-text index automatically; desktop Poppler remains an optional fallback.
+- Existing library PDFs can be privately prepared for play without reuploading.
+### Security
+- Build artifacts explicitly exclude private PDFs and generated book data.
+
 ## [0.8.1] - 2026-11-12
 ### Fixed
 - Private PDF-inclusive backup restores now verify that the prepared index belongs to the restored PDF before changing local saves.

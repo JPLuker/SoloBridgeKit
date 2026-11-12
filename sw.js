@@ -1,14 +1,26 @@
-const CACHE = 'solobridgekit-shell-v0.8.1';
-const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs', './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs', './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs', './content-policy.mjs', './book-data.mjs', './manifest.webmanifest'];
+const CACHE = 'solobridgekit-shell-v0.9.0';
+const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs',
+  './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs',
+  './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs',
+  './content-policy.mjs', './book-data.mjs', './browser-compiler.mjs',
+  './manifest.webmanifest', './vendor/asset-manifest.json'];
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const response = await fetch('./vendor/asset-manifest.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Missing offline PDF parser manifest.');
+    const assets = await response.json();
+    const cache = await caches.open(CACHE);
+    await cache.addAll([...SHELL, ...assets.map(name => './' + name)]);
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener('activate', event => {
-  event.waitUntil(Promise.all([
-    caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('solobridgekit-') && key !== CACHE).map(key => caches.delete(key)))),
-    self.clients.claim()
-  ]));
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith('solobridgekit-') && key !== CACHE)
+      .map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;

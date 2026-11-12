@@ -1,17 +1,33 @@
-name: Check
+name: Check and package
 on:
   push:
     branches: [main]
   pull_request:
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm run check
-      - run: npm test
+      - name: Install pinned PDF parser
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Check source and syntax
+        run: npm run check
+      - name: Run tests
+        run: npm test
+      - name: Build distributable PWA
+        run: npm run build
+      - name: Audit build output
+        run: npm run audit:dist
+      - name: Upload UNTESTED preview
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoloBridgeKit-0.9.0-UNTESTED
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
