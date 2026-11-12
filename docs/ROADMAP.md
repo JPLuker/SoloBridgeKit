@@ -105,3 +105,14 @@
 2. Improve input validation, 2026-edition source compatibility, multi-book references and compile progress/error recovery.
 3. Integrate selected private source options directly into character/ship builders and mission workspace.
 4. Browser and Android testing of the actual parser, private tables, backup/restore and offline behavior.
+
+## 0.11.0 — Source-linked lifepath presets
+
+- Players may save a validated lifepath stage as a private source-book option and reuse it when building another character.
+- Saved choices include source page and PDF fingerprint, allocations, values and focuses; no publisher choice list is shipped.
+- Library supports removing saved choices; career-event presets work for both event steps. Private PDF backups include options; default campaign exports don't.
+
+### Next
+1. Extend source-linked private presets to ship class statistics and selected talents.
+2. Integrate dice/table choices into active scene workflow.
+3. Verify real Android and desktop browser flows; test PDF.js memory use with the full 2026 corebook.

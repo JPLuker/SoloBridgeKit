@@ -70,3 +70,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] With an active mission, record a table roll; the mission log must contain only title/page/number, not publisher table text.
 - [ ] Export a campaign-only backup: no private tables or indexed page text. Opt in to private PDF backup: table data is included and restores with the matching PDF.
 - [ ] Try duplicate or overlapping ranges, missing values, and wrong-book table data; all must fail without writing data.
+
+## 0.11.0 private character choices
+
+- [ ] Complete a valid species/environment/education or career-event stage and save it as a private choice.
+- [ ] In another campaign, apply a saved choice and verify all bonuses, focuses, values and source references were copied correctly.
+- [ ] Confirm that applying a saved choice over an edited draft requests approval.
+- [ ] Verify an event-1 choice can be used in event 2 but cannot be used in a species step.
+- [ ] Delete a private choice; existing characters remain unchanged.
+- [ ] Private PDF backup contains the choice; default campaign backup does not.

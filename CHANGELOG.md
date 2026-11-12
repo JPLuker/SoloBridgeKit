@@ -1,3 +1,11 @@
+## [0.11.0] - 2026-11-12
+### Added
+- Save validated lifepath steps as private, reusable source-book choices.
+- Apply saved choices to future characters, with edition/source linkage.
+- Review and delete saved choices in Library.
+### Security
+- Source-dependent choices remain in locally imported document data and opt-in private PDF backups only.
+
 ## [0.10.0] - 2026-11-12
 ### Added
 - Local, source-page-linked private random-table creator from the user's prepared PDF.

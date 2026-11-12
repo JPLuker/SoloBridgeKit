@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.10.0
+## Current build: 0.11.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -97,3 +97,9 @@ GitHub Actions checks the code and uploads a clearly labeled **UNTESTED** `dist/
 A prepared corebook now powers **Private random tables** within Library. Choose a source page and use **Find rows on page** to propose numbered entries extracted from your own PDF. Review, edit and confirm every row before saving. You can also enter ranges manually (such as `1-2 | your result`, `3 | your result`). Table rolls use locally generated unbiased randomness; results can be referred to by page and roll number inside a mission.
 
 No publisher table text is included in the public app. The owner-created table collection belongs to the imported book's SHA-256 fingerprint and stays locally inside that document record. It is included only with an explicitly chosen private PDF backup, not a default campaign-only export. Table parsing is deliberately conservative and requires review; ambiguous typesetting is not treated as an accurate completed table.
+
+## Saved private lifepath choices (0.11.0)
+
+A completed lifepath stage can be saved as a source-linked **private choice**, including the player-verified point allocations, value, focuses, and notes. In subsequent character creations, select the saved option to populate the relevant stage. Both career-event steps share the same private option category. Saved choices can be reviewed or removed from Library.
+
+No species, career-event, talent, or other copyrighted options are shipped with the app. Private choices are created only after the player fills in a step using their imported book; they are tied to that book's SHA-256 and included only in explicit private PDF backups. The app still checks the completed character's allocations and caps before applying it to a sheet.

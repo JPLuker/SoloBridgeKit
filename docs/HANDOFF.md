@@ -84,3 +84,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `storage.mjs` and `model.mjs` validate table data and include it only in opt-in private PDF backups, not campaign-only JSON backups.
 - `scripts/build-static.mjs`, `scripts/audit-dist.mjs`, `sw.js`, CI, README and source checks updated for the extra code module. The runtime bundle still contains no book data.
 - Need actual browser testing and more robust source-table recognition before automating complex publisher table layouts.
+
+## 0.11.0 — Private lifepath choice reuse
+
+- `private-options.mjs` validates and stores source-linked private lifepath presets, with normalized bonus maps and separate source provenance. Career-event options are shared by events 1/2.
+- `app.mjs:renderLifepath()` now offers **Save as private choice** for a fully valid stage and **Apply saved choice** for matching imported-source options; existing drafts require confirmation before replacement.
+- `app.mjs:renderPrivateOptions()` lists/removes personal choices under Library. `storage.mjs` and `model.mjs` include source-matched options only in explicit private book backups.
+- New module included in static build, offline cache, distribution whitelist and unit tests.

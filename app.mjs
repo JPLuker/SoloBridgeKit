@@ -11,6 +11,7 @@ import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestor
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
+import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption } from './private-options.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -291,7 +292,39 @@ function renderLifepath() {
     nav.append(buttonNode);
   }
   root.append(nav);
-  const selectRef = state.documents.find(d => /captain.*log.*(2026|solo)/i.test(d.name)) || state.documents[0];
+  const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
+  if (corebook && current.id !== 'finishing') {
+    const presets = optionsForStep(corebook.options, current.id, corebook.bookPack.sourceSha256);
+    if (presets.length) {
+      const list = el('select', { 'aria-label': 'Saved private lifepath choice' });
+      for (const option of presets)
+        list.append(el('option', { value: option.id, text: option.label }));
+      root.append(card([
+        el('h2', { text: 'Saved private choices' }),
+        list,
+        el('div', { class: 'actions' }, [
+          button('Apply saved choice', async () => {
+            try {
+              const option = presets.find(x => x.id === list.value);
+              if (!option) throw new Error('Select a saved choice.');
+              const existing = readStep();
+              if (existing.choice && !confirm('Replace the current lifepath step with this saved choice?')) return;
+              path.stages[current.id] = applyPrivateOption(option, current.id);
+              path.appliedAt = null;
+              c.lifepath = path;
+              await persist();
+              notify('Saved choice applied. Verify the step before continuing.');
+            } catch (error) { failure(error); }
+          }),
+          button('Open source page', () => {
+            const option = presets.find(x => x.id === list.value);
+            if (option) openPdf(corebook, option.page).catch(failure);
+          }, 'secondary')
+        ])
+      ]));
+    }
+  }
+  const selectRef = corebook || state.documents.find(d => /captain.*log.*(2026|solo)/i.test(d.name)) || state.documents[0];
   const heading = el('div', { class: 'row between' }, [
     el('h2', { text: current.title }),
     selectRef ? button(`Open PDF · page ${current.page}`, () => openPdf(selectRef, current.page).catch(failure), 'secondary') :
@@ -328,6 +361,26 @@ function renderLifepath() {
       } catch (error) { failure(error); }
     })
   ]);
+  if (corebook && current.id !== 'finishing') {
+    actions.append(button('Save as private choice', async () => {
+      try {
+        const draft = readStep();
+        const errors = validateLifepathStep(current.id, draft);
+        if (errors.length) throw new Error(errors[0]);
+        const latest = await get('documents', corebook.id);
+        if (!latest?.bookPack) throw new Error('Prepared corebook unavailable.');
+        const option = makePrivateOption({ stepId: current.id, label: draft.choice,
+          page: current.page, sourceSha256: latest.bookPack.sourceSha256, record: draft });
+        latest.options = addPrivateOption(latest.options, option, latest.bookPack.sourceSha256);
+        await put('documents', latest);
+        path.stages[current.id] = draft;
+        path.appliedAt = null;
+        c.lifepath = path;
+        await persist();
+        notify('Private choice saved for future characters.');
+      } catch (error) { failure(error); }
+    }, 'secondary'));
+  }
   form.append(actions);
   root.append(form);
   validateDraft();
@@ -932,7 +985,7 @@ function renderLibrary() {
       } catch (error) { failure(error); }
     });
     searchCard.append(form, results);
-    root.append(searchCard, renderPrivateTables(readyBook));
+    root.append(searchCard, renderPrivateTables(readyBook), renderPrivateOptions(readyBook));
   }
   return root;
 }
@@ -1024,6 +1077,34 @@ function renderPrivateTables(book) {
   }
   root.append(list);
   return root;
+}
+function renderPrivateOptions(book) {
+  const options = normalizePrivateOptions(book.options, book.bookPack.sourceSha256);
+  const panel = card([el('h2', { text: 'Saved lifepath choices' })]);
+  if (!options.length) {
+    panel.append(el('p', { class: 'hint', text: 'Validated lifepath steps can be saved here and reused when creating another character.' }));
+    return panel;
+  }
+  for (const option of options) {
+    panel.append(el('div', { class: 'document-item' }, [
+      el('div', {}, [el('strong', { text: option.label }),
+        el('p', { class: 'hint', text: `${option.stage} · PDF page ${option.page}` })]),
+      el('div', { class: 'actions' }, [
+        button('Open source', () => openPdf(book, option.page).catch(failure), 'secondary'),
+        button('Remove', async () => {
+          if (!confirm(`Remove saved choice "${option.label}"? Existing characters will not change.`)) return;
+          try {
+            const latest = await get('documents', book.id);
+            if (!latest?.bookPack) throw new Error('Prepared book not found.');
+            latest.options = removePrivateOption(latest.options, option.id, latest.bookPack.sourceSha256);
+            await put('documents', latest);
+            await refresh();
+          } catch (error) { failure(error); }
+        }, 'danger subtle')
+      ])
+    ]));
+  }
+  return panel;
 }
 let pdfUrl;
 function pdfPageUrl(base, page) {
@@ -1275,7 +1356,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.10.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.11.0' })]));
   return root;
 }
 
