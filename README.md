@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.13.0
+## Current build: 0.14.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -115,3 +115,9 @@ Class templates live inside the owner's locally prepared source PDF record, not 
 The Captain's Log screen now includes **Scene actions**: choose Attribute and Discipline, apply the active mission's difficulty/Focus, and roll directly without leaving the mission. The same mission-recording function powers the separate Dice screen, keeping Momentum, Threat and task history consistent. Saved private random tables can be rolled from the mission screen, with source-page access. Recording a random result into the mission stores **only the private table title, source page and roll number**, not the publisher's result text.
 
 All saved mission results remain part of the player's ordinary campaign history; book-derived table rows and private option catalogs remain inside the local documents database and optional private PDF backup only.
+
+## Browser verification (0.14.0)
+
+GitHub Actions now runs a headless Google Chrome smoke test against the **packaged** PWA using a synthetic, programmatically generated 210-page PDF. It checks the setup gate, private PDF preparation and search, creation of a campaign and character, a mission task roll, and an offline reload. The CI run saves phone and desktop screenshots as a test artifact. The synthetic PDF is generated only during testing and removed afterward.
+
+Run the same check locally with Chrome installed: `npm install --ignore-scripts --no-audit --no-fund && npm run build && npm run browser:smoke`. Set `CHROME_BIN` to your Chrome executable if not at `/usr/bin/google-chrome`. This is headless **browser verification**, not a substitute for testing on actual Android or desktop devices.

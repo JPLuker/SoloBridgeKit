@@ -1,3 +1,11 @@
+## [0.14.0] - 2026-11-12
+### Added
+- Headless Chrome end-to-end smoke test against the complete built PWA.
+- Generated non-copyright synthetic PDF fixture for testing local import and preparation.
+- CI screenshot artifacts at phone and desktop widths, with offline reload verification.
+### Quality
+- Tests prove the bundled PDF parser is exercised in a real browser; physical-device testing remains a separate gate.
+
 ## [0.13.0] - 2026-11-12
 ### Added
 - In-mission task rolling with source-backed outcome recording and history.

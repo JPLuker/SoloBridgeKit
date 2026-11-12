@@ -105,3 +105,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs:recordMissionTask()` persists the shared result for both Dice and in-mission roll panels, including the state needed for a Momentum reroll.
 - `app.mjs:renderMissionActions()` provides task controls and privately compiled random tables next to the active captain's log. Recorded table references never copy publisher text into exported campaign data.
 - Unit tests cover pure task persistence; rendered UI and full PDF imports remain to be verified in a real browser.
+
+## 0.14.0 — Browser smoke tests
+
+- `scripts/synthetic-book.mjs` generates a small valid synthetic PDF at test runtime. It is never stored in Git or included in public release assets.
+- `scripts/browser-smoke.mjs` launches system Chrome through pinned `puppeteer-core`, serves the packaged `dist/`, verifies import/search/campaign/character/mission/task-roll/offline flows, and writes screenshots.
+- `.github/workflows/ci.yml` runs browser smoke after the static distribution audit and uploads phone/desktop captures even if the test fails. The untested application preview is uploaded only on a successful run.
+- This is headless verification, **not** a real-device/Android acceptance test.

@@ -94,3 +94,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Use a source-derived private table from the mission scene; ensure roll and page reference display correctly and the mission log records only title/page/number.
 - [ ] Reroll from the Dice screen after a mission-screen task, when Momentum is available, and verify history preserves original results.
 - [ ] Reload the campaign and verify mission task history remains unchanged.
+
+## 0.14.0 browser test
+
+- [ ] Headless Chrome smoke creates a synthetic PDF and completes its in-browser preparation without an external URL or runtime CDN.
+- [ ] The prepared index is usable for search; character, mission and task rolls persist.
+- [ ] Offline reload works when the service worker has cached the distributable.
+- [ ] Screenshot captures are inspected at 390x844 and 1280x720 for clipping, contrast, and overlapping controls.
+- [ ] Still obtain one actual Android and desktop hardware run before any tested release. Headless Chrome is not hardware verification.

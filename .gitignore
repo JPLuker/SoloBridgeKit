@@ -12,3 +12,6 @@ node_modules/
 
 # Built distribution is created locally/CI, never committed.
 dist/
+
+# Generated browser test outputs; no synthetic PDFs committed.
+test-output/

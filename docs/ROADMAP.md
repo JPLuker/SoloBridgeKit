@@ -135,3 +135,9 @@
 
 ### Next quality target
 - Add browser automation in CI to validate the full one-file corebook import, offline reload, character/mission navigation and screenshot layout, using a generated non-copyright test PDF.
+
+## 0.14.0 — Automated browser smoke testing
+
+- CI starts the compiled PWA in headless Chrome and uses a fully synthetic 210-page PDF to test local import, indexing, prepared search, campaign/character/mission creation, task rolls and an offline reload.
+- Phone and desktop screenshot artifacts captured. A failed browser flow fails the CI job; no commercial source material is used.
+- Still outstanding: real Android/device verification, accessibility measurements, and more extensive recovery tests.
