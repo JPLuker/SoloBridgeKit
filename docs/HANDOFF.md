@@ -121,3 +121,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 ## 0.14.2 — Browser launcher reliability
 
 - v0.14.1 browser smoke failed during Chrome startup, before any page or UI assertion. `scripts/browser-smoke.mjs` now uses `pipe:true`, 90-second launch timeout and diagnostic stderr. Re-check the next GitHub Actions run to confirm browser reaches the synthetic PDF flow.
+
+## 0.15.0 — Readable journal export
+
+- `campaign-export.mjs`: pure Markdown serialization for player-authored campaigns and individual episodes, plus safe filenames. Uses existing normalized models, never the document database.
+- `app.mjs`: **Export journal** on Home campaign overview; **Export episode** next to selected mission status. Both download `.md` content without source documents.
+- `tests/campaign-export.test.mjs`: verifies user-authored fields, safe filenames, and omission of private book data.
+- Added module to service worker offline assets, distributable allowlist/build, syntax checks, documentation. Browser export/download remains to be exercised in a follow-up smoke test.

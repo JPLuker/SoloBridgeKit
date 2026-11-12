@@ -1,8 +1,8 @@
-const CACHE = 'solobridgekit-shell-v0.14.2';
+const CACHE = 'solobridgekit-shell-v0.15.0';
 const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs',
   './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs',
   './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs',
-  './content-policy.mjs', './book-data.mjs', './browser-compiler.mjs', './private-tables.mjs', './private-options.mjs', './private-ships.mjs', './mission-actions.mjs',
+  './content-policy.mjs', './book-data.mjs', './browser-compiler.mjs', './private-tables.mjs', './private-options.mjs', './private-ships.mjs', './mission-actions.mjs', './campaign-export.mjs',
   './manifest.webmanifest', './vendor/asset-manifest.json'];
 self.addEventListener('install', event => {
   event.waitUntil((async () => {

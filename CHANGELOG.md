@@ -1,3 +1,10 @@
+## [0.15.0] - 2026-11-12
+### Added
+- Export complete campaigns or individual episodes to portable Markdown.
+- Journals include player-authored character/ship/crew details, scenes, logs and roll history.
+### Privacy
+- Journal exports never pull imported rulebook PDFs, private page indexes, random-table entries or option catalogs.
+
 ## [0.14.2] - 2026-11-12
 ### Fixed
 - Browser smoke launches Chrome with a DevTools pipe, a longer startup limit and diagnostic output to reduce hosted-runner startup failures.

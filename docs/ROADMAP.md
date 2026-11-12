@@ -149,3 +149,14 @@
 ## 0.14.2 — CI browser start resilience
 
 - Adjusted headless Chrome launch transport and timeout to address an intermittent hosted-runner startup failure. The 390px overflow regression remains gated by the browser smoke step.
+
+## 0.15.0 — Portable player-authored campaign journals
+
+- Entire campaigns and individual episodes can be exported to readable Markdown, including character and ship records, crew, scenes, logs and task-roll history.
+- Export intentionally excludes purchased PDFs, private indexed pages, random-table entries, and locally compiled species/class option catalogs.
+- JSON backups remain the round-trip format for restoring editable state; Markdown export is for reading/archival rather than reimport.
+
+### Next developer work
+1. Expand browser smoke to exercise journal downloads, storage reload and UI controls on narrow screens.
+2. Strengthen multi-document backup safety, large PDF quota failures, interrupted import, recovery and overwrite protections.
+3. Continue source-linked progression and character/ship advancement after source-mechanics verification.

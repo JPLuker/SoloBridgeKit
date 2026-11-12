@@ -14,6 +14,7 @@ import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePr
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption } from './private-options.mjs';
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 import { commitTaskToMission } from './mission-actions.mjs';
+import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -178,7 +179,13 @@ function renderHome() {
       line('Missions', String(campaign.episodes.length)),
       el('div', { class: 'actions' }, [
         button(active ? 'Resume mission' : 'Open captain’s log', () => { state.activeEpisodeId = active?.id || null; go('log'); }),
-        button('Character sheet', () => go('character'), 'secondary')
+        button('Character sheet', () => go('character'), 'secondary'),
+        button('Export journal', () => {
+          try {
+            download(journalFilename(campaign.title), renderCampaignJournal(campaign),
+              'text/markdown;charset=utf-8');
+          } catch (error) { failure(error); }
+        }, 'secondary')
       ])
     ]);
     root.append(overview);
@@ -739,6 +746,12 @@ function renderLog() {
       button(selected.status === 'active' ? 'Complete mission' : 'Reopen mission', async () => {
         selected.status = selected.status === 'active' ? 'completed' : 'active';
         try { await persist(); } catch (error) { failure(error); }
+      }, 'secondary'),
+      button('Export episode', () => {
+        try {
+          download(journalFilename(selected.title, 'episode'), renderEpisodeJournal(selected),
+            'text/markdown;charset=utf-8');
+        } catch (error) { failure(error); }
       }, 'secondary')]),
     line('Status', selected.status === 'active' ? 'Active' : 'Complete'),
     entries,
@@ -1514,7 +1527,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.14.2' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.15.0' })]));
   return root;
 }
 

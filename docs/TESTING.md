@@ -112,3 +112,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 
 - [ ] Headless Chrome launches reliably on ubuntu-latest, completes import and phone overflow assertion, then uploads screenshots.
 - [ ] If startup fails again, inspect Chrome stderr and runner health before changing app code.
+
+## 0.15.0 campaign journal export
+
+- [ ] From Home, export a campaign journal; verify Markdown includes character, ship, crew, scenes, mission notes and task-roll history.
+- [ ] Export a single episode from Captain's Log; ensure other episodes aren't included.
+- [ ] Check exported Markdown contains no full PDFs, private page text, table entries or private compiled options. User-authored narrative is expected.
+- [ ] Filenames are safe; generated journals open in standard Markdown/text editors.
+- [ ] Keep JSON backups as the supported editable restore format.
