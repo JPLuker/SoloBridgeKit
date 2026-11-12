@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.7.1
+## Current build: 0.8.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -45,7 +45,7 @@ No telemetry, no accounts required, no advertising, no third-party scripts or fo
 |---|---|---|
 | Local web origin | On application load and when uncached assets need loading | Requests for static application files only |
 
-There is no remote API, automatic update request, or third-party integration in 0.7.0. A future opt-in self-hosted sync service is only a roadmap proposal.
+There is no remote API, automatic update request, or third-party integration in 0.8.0. A future opt-in self-hosted sync service is only a roadmap proposal.
 
 ## Project documents
 
@@ -61,3 +61,27 @@ SoloBridgeKit distributes **no publisher PDFs, extracted books, licensed random 
 Imported PDFs stay in the browser's local IndexedDB; the app does not upload them to the developer. The offline service worker caches only application assets. JSON backups exclude PDF bytes by default. The checkbox **Include imported PDFs (private backup only)** is for personal migration; never publish those backups. When restoring a data-only backup, import your own book again.
 
 `npm run check` runs `scripts/audit-public-bundle.mjs` to reject PDF/ebook/archive assets in public source. Automated checks are not a substitute for manual copyright review of every release.
+
+## Source-dependent setup (0.8.0)
+
+**SoloBridgeKit ships an unplayable application shell.** Importing a PDF alone no longer unlocks play. The user must also generate a searchable private rules index from the book. Its SHA-256 fingerprint must match the imported PDF. The game screens stay locked unless that matched index is stored locally.
+
+Currently, preparation is a **desktop command** rather than a one-click browser PDF parser. On a Linux machine:
+
+```bash
+sudo apt install poppler-utils -y
+node scripts/prepare-corebook.mjs "/path/to/your Captain's Log corebook.pdf"
+```
+
+The second command creates a `.solobridge-book.json` file alongside the PDF. Do not publish this file; it contains extracted text from your privately owned book. On Windows/macOS, install Poppler (`pdftotext` and `pdfinfo` on `PATH`), then use the same Node command.
+
+1. Open SoloBridgeKit and go to **Library**.
+2. Import your own corebook PDF and explicitly choose **Use as corebook** if not already selected.
+3. Use **Import private rules index** for that PDF to select the generated `.solobridge-book.json` file.
+4. After the fingerprint and text checks pass, character creation and mission play unlock. **Search your prepared corebook** is also available from Library.
+
+This is an honest data dependency, **not DRM or a license check**. It doesn't prove ownership, and it doesn't prevent a technically skilled person from modifying their local application. No third-party service is contacted during preparation or import.
+
+The generated rules index is only created and stored by the user. Campaign-only backups exclude the PDF **and its extracted index**. Opt-in private PDF backups include both so the same browser database can be restored elsewhere. The source audit rejects `.solobridge-book.json` output inside a public checkout.
+
+**Planned:** on-device PDF text extraction so mobile/PWA users can prepare their source book directly without running Poppler on a separate computer. The current workflow is a first source-dependent milestone, not the final import experience.

@@ -37,3 +37,14 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Importing a PDF with the default **Other reference** type does not unlock gameplay until designated **Core rulebook**.
 - [ ] Restoring a data-only backup preserves already imported PDFs and their page bookmarks on that device.
 - [ ] Restoring a PDF-inclusive backup explicitly replaces the local documents and warns first.
+
+## 0.8.0 source dependency test plan
+
+- [ ] Launch with no PDF: only Home setup prompt, Library and Settings work. No character, missions, crew or dice UI.
+- [ ] Import an unrelated PDF and mark it Core rulebook: still locked.
+- [ ] Generate private index with `node scripts/prepare-corebook.mjs`, import index for matching PDF: gameplay unlocks and local full-text search returns page references.
+- [ ] Try to import an index for a different PDF: fingerprint mismatch rejects it and preserves existing data.
+- [ ] Reload offline: prepared state and search still work from IndexedDB. Removing the corebook locks gameplay again without deleting campaign saves.
+- [ ] Export default backup: no PDF or book-derived text. Export opt-in private backup: includes PDF and index. Restore both in a separate browser profile.
+- [ ] Place a generated `.solobridge-book.json` file in source checkout: public-source audit fails.
+- [ ] Review the public deploy bundle for publisher text, images, random tables and assets. Do not treat a green test run as proof of copyright compliance.

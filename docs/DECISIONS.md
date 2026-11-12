@@ -7,3 +7,6 @@
 - Pending: Final visual identity, public code license, and optional sync deployment model.
 
 - 2026-11-12 (user): SoloBridgeKit must require people to supply their own PDFs. We must not ship the copyrighted rulebook or material from it. User-local corebook gate and PDF-free default backup are project requirements.
+
+- 2026-11-12 (user): Make the application actually depend on user-supplied game data, like a game recompilation project; simply selecting a PDF as corebook must not unlock play. The user provides their own legally obtained files and locally derives the usable rules data.
+- 2026-11-12 (implementation): First pass uses Poppler on the user's computer to generate a private, SHA-256-bound search index. A native in-browser preparation flow is planned before the full mobile release.

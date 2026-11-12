@@ -1,11 +1,12 @@
 {
   "name": "solobridgekit",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check app.mjs && node --check storage.mjs && node --check model.mjs && node --check lifepath.mjs && node --check missions.mjs && node --check resources.mjs && node --check shipbuilder.mjs && node --check bookmarks.mjs && node --check rollhistory.mjs && node --check sw.js && node --check content-policy.mjs && node --check scripts/audit-public-bundle.mjs && node scripts/audit-public-bundle.mjs",
-    "start": "python3 -m http.server 4173"
+    "check": "node --check app.mjs && node --check storage.mjs && node --check model.mjs && node --check lifepath.mjs && node --check missions.mjs && node --check resources.mjs && node --check shipbuilder.mjs && node --check bookmarks.mjs && node --check rollhistory.mjs && node --check sw.js && node --check content-policy.mjs && node --check scripts/audit-public-bundle.mjs && node scripts/audit-public-bundle.mjs && node --check book-data.mjs && node --check scripts/prepare-corebook.mjs",
+    "start": "python3 -m http.server 4173",
+    "prepare:corebook": "node scripts/prepare-corebook.mjs"
   }
 }

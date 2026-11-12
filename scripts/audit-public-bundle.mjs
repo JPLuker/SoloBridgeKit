@@ -21,6 +21,7 @@ function scan(folder) {
     }
     if (!info.isFile()) continue;
     if (blockedExtensions.test(name)) errors.push(rel + ': licensed document/archive in public source');
+    if (/\.solobridge-book\.json$/i.test(name)) errors.push(rel + ': privately prepared book data in public source');
     if (/\.(?:txt|md|json|html|js|mjs|css)$/i.test(name) && info.size > 250000)
       errors.push(rel + ': unusually large text file; requires manual review');
     const bytes = readFileSync(path);

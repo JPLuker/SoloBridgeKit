@@ -1,6 +1,7 @@
 import { DATA_VERSION, validateBundle } from './model.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeDocumentRole, shouldIncludeDocuments, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
+import { validateBookPack } from './book-data.mjs';
 
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
@@ -82,7 +83,8 @@ export async function createBackup(options = {}) {
   for (const doc of docs) {
     const bytes = new Uint8Array(await doc.blob.arrayBuffer());
     documents.push({ id: doc.id, name: doc.name, size: doc.size, importedAt: doc.importedAt,
-      role: normalizeDocumentRole(doc.role), bookmarks: normalizeBookmarks(doc.bookmarks), base64: bytesToBase64(bytes) });
+      role: normalizeDocumentRole(doc.role), bookmarks: normalizeBookmarks(doc.bookmarks),
+      ...(doc.bookPack ? { bookPack: validateBookPack(doc.bookPack) } : {}), base64: bytesToBase64(bytes) });
   }
   return { format: 'solobridgekit', version: DATA_VERSION, createdAt: new Date().toISOString(),
     includesDocuments: shouldIncludeDocuments(options), campaigns, documents };
@@ -91,7 +93,9 @@ export async function createBackup(options = {}) {
 export async function restoreBackup(raw) {
   const bundle = validateBundle(raw);
   const docs = bundle.documents.map(d => ({ id: d.id, name: d.name, size: d.size,
-    importedAt: d.importedAt, role: normalizeDocumentRole(d.role), bookmarks: normalizeBookmarks(d.bookmarks), blob: new Blob([base64ToBytes(d.base64)], { type: 'application/pdf' }) }));
+    importedAt: d.importedAt, role: normalizeDocumentRole(d.role), bookmarks: normalizeBookmarks(d.bookmarks),
+    ...(d.bookPack ? { bookPack: validateBookPack(d.bookPack) } : {}),
+    blob: new Blob([base64ToBytes(d.base64)], { type: 'application/pdf' }) }));
   const db = await database();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAMES, 'readwrite');

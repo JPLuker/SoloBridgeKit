@@ -9,3 +9,6 @@
 
 - No PDF, extracted publisher book, original random table entries, copyrighted stat block, or official art in public source, service-worker cache, downloadable packages or demo fixtures.
 - Do not put imported PDFs in default backup exports. Private PDF-inclusive backups require a deliberate user choice.
+
+- Do not unlock gameplay solely from a filename, checkbox, PDF MIME type or an unverified locally imported PDF. Real content-based preparation is required.
+- Never commit or publish a generated `.solobridge-book.json` index; it contains text derived from the user-owned rulebook.

@@ -65,3 +65,15 @@
 
 - Existing imported PDFs are retained on restore of a data-only backup. PDF-inclusive backups still replace document records.
 - Corebook designation during import is now opt-in, preventing accidentally treating forms or unrelated PDFs as the required corebook.
+
+## 0.8.0 — Source-dependent setup
+
+- Gameplay requires the user to import a PDF and prepare a matching, readable private index with Poppler. The PDF's SHA-256 digest is checked before the index is accepted.
+- Browser-local full-text search now reads the user's extracted pages; no publisher text is shipped.
+- Private-backup opt-in includes generated index with user PDFs; default campaign exports exclude both. Source audit blocks generated `.solobridge-book.json` files.
+
+### Next
+1. **Browser-local PDF extraction:** replace the desktop Poppler preparation step with a bundled, offline PDF parser so the user uploads the corebook only once, including on mobile.
+2. Use the private index as the data source for table/choice lookups (human-reviewed parser rules, no licensed entries in public source).
+3. Browser end-to-end testing of source mismatch, import failures, offline play, and restore from private backups.
+4. Source-version compatibility, in-app preparation progress and file-integrity failure recovery.

@@ -1,3 +1,13 @@
+## [0.8.0] - 2026-11-12
+### Added
+- Source-dependent boot: gameplay only unlocks with a private rules index prepared from the player's own corebook PDF.
+- Offline `prepare:corebook` utility using Poppler tools; index requires text extraction and SHA-256 pairing with the original PDF.
+- Private corebook full-text search with links back to the imported PDF.
+- Tests and public-source safeguards for prepared-book data.
+### Changed
+- Merely marking a PDF as the corebook no longer unlocks gameplay.
+- Opt-in private PDF backups now also preserve the prepared rules index; campaign-only backups contain neither.
+
 ## [0.7.1] - 2026-11-12
 ### Fixed
 - Data-only backup restores now preserve PDFs already imported on the device.

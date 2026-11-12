@@ -7,7 +7,8 @@ import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './
 import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
 import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from './bookmarks.mjs';
 import { createTaskRecord, appendTaskRecord, rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
-import { normalizeDocumentRole, hasCorebook, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
+import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
+import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -123,14 +124,14 @@ function campaignRequired() {
 }
 function corebookPrompt() {
   return card([
-    el('h2', { text: 'Core rulebook required' }),
-    el('p', { class: 'muted', text: "Import your own Captain's Log corebook PDF to use the game tools. SoloBridgeKit does not include the rulebook." }),
-    button('Import corebook', () => go('library'))
+    el('h2', { text: 'Prepare your corebook' }),
+    el('p', { class: 'muted', text: "Gameplay requires your own Captain's Log PDF and a locally generated rules index. Imported PDFs alone do not unlock play." }),
+    button('Set up corebook', () => go('library'))
   ]);
 }
 function render() {
   navigation();
-  if (requiresCorebook(state.page) && !hasCorebook(state.documents)) {
+  if (requiresCorebook(state.page) && !hasPreparedCorebook(state.documents)) {
     content.replaceChildren(el('div', { class: 'page' }, [title('Import your corebook'), corebookPrompt()]));
     return;
   }
@@ -142,7 +143,7 @@ function render() {
 function renderHome() {
   const root = el('div', { class: 'page' });
   root.append(title('Home'));
-  if (!hasCorebook(state.documents)) { root.append(corebookPrompt()); return root; }
+  if (!hasPreparedCorebook(state.documents)) { root.append(corebookPrompt()); return root; }
   const select = el('select', { 'aria-label': 'Select campaign' });
   for (const c of state.campaigns) {
     const option = el('option', { value: c.id, text: c.title });
@@ -762,7 +763,7 @@ function renderLibrary() {
     } catch (error) { failure(error); } finally { $('#save-status').textContent = 'Saved locally'; }
   });
   root.append(card([el('h2', { text: 'Import rulebooks' }), roleField, fileInput,
-    el('p', { class: 'hint', text: 'Choose Core rulebook for the main book. PDFs stay in this browser. Backups omit them unless you opt in.' })]));
+    el('p', { class: 'hint', text: 'Import your PDF, select Use as corebook, then import a locally prepared rules index. See README for the preparation command. Nothing is sent to a server.' })]));
   if (!state.documents.length) { root.append(empty('No PDFs imported.')); return root; }
   const list = el('div', { class: 'document-list' });
   for (const document of state.documents) {
@@ -777,6 +778,24 @@ function renderLibrary() {
       } catch (error) { failure(error); }
     }, 'secondary');
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
+    const prepared = role === 'corebook' && Boolean(document.bookPack);
+    const privatePackInput = el('input', { type: 'file', accept: '.json,application/json',
+      'aria-label': 'Import locally prepared corebook data' });
+    privatePackInput.addEventListener('change', async () => {
+      const selected = privatePackInput.files?.[0];
+      if (!selected) return;
+      try {
+        const latest = await get('documents', document.id);
+        if (!latest || normalizeDocumentRole(latest.role) !== 'corebook')
+          throw new Error('Mark this PDF as your corebook first.');
+        const pack = JSON.parse(await selected.text());
+        await verifyPreparedBook(latest.blob, pack);
+        await put('documents', { ...latest, bookPack: pack });
+        state.openDocumentId = document.id;
+        await refresh();
+        notify('Corebook prepared. Gameplay is available.');
+      } catch (error) { failure(error); } finally { privatePackInput.value = ''; }
+    });
     const details = el('details', { class: 'document-bookmarks' });
     if (state.openDocumentId === document.id) details.open = true;
     details.addEventListener('toggle', () => {
@@ -826,7 +845,7 @@ function renderLibrary() {
     list.append(el('div', { class: 'document-item' }, [
       el('div', { class: 'list-row' }, [
         el('div', {}, [el('strong', { text: document.name }),
-          el('p', { class: 'muted', text: `${role === 'corebook' ? 'Core rulebook' : role === 'reference' ? 'Other reference' : role} · ${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
+          el('p', { class: 'muted', text: `${role === 'corebook' ? (prepared ? 'Prepared corebook' : 'Corebook not prepared') : role === 'reference' ? 'Other reference' : role} · ${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
         el('div', { class: 'actions' }, [
           changeRole,
           button('Read', () => openPdf(document).catch(failure), 'secondary'),
@@ -835,10 +854,35 @@ function renderLibrary() {
             try { await remove('documents', document.id); await refresh(); } catch (error) { failure(error); }
           }, 'danger subtle')
         ])
-      ]), details
+      ]), ...(role === 'corebook' ? [
+        el('label', { class: 'field' }, [el('span', { text: prepared ? 'Replace private rules index' : 'Import private rules index' }), privatePackInput])
+      ] : []), details
     ]));
   }
   root.append(card([el('h2', { text: 'My PDFs' }), list]));
+  const readyBook = state.documents.find(doc => doc.role === 'corebook' && doc.bookPack);
+  if (readyBook) {
+    const searchCard = card([el('h2', { text: 'Search your prepared corebook' })]);
+    const form = el('form', { class: 'inline-form' }, [
+      field('Search', 'query', '', { required: true, maxlength: 120 }),
+      el('button', { class: 'button primary', type: 'submit', text: 'Search' })
+    ]);
+    const results = el('div', { class: 'document-list', 'aria-live': 'polite' });
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      try {
+        const term = String(new FormData(form).get('query') || '').trim();
+        if (term.length < 2) throw new Error('Enter at least two characters.');
+        const hits = searchBookPack(readyBook.bookPack, term);
+        results.replaceChildren(...(hits.length ? hits.map(hit => card([
+          button(`PDF page ${hit.page}`, () => openPdf(readyBook, hit.page).catch(failure), 'secondary'),
+          el('p', { class: 'muted', text: hit.excerpt })
+        ])) : [el('p', { class: 'muted', text: 'No matches found.' })]));
+      } catch (error) { failure(error); }
+    });
+    searchCard.append(form, results);
+    root.append(searchCard);
+  }
   return root;
 }
 let pdfUrl;
@@ -1091,7 +1135,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.7.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.8.0' })]));
   return root;
 }
 

@@ -54,3 +54,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Data-only backups are marked `includesDocuments: false` and restoring them keeps existing device-local imported PDFs.
 - PDF-inclusive backups replace PDFs; older backups lacking the marker remain backward-compatible.
 - New Library imports default to **Other reference** so classifying a file as **Core rulebook** is a deliberate choice.
+
+## 0.8.0 source-dependent corebook preparation
+
+- `book-data.mjs`: validates a private full-page text index and its section coverage, pairs a generated pack with the imported PDF using SHA-256, provides local search. `hasPreparedCorebook()` replaces a document-role gate.
+- `scripts/prepare-corebook.mjs`: external, offline Poppler preparation command requiring the user's private PDF; generates `.solobridge-book.json` outside the distributed software. Never commit the generated output.
+- `app.mjs`: renders only the setup shell until a prepared, matching corebook is stored in IndexedDB. Library imports private index files and exposes user-data-backed local search.
+- `storage.mjs`: opt-in private book backup includes private index, default campaign-only export excludes everything from documents. `model.mjs` validates optional restored indexes.
+- `scripts/audit-public-bundle.mjs` rejects `.solobridge-book.json` files. The shipped PWA offline shell caches the parser/validator code, not extracted data.
+- Current limitation: desktop Poppler preparation, not yet a single mobile in-app PDF upload. Browser/UI behavior must still be device-tested; CI tests cover the pure validator and existing mechanics.

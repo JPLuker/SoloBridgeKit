@@ -6,3 +6,6 @@ node_modules/
 *.local
 .env*
 !*.example
+
+# Book-derived private generated data. Never commit or publish.
+*.solobridge-book.json
