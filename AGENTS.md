@@ -20,3 +20,10 @@ A locally playable, offline-first D&D Beyond-like solo RPG companion oriented to
 
 - This is a web PWA, so the desktop-specific installer formats in general release guidelines do not apply.
 - The initial app uses a dependency-free static JS/CSS foundation rather than a React build system to allow immediate offline deployment without package downloads. Framework adoption is deferred until it provides clear value.
+
+## Content distribution requirement (2026-11-12)
+
+- Each player supplies their own lawfully obtained book. Never commit or distribute user-uploaded PDFs, extracted publisher prose, original table entries, stat blocks or licensed art.
+- Book-based gameplay requires a locally imported PDF explicitly designated **Core rulebook**. Filename and role selection are not license verification.
+- Offline caching and public releases contain only software files. Run the public-content audit before every push, and manually inspect distribution contents.
+- Campaign backups exclude PDFs by default; including them is a deliberate private-backup opt-in.

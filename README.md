@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.6.0
+## Current build: 0.7.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -13,7 +13,7 @@ This repository contains the **application**, not the commercial rulebooks. Brin
 - Guided seven-step character lifepath with draft saves, source-book page links, numeric validation, final caps and explicit apply-to-sheet. Individual option bonuses must be cross-checked against the personal PDF.
 - Guided starship/station creation: choose the era, class, published ratings, traits, scale-based talents and identity. Stations support the smaller talent allowance. No class data or licensed talents are bundled.
 - Private PDF import into local IndexedDB with browser-native PDF reader, source-page links, manual page jumping, and player-created page bookmarks.
-- Full JSON backup and restore including imported PDF bytes and their saved bookmarks.
+- JSON backup and restore for campaigns; imported PDF bytes and bookmarks are included only in explicitly selected private backups.
 - Offline service-worker shell cache, responsive desktop/mobile layouts, no account.
 
 The app is an **in-progress foundation**, not the complete publisher game. Core task mechanics and lifepath point budgets have been checked against the privately provided 2026 rulebook. Specific species/upbringing/career-event bonuses, publisher starship stat blocks, table contents, full combat and advancement are not automated.
@@ -45,7 +45,7 @@ No telemetry, no accounts required, no advertising, no third-party scripts or fo
 |---|---|---|
 | Local web origin | On application load and when uncached assets need loading | Requests for static application files only |
 
-There is no remote API, automatic update request, or third-party integration in 0.6.0. A future opt-in self-hosted sync service is only a roadmap proposal.
+There is no remote API, automatic update request, or third-party integration in 0.7.0. A future opt-in self-hosted sync service is only a roadmap proposal.
 
 ## Project documents
 
@@ -54,3 +54,10 @@ Read [AGENTS.md](AGENTS.md) first and follow the [internal design guidelines](ht
 ## Copyright and license
 
 No commercial book text, publisher artwork or licensed tables are bundled in source control. The user supplies their own files for private local reference. **Code license not yet chosen.** Do not assume MIT or any other license until the maintainer decides.
+## Bring your own rulebook
+
+SoloBridgeKit distributes **no publisher PDFs, extracted books, licensed random tables, starship stat blocks or official artwork**. Import your legally obtained corebook PDF in **Library** and select **Core rulebook**. Game-dependent pages require a locally imported document explicitly designated as the corebook. The designation is not proof of ownership or DRM. Previously imported PDFs remain intact and can be designated without reimporting.
+
+Imported PDFs stay in the browser's local IndexedDB; the app does not upload them to the developer. The offline service worker caches only application assets. JSON backups exclude PDF bytes by default. The checkbox **Include imported PDFs (private backup only)** is for personal migration; never publish those backups. When restoring a data-only backup, import your own book again.
+
+`npm run check` runs `scripts/audit-public-bundle.mjs` to reject PDF/ebook/archive assets in public source. Automated checks are not a substitute for manual copyright review of every release.

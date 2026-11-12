@@ -1,3 +1,12 @@
+## [0.7.0] - 2026-11-12
+### Added
+- Required private corebook import before book-dependent gameplay.
+- Document type selection for new and existing local PDFs.
+- Public checkout content audit to reject PDF and ebook/archive files.
+### Changed
+- Backups now exclude imported PDFs unless explicitly included for personal use.
+- Previous PDF-containing backups remain compatible.
+
 # Changelog
 
 ## [0.6.0] — 2026-11-12

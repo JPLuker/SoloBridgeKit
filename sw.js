@@ -1,5 +1,5 @@
-const CACHE = 'solobridgekit-shell-v0.6.0';
-const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs', './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs', './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs', './manifest.webmanifest'];
+const CACHE = 'solobridgekit-shell-v0.7.0';
+const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs', './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs', './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs', './content-policy.mjs', './manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
   self.skipWaiting();

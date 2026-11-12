@@ -7,6 +7,7 @@ import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './
 import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
 import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from './bookmarks.mjs';
 import { createTaskRecord, appendTaskRecord, rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
+import { normalizeDocumentRole, hasCorebook, requiresCorebook } from './content-policy.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -120,8 +121,19 @@ function navigation() {
 function campaignRequired() {
   return empty('Create a campaign to start.', button('Create campaign', () => go('home')));
 }
+function corebookPrompt() {
+  return card([
+    el('h2', { text: 'Core rulebook required' }),
+    el('p', { class: 'muted', text: "Import your own Captain's Log corebook PDF to use the game tools. SoloBridgeKit does not include the rulebook." }),
+    button('Import corebook', () => go('library'))
+  ]);
+}
 function render() {
   navigation();
+  if (requiresCorebook(state.page) && !hasCorebook(state.documents)) {
+    content.replaceChildren(el('div', { class: 'page' }, [title('Import your corebook'), corebookPrompt()]));
+    return;
+  }
   const views = { home: renderHome, character: renderCharacter, lifepath: renderLifepath, starship: renderStarship,
     crew: renderCrew, shipbuilder: renderShipBuilder, log: renderLog, library: renderLibrary, dice: renderDice, settings: renderSettings, more: renderMore };
   content.replaceChildren(views[state.page]());
@@ -130,6 +142,7 @@ function render() {
 function renderHome() {
   const root = el('div', { class: 'page' });
   root.append(title('Home'));
+  if (!hasCorebook(state.documents)) { root.append(corebookPrompt()); return root; }
   const select = el('select', { 'aria-label': 'Select campaign' });
   for (const c of state.campaigns) {
     const option = el('option', { value: c.id, text: c.title });
@@ -725,27 +738,44 @@ function renderTaskHistory(mission) {
 function renderLibrary() {
   const root = el('div', { class: 'page' });
   root.append(title('Library', 'Your PDFs stay in this browser unless you export them.'));
+  const roleSelect = el('select', { 'aria-label': 'Document type' });
+  for (const [value, label] of [
+    ['corebook', 'Core rulebook'], ['supplement', 'Supplement'], ['forms', 'Forms'], ['reference', 'Other reference']
+  ]) roleSelect.append(el('option', { value, text: label }));
+  roleSelect.value = hasCorebook(state.documents) ? 'reference' : 'corebook';
+  const roleField = el('label', { class: 'field' }, [el('span', { text: 'Document type' }), roleSelect]);
   const fileInput = el('input', { type: 'file', accept: '.pdf,application/pdf', multiple: '', 'aria-label': 'Choose PDF files' });
   fileInput.addEventListener('change', async () => {
     const files = [...fileInput.files];
     if (!files.length) return;
     try {
+      if (roleSelect.value === 'corebook' && files.length !== 1) throw new Error('Select one core rulebook at a time.');
       $('#save-status').textContent = 'Importing…';
       for (const file of files) {
         if (!(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) throw new Error('Select PDF files only.');
         const signature = new TextDecoder().decode((await file.slice(0, 5).arrayBuffer()));
         if (signature !== '%PDF-') throw new Error(`${file.name} is not a valid PDF.`);
         await put('documents', { id: makeId(), name: file.name, size: file.size,
-          importedAt: new Date().toISOString(), blob: file, bookmarks: [] });
+          importedAt: new Date().toISOString(), blob: file, role: normalizeDocumentRole(roleSelect.value), bookmarks: [] });
       }
       await refresh(); notify(`${files.length} PDF${files.length === 1 ? '' : 's'} imported.`);
     } catch (error) { failure(error); } finally { $('#save-status').textContent = 'Saved locally'; }
   });
-  root.append(card([el('h2', { text: 'Import rulebooks' }), fileInput,
-    el('p', { class: 'hint', text: 'PDFs are stored locally in IndexedDB. Browser storage is device-specific. Export a backup before clearing browser data.' })]));
+  root.append(card([el('h2', { text: 'Import rulebooks' }), roleField, fileInput,
+    el('p', { class: 'hint', text: 'Choose Core rulebook for the main book. PDFs stay in this browser. Backups omit them unless you opt in.' })]));
   if (!state.documents.length) { root.append(empty('No PDFs imported.')); return root; }
   const list = el('div', { class: 'document-list' });
   for (const document of state.documents) {
+    const role = normalizeDocumentRole(document.role);
+    const changeRole = button(role === 'corebook' ? 'Unmark corebook' : 'Use as corebook', async () => {
+      try {
+        const latest = await get('documents', document.id);
+        if (!latest) throw new Error('Imported PDF not found.');
+        await put('documents', { ...latest, role: role === 'corebook' ? 'reference' : 'corebook' });
+        await refresh();
+        notify(role === 'corebook' ? 'Corebook designation removed.' : 'Corebook selected.');
+      } catch (error) { failure(error); }
+    }, 'secondary');
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
     const details = el('details', { class: 'document-bookmarks' });
     if (state.openDocumentId === document.id) details.open = true;
@@ -796,8 +826,9 @@ function renderLibrary() {
     list.append(el('div', { class: 'document-item' }, [
       el('div', { class: 'list-row' }, [
         el('div', {}, [el('strong', { text: document.name }),
-          el('p', { class: 'muted', text: `${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
+          el('p', { class: 'muted', text: `${role === 'corebook' ? 'Core rulebook' : role === 'reference' ? 'Other reference' : role} · ${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
         el('div', { class: 'actions' }, [
+          changeRole,
           button('Read', () => openPdf(document).catch(failure), 'secondary'),
           button('Remove', async () => {
             if (!confirm(`Remove ${document.name} from this browser?`)) return;
@@ -1025,13 +1056,15 @@ function renderMore() {
 function renderSettings() {
   const root = el('div', { class: 'page' });
   root.append(title('Settings'));
+  const backupPdfToggle = el('input', { type: 'checkbox', 'aria-label': 'Include imported PDFs in private backup' });
   root.append(card([el('h2', { text: 'Data & storage' }),
-    el('p', { class: 'muted', text: 'Backups include campaigns, characters, ships, missions and imported PDF files. Large PDF libraries can make backups large.' }),
+    el('p', { class: 'muted', text: 'Backups include campaign data. Imported PDFs are excluded unless you choose to include them for private use.' }),
+    el('label', { class: 'check-field' }, [backupPdfToggle, el('span', { text: 'Include imported PDFs (private backup only)' })]),
     el('div', { class: 'actions' }, [
-      button('Export everything', async () => {
+      button('Export backup', async () => {
         try {
           $('#save-status').textContent = 'Exporting…';
-          const backup = await createBackup();
+          const backup = await createBackup({ includeDocuments: backupPdfToggle.checked });
           download(`solobridgekit-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(backup), 'application/json');
           notify('Backup downloaded.');
         } catch (error) { failure(error); } finally { $('#save-status').textContent = 'Ready'; }
@@ -1055,7 +1088,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.4.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.7.0' })]));
   return root;
 }
 

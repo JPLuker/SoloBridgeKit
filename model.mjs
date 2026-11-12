@@ -1,6 +1,7 @@
 import { normalizeMissionScenes } from './missions.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeTaskHistory } from './rollhistory.mjs';
+import { normalizeDocumentRole } from './content-policy.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -164,6 +165,7 @@ export function validateBundle(bundle) {
       throw new Error('The backup contains an invalid document.');
     }
     normalizeBookmarks(d.bookmarks);
+    normalizeDocumentRole(d.role);
     docIds.add(d.id);
   }
   return bundle;

@@ -54,3 +54,9 @@
 ## Private source material
 
 - 2026 edition corebook, supplemental and both blank-form PDFs were privately provided on 2026-11-11. Source files are excluded from source control and release archives.
+## 0.7.0 — Bring your own rulebook safeguards
+
+- Game-dependent screens require a locally imported PDF designated **Core rulebook**, with an import prompt otherwise. Older documents can be marked without reimport.
+- The Library allows explicit document-type classification for corebook, supplement, forms and references.
+- Default backups include campaign data only. PDF-inclusive backups require an explicit private-backup checkbox; pre-0.7 backups still restore.
+- Public source audit is part of the required checks. Manual copyright/source review remains necessary before each release.

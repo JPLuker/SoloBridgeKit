@@ -41,3 +41,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 
 - Visual identity approval, code license, and whether optional self-hosted synchronization is desired.
 - One focused test pass per milestone when a real build is available; avoid repeated test requests.
+## v0.7.0 book distribution safeguards
+
+- `content-policy.mjs`: document types, corebook presence test, game route gate and explicit backup option.
+- `render()` and `renderHome()`: gate gameplay until the player imports a PDF marked **Core rulebook**. `renderLibrary()`: classify documents at import and assign older untyped PDFs a corebook designation.
+- `storage.mjs`: data-only backup by default; optional private PDF export; backward-compatible restore preserves document roles.
+- `scripts/audit-public-bundle.mjs`: reject book/ebook/archive files from public checkout; integrated into `npm run check` and GitHub CI.
+- Still required: human inspection of copyrighted extracts not detectable by file types and user testing of import and backup UI.

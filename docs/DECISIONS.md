@@ -5,3 +5,5 @@
 - 2026-11-11 (user): Repository is `JPLuker/SoloBridgeKit`.
 - 2026-11-11 (implementation): Start with a no-dependency offline web foundation while PDFs are not available to this work session. This is an implementation decision, not a chosen final visual identity.
 - Pending: Final visual identity, public code license, and optional sync deployment model.
+
+- 2026-11-12 (user): SoloBridgeKit must require people to supply their own PDFs. We must not ship the copyrighted rulebook or material from it. User-local corebook gate and PDF-free default backup are project requirements.

@@ -23,3 +23,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - Android hardware and narrow-screen overflow, native PDF page navigation, large commercial PDF quota failures and interrupted IndexedDB transactions.
 - Accuracy of all option-specific lifepath bonuses for non-default species/upbringing/career events, option-specific ship class data, progression and combat; those features are not automated.
 - Accessibility measurements and E2E tests in a supported browser are still required for a release.
+## v0.7.0 book-content test plan
+
+- [ ] Fresh profile with no files shows **Core rulebook required**. Library and Settings work; game-dependent pages cannot play.
+- [ ] Import forms as **Forms**: game remains gated. Import a corebook as **Core rulebook**: gameplay unlocks.
+- [ ] An older, unclassified PDF can be explicitly designated or unmarked without losing its bytes/bookmarks.
+- [ ] Default JSON export contains `documents: []`; checking private PDF backup includes original PDFs. Both restore successfully, as do pre-0.7 backups.
+- [ ] No commercial PDFs, extracted book prose, tables, stat blocks or licensed art in code, static deploy, service-worker shell or public release artifacts.
+- [ ] `npm run check` and `npm test` pass, followed by real-browser import/export checks.
