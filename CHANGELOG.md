@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0] — 2026-11-12
+
+- Added private PDF page bookmarks and an in-reader page-jump form.
+- Included per-document bookmarks in backup exports and restores; older backups without bookmarks remain valid.
+- Added validation for corrupted bookmarks and expanded automated tests from 47 to 52.
+
 ## [0.4.0] — 2026-11-12
 
 - Added a source-linked, six-step guided starship/station builder with player-entered class stats and scale-based talent validation.

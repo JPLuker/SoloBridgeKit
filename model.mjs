@@ -1,4 +1,5 @@
 import { normalizeMissionScenes } from './missions.mjs';
+import { normalizeBookmarks } from './bookmarks.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -161,6 +162,7 @@ export function validateBundle(bundle) {
         d.size !== (d.base64.length / 4 * 3 - (d.base64.endsWith('==') ? 2 : d.base64.endsWith('=') ? 1 : 0)) || docIds.has(d.id)) {
       throw new Error('The backup contains an invalid document.');
     }
+    normalizeBookmarks(d.bookmarks);
     docIds.add(d.id);
   }
   return bundle;

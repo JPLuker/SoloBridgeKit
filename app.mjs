@@ -5,6 +5,7 @@ import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
 import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
 import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
+import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from './bookmarks.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -12,7 +13,7 @@ const PAGES = [
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
-  activeEpisodeId: null, activeScene: null, activeCrewId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false };
+  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false };
 const $ = selector => document.querySelector(selector);
 const content = $('#content');
 
@@ -706,7 +707,7 @@ function renderLibrary() {
         const signature = new TextDecoder().decode((await file.slice(0, 5).arrayBuffer()));
         if (signature !== '%PDF-') throw new Error(`${file.name} is not a valid PDF.`);
         await put('documents', { id: makeId(), name: file.name, size: file.size,
-          importedAt: new Date().toISOString(), blob: file });
+          importedAt: new Date().toISOString(), blob: file, bookmarks: [] });
       }
       await refresh(); notify(`${files.length} PDF${files.length === 1 ? '' : 's'} imported.`);
     } catch (error) { failure(error); } finally { $('#save-status').textContent = 'Saved locally'; }
@@ -714,33 +715,99 @@ function renderLibrary() {
   root.append(card([el('h2', { text: 'Import rulebooks' }), fileInput,
     el('p', { class: 'hint', text: 'PDFs are stored locally in IndexedDB. Browser storage is device-specific. Export a backup before clearing browser data.' })]));
   if (!state.documents.length) { root.append(empty('No PDFs imported.')); return root; }
-  const list = el('div', { class: 'list' });
+  const list = el('div', { class: 'document-list' });
   for (const document of state.documents) {
-    list.append(el('div', { class: 'list-row' }, [
-      el('div', {}, [el('strong', { text: document.name }),
-        el('p', { class: 'muted', text: `${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
-      el('div', { class: 'actions' }, [
-        button('Read', () => openPdf(document).catch(failure), 'secondary'),
-        button('Remove', async () => {
-          if (!confirm(`Remove ${document.name} from this browser?`)) return;
-          try { await remove('documents', document.id); await refresh(); } catch (error) { failure(error); }
-        }, 'danger subtle')
-      ])
+    const savedBookmarks = normalizeBookmarks(document.bookmarks);
+    const details = el('details', { class: 'document-bookmarks' });
+    if (state.openDocumentId === document.id) details.open = true;
+    details.addEventListener('toggle', () => {
+      if (details.open) state.openDocumentId = document.id;
+      else if (state.openDocumentId === document.id) state.openDocumentId = null;
+    });
+    details.append(el('summary', { text: `Bookmarks (${savedBookmarks.length})` }));
+    const bookmarksList = el('div', { class: 'bookmark-list' });
+    for (const saved of savedBookmarks) {
+      bookmarksList.append(el('div', { class: 'bookmark-row' }, [
+        el('span', { text: `${saved.label} · PDF page ${saved.page}` }),
+        el('div', { class: 'actions' }, [
+          button('Open', () => openPdf(document, saved.page).catch(failure), 'secondary'),
+          button('Remove', async () => {
+            try {
+              const latest = await get('documents', document.id);
+              if (!latest) throw new Error('The imported PDF was not found.');
+              await put('documents', { ...latest, bookmarks: removeBookmark(latest.bookmarks, saved.id) });
+              state.openDocumentId = document.id;
+              await refresh(); notify('Bookmark removed.');
+            } catch (error) { failure(error); }
+          }, 'subtle')
+        ])
+      ]));
+    }
+    details.append(bookmarksList);
+    const bookmarkForm = el('form', { class: 'inline-form bookmark-form' }, [
+      field('Name', 'label', '', { required: true }),
+      field('PDF page', 'page', '1', { number: true, required: true }),
+      el('button', { class: 'button secondary', type: 'submit', text: 'Save bookmark' })
+    ]);
+    bookmarkForm.querySelector('[name=page]').min = '1';
+    bookmarkForm.querySelector('[name=page]').max = '99999';
+    bookmarkForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const values = new FormData(bookmarkForm);
+      try {
+        const latest = await get('documents', document.id);
+        if (!latest) throw new Error('The imported PDF was not found.');
+        const bookmark = createBookmark(values.get('label'), values.get('page'));
+        await put('documents', { ...latest, bookmarks: addBookmark(latest.bookmarks, bookmark) });
+        state.openDocumentId = document.id;
+        await refresh(); notify('Bookmark saved.');
+      } catch (error) { failure(error); }
+    });
+    details.append(bookmarkForm);
+    list.append(el('div', { class: 'document-item' }, [
+      el('div', { class: 'list-row' }, [
+        el('div', {}, [el('strong', { text: document.name }),
+          el('p', { class: 'muted', text: `${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
+        el('div', { class: 'actions' }, [
+          button('Read', () => openPdf(document).catch(failure), 'secondary'),
+          button('Remove', async () => {
+            if (!confirm(`Remove ${document.name} from this browser?`)) return;
+            try { await remove('documents', document.id); await refresh(); } catch (error) { failure(error); }
+          }, 'danger subtle')
+        ])
+      ]), details
     ]));
   }
   root.append(card([el('h2', { text: 'My PDFs' }), list]));
   return root;
 }
 let pdfUrl;
-async function openPdf(doc, page = null) {
+function pdfPageUrl(base, page) {
+  const num = Number(page);
+  if (!Number.isSafeInteger(num) || num < 1 || num > 99999) throw new Error('Enter a valid PDF page number.');
+  return `${base}#page=${num}`;
+}
+async function openPdf(doc, page = 1) {
   const record = await get('documents', doc.id);
   if (!record) throw new Error('PDF not found.');
-  if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-  pdfUrl = URL.createObjectURL(record.blob);
-  $('#pdf-title').textContent = doc.name;
-  $('#pdf-frame').src = page ? `${pdfUrl}#page=${Number(page)}` : pdfUrl;
-  $('#pdf-dialog').showModal();
+  const next = URL.createObjectURL(record.blob);
+  try {
+    const target = pdfPageUrl(next, page);
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    pdfUrl = next;
+    $('#pdf-page').value = String(page);
+    $('#pdf-title').textContent = doc.name;
+    $('#pdf-frame').src = target;
+    if (!$('#pdf-dialog').open) $('#pdf-dialog').showModal();
+  } catch (error) { URL.revokeObjectURL(next); throw error; }
 }
+$('#pdf-page-form').addEventListener('submit', event => {
+  event.preventDefault();
+  try {
+    if (!pdfUrl) throw new Error('Open a PDF first.');
+    $('#pdf-frame').src = pdfPageUrl(pdfUrl, $('#pdf-page').value);
+  } catch (error) { failure(error); }
+});
 $('#close-pdf').addEventListener('click', () => $('#pdf-dialog').close());
 $('#pdf-dialog').addEventListener('close', () => {
   $('#pdf-frame').removeAttribute('src');
