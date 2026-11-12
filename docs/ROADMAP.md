@@ -28,6 +28,13 @@
 - Bookmarks are private, included with PDF backup/restore and validated on import; old backups and imported PDF records remain compatible.
 - 52 automated model tests pass locally. The native PDF reader and browser backup flows still need real-browser verification.
 
+## Implemented in 0.6.0
+
+- Every player-triggered 2d20 task roll during a mission creates a durable, timestamped record on that mission.
+- Momentum rerolls revise the same record while retaining its original dice; the user can delete individual history records. Raw dice utility rolls remain session-only.
+- Older campaigns are compatible. All roll records export in the existing campaign backup.
+- 59 source-checked model tests pass locally; real browser and device tests remain unverified.
+
 ## Next: application quality
 
 1. Resolve blocked browser end-to-end testing; verify navigation, lifepath workflow, storage, PDFs and scenes with actual Chromium/Android screenshots.

@@ -8,7 +8,7 @@ SoloBridgeKit is an unofficial D&D Beyond-style, offline-first companion for the
 
 Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-first, no AI-generated art or narrative, copyright separation and proof before claims. Do not apply an unapproved visual restyle.
 
-## Current state — 0.5.0
+## Current state — 0.6.0
 
 - `app.mjs`: `renderLifepath()` for the seven-step wizard (career events have separate pages), `renderSceneTracker()` for per-act scene planning, `renderDice()` for source-grounded task rolls, reroll and Momentum/Threat controls. Source jumps call `openPdf(document, page)`.
 - `lifepath.mjs`: `LIFEPATH_STEPS`, `createLifepath()`, `normalizeLifepath()`, `validateLifepathStep()`, `lifepathReview()`, `applyLifepathToCharacter()`; source corebook PDF pp. 97–98, 109, 113, 121, 128–129, 135.
@@ -18,8 +18,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `resources.mjs`: `taskDifficulty()`, `applyTaskOutcome()`, `spendMomentum()`, `spendThreat()`; source corebook PDF pp. 198–200.
 - `model.mjs`: source-form fields, campaign/mission creation, task resolution and backup validation. `storage.mjs`: IndexedDB with transaction-complete reads/writes and atomic multi-store backup restore.
 - `bookmarks.mjs` stores and validates player-authored page references per PDF; `renderLibrary()` and `#pdf-page-form` support saved bookmarks and direct page jumps, with bookmark data in JSON backup/restore.
-- Offline shell cache updated to v0.5.0 and includes all active modules.
-- `npm run check && npm test` passes **52 tests** locally (source edition: 2026). No GitHub Issues were open at the start of this session.
+- `rollhistory.mjs` stores player-initiated 2d20 task histories per mission. `renderTaskHistory()` displays the latest twenty with independent deletion; rerolls preserve original dice and update the matching saved record.
+- Offline shell cache updated to v0.6.0 and includes all active modules.
+- `npm run check && npm test` passes **59 tests** locally (source edition: 2026). No GitHub Issues were open at the start of this session.
 
 ## Known limits
 

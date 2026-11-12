@@ -1,5 +1,6 @@
 import { normalizeMissionScenes } from './missions.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
+import { normalizeTaskHistory } from './rollhistory.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -58,7 +59,7 @@ export function normalizeEpisode(episode) {
     careerEvents: episode.careerEvents ?? '',
     valueMarks: { minus: false, plus: false, challenged: false, ...episode.valueMarks },
     momentum: episode.momentum === true, threat: episode.threat === true,
-    nextTaskHard: episode.nextTaskHard === true,
+    nextTaskHard: episode.nextTaskHard === true, taskHistory: normalizeTaskHistory(episode.taskHistory),
     actLogs: { actOne: '', actTwo: '', actThree: '', closing: '', valuesChallenged: '', ...episode.actLogs }
   };
 }

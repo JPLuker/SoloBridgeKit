@@ -6,6 +6,7 @@ import { updateScenePlan, toggleMissionScene } from './missions.mjs';
 import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
 import { createShipBuilder, normalizeShipBuilder, reviewShipBuilder, applyShipBuilder } from './shipbuilder.mjs';
 import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from './bookmarks.mjs';
+import { createTaskRecord, appendTaskRecord, rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -627,6 +628,7 @@ function renderLog() {
     form
   ]));
   root.append(renderSceneTracker(selected));
+  root.append(renderTaskHistory(selected));
   root.append(missionForm);
   return root;
 }
@@ -691,6 +693,33 @@ function renderSceneTracker(mission) {
     tracker.append(editor);
   }
   return tracker;
+}
+
+
+function renderTaskHistory(mission) {
+  const records = mission.taskHistory || [];
+  const section = card([el('h2', { text: 'Task rolls' })]);
+  if (!records.length) {
+    section.append(el('p', { class: 'muted', text: 'No task rolls recorded.' }));
+    return section;
+  }
+  const entries = el('div', { class: 'timeline' });
+  for (const roll of [...records].reverse().slice(0,20)) {
+    entries.append(el('article', { class: 'entry' }, [
+      el('time', { text: isoDate(roll.at), datetime: roll.at }),
+      el('strong', { text: `${roll.attribute} + ${roll.discipline} · ${roll.success ? 'Success' : 'Failure'}` }),
+      el('p', { text: `2d20: ${roll.dice.join(', ')} · target ${roll.target} · successes ${roll.successes}/${roll.difficulty}` }),
+      ...(roll.originalDice ? [el('p', { class: 'hint', text: `Rerolled die ${roll.rerolledDie} from ${roll.originalDice.join(', ')}` })] : []),
+      el('p', { class: 'hint', text: [roll.momentumEarned && 'Momentum', roll.threatGenerated && 'Threat', roll.focusAdvantage && 'Focus advantage'].filter(Boolean).join(' · ') || 'No resources generated' }),
+      button('Delete roll', async () => {
+        try { mission.taskHistory = deleteTaskRecord(mission.taskHistory, roll.id); await persist(); }
+        catch (error) { failure(error); }
+      }, 'danger subtle')
+    ]));
+  }
+  section.append(entries);
+  if (records.length > 20) section.append(el('p', { class: 'hint', text: `Showing the latest 20 of ${records.length} rolls. All rolls are included in backups.` }));
+  return section;
 }
 
 function renderLibrary() {
@@ -876,6 +905,7 @@ function renderDice() {
               const nextResult = resolveTask({...meta.params, dice: revised});
               const baseline = {...episode, ...meta.before, momentum: false};
               Object.assign(episode, applyTaskOutcome(baseline, nextResult));
+              episode.taskHistory = rerollTaskRecord(episode.taskHistory, meta.recordId, index, nextResult);
               state.taskRoll = nextResult; state.taskMeta.rerolled = true;
               await persist();
               notify(`Die ${index + 1} rerolled. New result applies.`);
@@ -894,12 +924,18 @@ function renderDice() {
           difficulty: taskDifficulty(episode, difficulty.value === '2'), focusApplies: focus.checked };
         const outcome = resolveTask({ ...params, dice: rollDice(2, 20) });
         state.taskRoll = outcome;
-        state.taskMeta = episode ? { episodeId: episode.id, params,
-          before: { momentum: episode.momentum, threat: episode.threat, nextTaskHard: episode.nextTaskHard }, rerolled: false } : null;
         if (episode) {
+          const record = createTaskRecord({ attribute: attribute.select.value, discipline: discipline.select.value,
+            focusApplies: focus.checked, result: outcome });
+          state.taskMeta = { episodeId: episode.id, params, recordId: record.id,
+            before: { momentum: episode.momentum, threat: episode.threat, nextTaskHard: episode.nextTaskHard }, rerolled: false };
+          episode.taskHistory = appendTaskRecord(episode.taskHistory, record);
           Object.assign(episode, applyTaskOutcome(episode, outcome));
           await persist();
-        } else showResult(outcome);
+        } else {
+          state.taskMeta = null;
+          showResult(outcome);
+        }
       } catch (error) { failure(error); }
     });
     taskCard.append(el('div', { class: 'field-grid' }, [attribute.wrapper, discipline.wrapper, el('label', { class: 'field' }, [el('span', { text: 'Difficulty' }), difficulty])]),
@@ -908,6 +944,7 @@ function renderDice() {
     if (state.taskRoll && (!state.taskMeta || !episode || state.taskMeta.episodeId === episode.id)) showResult(state.taskRoll);
     root.append(taskCard);
     if (episode) {
+      root.append(el('div', { class: 'actions' }, [button('Mission roll history', () => { state.activeEpisodeId = episode.id; go('log'); }, 'secondary')]));
       const updateResources = async changes => {
         Object.assign(episode, changes);
         state.taskMeta = null;

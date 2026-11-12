@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0] — 2026-11-12
+
+- Added a persistent task-roll history on each mission, including target, result, dice and resource outcomes.
+- A Momentum reroll updates the same roll record and preserves its original dice; individual history entries can be deleted.
+- Migrated older missions with no history to empty logs and added seven tests (59 passing).
+
 ## [0.5.0] — 2026-11-12
 
 - Added private PDF page bookmarks and an in-reader page-jump form.

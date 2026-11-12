@@ -4,12 +4,12 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.5.0
+## Current build: 0.6.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
-- Three-act missions with configurable per-act scene counts, individually editable scene titles/notes/completion, status, timestamped entries, value markers, development and Act One–Three/closing logs. Older 15-step counters migrate.
-- Task rolls using the verified 2026 Captain's Log 2d20 resolution, source-backed resource spending (Momentum advantage/removing Threat, reroll one die; Threat complication or next-task difficulty), Focus advantages and cryptographically generated raw d6/d20 dice rolls.
+- Three-act missions with configurable per-act scene counts, individually editable scene titles/notes/completion, status, timestamped entries, saved task-roll history, value markers, development and Act One–Three/closing logs. Older 15-step counters migrate.
+- Task rolls using the verified 2026 Captain's Log 2d20 resolution, source-backed resource spending (Momentum advantage/removing Threat, reroll one die; Threat complication or next-task difficulty), Focus advantages and cryptographically generated raw d6/d20 dice rolls. Mission task rolls are saved, and a reroll updates the existing record without losing the original dice.
 - Guided seven-step character lifepath with draft saves, source-book page links, numeric validation, final caps and explicit apply-to-sheet. Individual option bonuses must be cross-checked against the personal PDF.
 - Guided starship/station creation: choose the era, class, published ratings, traits, scale-based talents and identity. Stations support the smaller talent allowance. No class data or licensed talents are bundled.
 - Private PDF import into local IndexedDB with browser-native PDF reader, source-page links, manual page jumping, and player-created page bookmarks.
@@ -45,7 +45,7 @@ No telemetry, no accounts required, no advertising, no third-party scripts or fo
 |---|---|---|
 | Local web origin | On application load and when uncached assets need loading | Requests for static application files only |
 
-There is no remote API, automatic update request, or third-party integration in 0.5.0. A future opt-in self-hosted sync service is only a roadmap proposal.
+There is no remote API, automatic update request, or third-party integration in 0.6.0. A future opt-in self-hosted sync service is only a roadmap proposal.
 
 ## Project documents
 

@@ -1,8 +1,8 @@
 # Testing
 
-## Local automated results — v0.5.0
+## Local automated results — v0.6.0
 
-Run `npm run check && npm test`. Results: 52/52 unit tests passed, JavaScript syntax checks passed. The tests cover source-form models, 2d20 task resolution, valid/invalid lifepath allocations, final caps/totals, legacy scene tracker migration, scene count editing and loss prevention, Momentum/Threat resource transitions, backup schema checks, ship/station builder validations, crew record compatibility, PDF bookmarks, old backup compatibility, bookmark validation, and raw dice bounds.
+Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript syntax checks passed. The tests cover source-form models, 2d20 task resolution, valid/invalid lifepath allocations, final caps/totals, legacy scene tracker migration, scene count editing and loss prevention, Momentum/Threat resource transitions, backup schema checks, ship/station builder validations, crew record compatibility, PDF bookmarks, old backup compatibility, bookmark validation, persistent task history, reroll amendment, legacy history normalization, and raw dice bounds.
 
 ## Focused user smoke test (once the browser UI can be tested)
 
@@ -11,7 +11,7 @@ Run `npm run check && npm test`. Results: 52/52 unit tests passed, JavaScript sy
 3. Complete seven steps (including two career events), apply, and confirm 56/16 totals on character sheet.
 4. Create a mission; change Act One scene count, complete a scene and add notes.
 5. Refresh, reopen the scene and verify that notes/completion persist.
-6. Roll a task; spend Momentum/Threat and test one reroll when available.
+6. Roll a task; spend Momentum/Threat and test one reroll when available. Refresh and check the original/updated dice in mission roll history.
 7. Build a ship from owner-entered class stats; verify a station gets a smaller talent allowance. Add and edit a crew member.
 8. Import a purchased PDF; create a named bookmark, reopen the bookmarked page and jump to another page.
 9. Export a backup, restore it and verify the campaign, imported PDF and bookmarks.
