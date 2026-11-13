@@ -26,6 +26,8 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
+**Progress:** v0.17.0 implements staged/atomic imports, cancellation guards and quota preflight; not yet accepted or closed.
+
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.
 - Validate storage quota and free space before large imports; actionable errors for storage denied, unavailable or full.

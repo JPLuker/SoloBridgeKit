@@ -1,3 +1,11 @@
+## [0.17.0] - 2026-11-13
+### M1 — Data protection (partial)
+- Multi-file PDF imports validate before mutation and add all document records in one IndexedDB transaction.
+- Added quota preflight, clearer storage errors, existing-book cancellation, and safe failed-write timestamps.
+- Added invalid-batch, abort and capacity tests and browser partial-import regression.
+### Verification
+- CI must pass before accepting. M1 remains open for full private restore, source replacement and offline upgrade recovery.
+
 ## [0.16.1] - 2026-11-13
 ### Planning
 - Added an ordered M1–M8 active development roadmap with concrete implementation and acceptance requirements.

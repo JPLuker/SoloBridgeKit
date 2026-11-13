@@ -148,3 +148,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/browser-smoke.mjs` uses Chrome DevTools download behavior and inspects the downloaded episode Markdown, campaign Markdown and default campaign-only JSON backup.
 - Asserts exports contain player-authored character/mission data and task records but no imported PDF-derived page text. Default backup must have `includesDocuments:false` and `documents:[]`.
 - This is the first browser-level export verification; tests continue using only a synthetic PDF. A failing browser export/download blocks the CI preview.
+
+## v0.17.0 — Active M1 build 1
+
+- `import-safety.mjs` contains pre-commit validation, cancellation check, quota estimate and user-facing storage errors.
+- `storage.addDocumentsAtomically()` adds multi-file imports in one transaction; `saveCampaign()` doesn't claim failed writes completed.
+- `app.mjs` stages imports and commits once, shares cancellation UI with existing-book preparation and reports storage failures.
+- `tests/import-safety.test.mjs` plus Chrome malformed multi-file import test. CI run must be verified before claiming passed.
+- Next in M1: full private backup/restore rollback cases, old document compatibility, and offline update recovery. Do not proceed to M2 until M1 acceptance passes.

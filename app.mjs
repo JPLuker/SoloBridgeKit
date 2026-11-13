@@ -1,6 +1,7 @@
 import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
-import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database } from './storage.mjs';
+import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically } from './storage.mjs';
+import { prepareImportBatch, storageMessage, assertNotCancelled } from './import-safety.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
 import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
@@ -78,7 +79,7 @@ function notify(message, error = false) {
   clearTimeout(notify.timer);
   notify.timer = setTimeout(() => { toast.hidden = true; }, 4500);
 }
-function failure(error) { console.error(error); notify(error?.message || 'An operation failed.', true); }
+function failure(error) { console.error(error); notify(storageMessage(error), true); }
 function download(name, contents, type) {
   const url = URL.createObjectURL(new Blob([contents], { type }));
   const link = el('a', { href: url, download: name });
@@ -105,9 +106,14 @@ async function persist() {
   if (!state.campaign) return;
   const navigationAtSave = state.navigationVersion;
   $('#save-status').textContent = 'Saving…';
-  await saveCampaign(state.campaign);
-  $('#save-status').textContent = 'Saved locally';
-  await refresh(navigationAtSave);
+  try {
+    await saveCampaign(state.campaign);
+    $('#save-status').textContent = 'Saved locally';
+    await refresh(navigationAtSave);
+  } catch (error) {
+    $('#save-status').textContent = 'Save failed';
+    throw error;
+  }
 }
 function go(page) {
   state.navigationVersion++;
@@ -973,35 +979,29 @@ function renderLibrary() {
     if (!files.length) return;
     const requestedRole = normalizeDocumentRole(roleSelect.value);
     try {
-      if (requestedRole === 'corebook' && files.length !== 1) throw new Error('Select one core rulebook at a time.');
+      if (preparationController) throw new Error('Another preparation is already running.');
+      preparationController = new AbortController();
       fileInput.disabled = true;
       roleSelect.disabled = true;
+      cancelPreparation.hidden = false;
       $('#save-status').textContent = 'Importing…';
-      for (const file of files) {
-        if (!(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) throw new Error('Select PDF files only.');
-        const signature = new TextDecoder().decode((await file.slice(0, 5).arrayBuffer()));
-        if (signature !== '%PDF-') throw new Error(`${file.name} is not a valid PDF.`);
-        let bookPack;
-        if (requestedRole === 'corebook') {
-          preparationController = new AbortController();
-          cancelPreparation.hidden = false;
-          progress.textContent = 'Preparing your corebook…';
-          bookPack = await preparePdfInBrowser(file, {
-            signal: preparationController.signal,
-            onProgress: ({ page, total }) => {
-              progress.textContent = `Preparing page ${page} of ${total}…`;
-            }
-          });
+      const records = await prepareImportBatch(files, {
+        role: requestedRole,
+        signal: preparationController.signal,
+        makeId,
+        preparePdf: preparePdfInBrowser,
+        onProgress: ({ page, total }) => {
+          progress.textContent = `Preparing page ${page} of ${total}…`;
         }
-        await put('documents', { id: makeId(), name: file.name, size: file.size,
-          importedAt: new Date().toISOString(), blob: file, role: requestedRole, bookmarks: [],
-          ...(bookPack ? { bookPack } : {}) });
-      }
-      progress.textContent = requestedRole === 'corebook' ? 'Corebook prepared.' : '';
+      });
+      assertNotCancelled(preparationController.signal);
+      progress.textContent = 'Saving to this device…';
+      await addDocumentsAtomically(records);
+      progress.textContent = requestedRole === 'corebook' ? 'Corebook prepared.' : 'PDFs imported.';
       await refresh();
-      notify(requestedRole === 'corebook' ? 'Corebook ready to play.' : `${files.length} PDF${files.length === 1 ? '' : 's'} imported.`);
+      notify(requestedRole === 'corebook' ? 'Corebook ready to play.' : `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
     } catch (error) {
-      progress.textContent = error.message || 'Preparation failed.';
+      progress.textContent = storageMessage(error);
       failure(error);
     } finally {
       fileInput.value = '';
@@ -1009,7 +1009,7 @@ function renderLibrary() {
       roleSelect.disabled = false;
       cancelPreparation.hidden = true;
       preparationController = null;
-      $('#save-status').textContent = 'Saved locally';
+      $('#save-status').textContent = 'Ready';
     }
   });
   root.append(card([el('h2', { text: 'Import rulebooks' }), roleField, fileInput,
@@ -1030,18 +1030,28 @@ function renderLibrary() {
           notify('Corebook designation removed.');
           return;
         }
+        if (preparationController) throw new Error('Another preparation is already running.');
+        preparationController = new AbortController();
         changeRole.disabled = true;
+        cancelPreparation.hidden = false;
         changeRole.textContent = 'Preparing…';
         const pack = await preparePdfInBrowser(latest.blob, {
+          signal: preparationController.signal,
           onProgress: ({ page, total }) => { changeRole.textContent = `Page ${page}/${total}`; }
         });
-        await put('documents', { ...latest, role: 'corebook', bookPack: pack });
+        assertNotCancelled(preparationController.signal);
+        const current = await get('documents', document.id);
+        if (!current) throw new Error('The PDF was removed during preparation.');
+        await put('documents', { ...current, role: 'corebook', bookPack: pack });
         await refresh();
         notify('Corebook prepared and ready.');
       } catch (error) {
         changeRole.disabled = false;
         changeRole.textContent = previousText;
         failure(error);
+      } finally {
+        preparationController = null;
+        cancelPreparation.hidden = true;
       }
     }, 'secondary');
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
@@ -1530,7 +1540,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.16.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.0' })]));
   return root;
 }
 

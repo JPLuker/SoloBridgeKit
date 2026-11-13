@@ -171,3 +171,10 @@
 
 - Add real Chrome download checks for the exported episode/campaign journals and data-only JSON backup. Verify content and absence of privately compiled book text, then offline reload.
 - Next: inspect failed test screenshots, expand private-backup/restore and interrupted-import coverage, and improve device-level UX before a tested release.
+
+## v0.17.0 — M1 initial import integrity work
+
+- Validation before committing a PDF batch; one IndexedDB transaction prevents partial multi-file imports.
+- Browser storage preflight, abort-before-commit and actionable failure handling.
+- Cancel support for preparing previously imported PDFs and a browser regression for failed mixed-file imports.
+- **M1 is not finished:** complete private restore/browser rollback, interrupted large PDF, source replacement and offline upgrade acceptance before moving to M2. See [ACTIVE_ROADMAP.md](ACTIVE_ROADMAP.md).

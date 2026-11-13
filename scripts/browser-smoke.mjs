@@ -76,6 +76,41 @@ try {
   await page.waitForFunction(() =>
     document.querySelector('#content')?.textContent?.includes('Prepared corebook'), { timeout: 180000 });
   await page.screenshot({ path: join(output, 'phone-library.png'), fullPage: true });
+  // A malformed second file must abort the WHOLE batch, preserving the prepared corebook.
+  const libraryCount = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open('solobridgekit');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return await new Promise((resolve, reject) => {
+      const req = db.transaction('documents').objectStore('documents').count();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  });
+  const badPath = join(process.cwd(), output, 'invalid-synthetic.pdf');
+  writeFileSync(badPath, 'not a PDF');
+  await page.select('select[aria-label="Document type"]', 'reference');
+  const multiplePicker = await page.$('input[aria-label="Choose PDF files"]');
+  await multiplePicker.uploadFile(pdfPath, badPath);
+  await waitForSave('not a valid PDF');
+  const afterBad = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open('solobridgekit');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return await new Promise((resolve, reject) => {
+      const req = db.transaction('documents').objectStore('documents').getAll();
+      req.onsuccess = () => resolve(req.result.map(doc => ({ role: doc.role, prepared: Boolean(doc.bookPack) })));
+      req.onerror = () => reject(req.error);
+    });
+  });
+  check(afterBad.length === libraryCount && afterBad.some(doc => doc.role === 'corebook' && doc.prepared),
+    'Failed import changed previously prepared documents or partially committed a batch.');
+  rmSync(badPath, { force: true });
+
   await page.type('input[name=query]', 'starship');
   await clickText('Search');
   await page.waitForFunction(() =>
@@ -156,5 +191,6 @@ try {
 } finally {
   if (browser) await browser.close().catch(() => {});
   rmSync(join(output, 'temporary-synthetic.pdf'), { force: true });
+  rmSync(join(output, 'invalid-synthetic.pdf'), { force: true });
   server.kill();
 }

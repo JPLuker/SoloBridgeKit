@@ -137,3 +137,9 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - Last verified implementation baseline: v0.16.0, 87 passing unit tests and successful headless Chrome smoke and distribution audit (run 43233606270).
 - No new user-facing functions were added in this planning commit. Future milestone verification criteria are tracked in [ACTIVE_ROADMAP.md](ACTIVE_ROADMAP.md).
 - Real Android/desktop hardware acceptance and full private-book 336-page import remain unverified; do not mark them complete merely because CI is green.
+
+## v0.17.0 M1 regression coverage
+
+- Unit: importing valid PDFs stages records, malformed batch aborts before commit, cancellation, approximate quota preflight, storage error guidance.
+- Browser: prepared corebook remains intact when second PDF is malformed; no partial commit.
+- **Open:** full private backup/restore, quota errors during transaction, interrupted extraction at 336 pages and offline update.

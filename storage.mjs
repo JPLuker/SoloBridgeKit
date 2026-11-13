@@ -48,9 +48,38 @@ export const get = (store, key) => run(store, 'readonly', objectStore => objectS
 export const put = (store, record) => run(store, 'readwrite', objectStore => objectStore.put(record));
 export const remove = (store, id) => run(store, 'readwrite', objectStore => objectStore.delete(id));
 
+// Add an entire selected import batch in one IndexedDB transaction.
+// If ANY add fails (including quota, duplicate ID or serialization), none persist.
+export async function addDocumentsAtomically(records) {
+  if (!Array.isArray(records) || !records.length) throw new Error('No documents to import.');
+  const ids = new Set();
+  for (const doc of records) {
+    if (!doc || typeof doc.id !== 'string' || !doc.id || ids.has(doc.id) ||
+        !doc.blob || typeof doc.blob.size !== 'number') {
+      throw new Error('Document import contains an invalid or duplicate record.');
+    }
+    ids.add(doc.id);
+  }
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('documents', 'readwrite');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error('Could not save the PDF batch.'));
+    tx.onabort = () => reject(tx.error ?? new Error('PDF import was rolled back.'));
+    try {
+      const store = tx.objectStore('documents');
+      for (const doc of records) store.add(doc); // add, never overwrite existing IDs
+    } catch (error) {
+      try { tx.abort(); } catch { /* Transaction may already have aborted. */ }
+      reject(error);
+    }
+  });
+}
+
 export async function saveCampaign(campaign) {
-  campaign.updatedAt = new Date().toISOString();
-  await put('campaigns', campaign);
+  const updated = { ...campaign, updatedAt: new Date().toISOString() };
+  await put('campaigns', updated);
+  campaign.updatedAt = updated.updatedAt; // Do not imply a failed write was saved.
 }
 
 export async function resetData() {
