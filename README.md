@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.16.0
+## Current build: 0.16.1
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -27,7 +27,7 @@ npm install --ignore-scripts --no-audit --no-fund
 npm start
 ```
 
-Open `http://localhost:4173`. Node.js 22+ is needed to build/run the self-contained development distribution. End users of the packaged PWA do not need Node or Poppler. Run tests: Tests:
+Open `http://localhost:4173`. Node.js 22+ is needed to build/run the self-contained development distribution. End users of the packaged PWA do not need Node or Poppler. Run tests:
 
 ```sh
 npm run check
@@ -50,7 +50,7 @@ There is no remote API, automatic update request, or third-party integration in 
 
 ## Project documents
 
-Read [AGENTS.md](AGENTS.md) first and follow the [internal design guidelines](https://github.com/JPLuker/InternalDesignGuidelines). Planning lives under `docs/`. Open GitHub Issues are the ongoing handoff once work begins.
+Read [AGENTS.md](AGENTS.md) first and follow the [internal design guidelines](https://github.com/JPLuker/InternalDesignGuidelines). The active, prioritized plan is [docs/ACTIVE_ROADMAP.md](docs/ACTIVE_ROADMAP.md); shipped history remains in [docs/ROADMAP.md](docs/ROADMAP.md). Open GitHub Issues are the ongoing handoff once work begins.
 
 ## Copyright and license
 

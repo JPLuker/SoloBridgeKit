@@ -1,5 +1,7 @@
 # Roadmap
 
+> **Active build order:** [ACTIVE_ROADMAP.md](ACTIVE_ROADMAP.md) (updated 2026-11-13). The milestones below retain historical releases and earlier plans.
+
 ## Shipped: 0.1.0–0.2.0
 
 - Offline-first static PWA, multiple local campaigns, editable character and ship records, three-act mission notes and logs.

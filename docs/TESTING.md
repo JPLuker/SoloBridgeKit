@@ -131,3 +131,9 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Browser CI downloads one episode and one full campaign Markdown file; both include player-created records and omit synthetic private-book page text.
 - [ ] Browser CI downloads the default JSON backup; it contains the campaign and `documents:[]`, without any PDF/compiled book data.
 - [ ] The same run completes the existing offline reload and mobile/desktop viewport assertions.
+
+## v0.16.1 planning-only update
+
+- Last verified implementation baseline: v0.16.0, 87 passing unit tests and successful headless Chrome smoke and distribution audit (run 43233606270).
+- No new user-facing functions were added in this planning commit. Future milestone verification criteria are tracked in [ACTIVE_ROADMAP.md](ACTIVE_ROADMAP.md).
+- Real Android/desktop hardware acceptance and full private-book 336-page import remain unverified; do not mark them complete merely because CI is green.

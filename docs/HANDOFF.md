@@ -4,11 +4,19 @@
 
 SoloBridgeKit is an unofficial D&D Beyond-style, offline-first companion for the owner's purchased 2026 *Star Trek Adventures: Captain's Log* books. The application cannot contain or publish the commercial PDFs, full table contents, or publisher artwork.
 
+## Current session — 2026-11-13 (v0.16.1 plan update)
+
+- Current app baseline was v0.16.0: browser-local PDF preparation, source-dependent play, private random tables/options/ship templates, mission rolling, Markdown journals, backup and Chrome smoke tests.
+- No open GitHub Issues were found at roadmap review. Most recent verified v0.16.0 CI ran 87/87 unit tests, source checks, distribution audit and headless Chrome smoke successfully.
+- **Start here:** [ACTIVE_ROADMAP.md](ACTIVE_ROADMAP.md), ordered M1–M8, starting with data-safety and preparation failure recovery. [ROADMAP.md](ROADMAP.md) preserves historical release notes.
+- This session only formalized development priorities and updated the documentation/version; it did **not** implement future milestones, certify real hardware or ship a tested 1.0 build.
+- Owner decisions remain: visual theme, public code license, optional sync, real-device acceptance and final release milestone.
+
 ## Firm rules
 
 Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-first, no AI-generated art or narrative, copyright separation and proof before claims. Do not apply an unapproved visual restyle.
 
-## Current state — 0.6.0
+## Historical foundation — 0.6.0
 
 - `app.mjs`: `renderLifepath()` for the seven-step wizard (career events have separate pages), `renderSceneTracker()` for per-act scene planning, `renderDice()` for source-grounded task rolls, reroll and Momentum/Threat controls. Source jumps call `openPdf(document, page)`.
 - `lifepath.mjs`: `LIFEPATH_STEPS`, `createLifepath()`, `normalizeLifepath()`, `validateLifepathStep()`, `lifepathReview()`, `applyLifepathToCharacter()`; source corebook PDF pp. 97–98, 109, 113, 121, 128–129, 135.

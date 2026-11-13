@@ -1,3 +1,9 @@
+## [0.16.1] - 2026-11-13
+### Planning
+- Added an ordered M1–M8 active development roadmap with concrete implementation and acceptance requirements.
+- Linked the active roadmap while keeping historical milestones and prior decisions intact.
+- No gameplay change, no new licensed source content, and no new hardware verification in this version.
+
 ## [0.16.0] - 2026-11-12
 ### Tests
 - Headless Chrome now exercises actual Markdown episode/campaign downloads and default JSON backup exports.
