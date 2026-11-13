@@ -143,3 +143,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - Unit: importing valid PDFs stages records, malformed batch aborts before commit, cancellation, approximate quota preflight, storage error guidance.
 - Browser: prepared corebook remains intact when second PDF is malformed; no partial commit.
 - **Open:** full private backup/restore, quota errors during transaction, interrupted extraction at 336 pages and offline update.
+
+## v0.17.1 Chrome restore regressions
+
+- [ ] Duplicate document ID on second write: transaction rolls back first attempted document too.
+- [ ] Default backup restore retains already installed private documents and compiled data.
+- [ ] Full private backup restores both campaign state and source PDF/index.
+- [ ] Full private backup with modified source fingerprint rejects before mutating IndexedDB.
+- All automated tests run with generated synthetic PDFs; actual 2026 owner PDF remains an outstanding private acceptance test.

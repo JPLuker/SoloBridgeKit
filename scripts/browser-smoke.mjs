@@ -173,6 +173,84 @@ try {
     'Default campaign backup must exclude imported books and private compiled data.');
   check(backup.campaigns.some(c => c.title === 'Synthetic test campaign'),
     'Backup did not contain the campaign.');
+  // Verify a mid-batch IndexedDB add error rolls back the entire transaction.
+  const rollback = await page.evaluate(async () => {
+    const storage = await import('./storage.mjs');
+    const before = await storage.all('documents');
+    const attempted = {
+      id: crypto.randomUUID(), name: 'should-not-exist.pdf',
+      blob: new Blob(['%PDF-1.7'], { type: 'application/pdf' }),
+      size: 8, role: 'reference', bookmarks: [], importedAt: new Date().toISOString()
+    };
+    let failed = false;
+    try {
+      await storage.addDocumentsAtomically([attempted, { ...attempted, id: before[0].id }]);
+    } catch { failed = true; }
+    const after = await storage.all('documents');
+    return { failed, before: before.length, after: after.length,
+      leaked: after.some(d => d.id === attempted.id) };
+  });
+  check(rollback.failed && rollback.before === rollback.after && !rollback.leaked,
+    'IndexedDB did not roll back the attempted mixed-validity transaction.');
+
+  // A full private backup contains the locally imported book; standard backups never do.
+  rmSync(join(downloads, backupName), { force: true });
+  await page.$eval('input[aria-label="Include imported PDFs in private backup"]', el => el.click());
+  await clickText('Export backup');
+  const privateBundle = JSON.parse(await waitForDownload(backupName, 30000));
+  check(privateBundle.includesDocuments === true && privateBundle.documents.length === libraryCount,
+    'Private backup omitted its explicit PDF-inclusive setting.');
+  check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 210),
+    'Private backup lost its compiled source book.');
+  const privatePath = join(process.cwd(), output, 'synthetic-private-backup.json');
+  const corruptPath = join(process.cwd(), output, 'synthetic-corrupt-backup.json');
+  const campaignPath = join(process.cwd(), output, 'synthetic-campaign-backup.json');
+  writeFileSync(privatePath, JSON.stringify(privateBundle));
+  writeFileSync(campaignPath, JSON.stringify(backup));
+  const corrupt = structuredClone(privateBundle);
+  const corebookRecord = corrupt.documents.find(d => d.bookPack);
+  corebookRecord.bookPack.sourceSha256 = 'f'.repeat(64);
+  writeFileSync(corruptPath, JSON.stringify(corrupt));
+
+  // A data-only restore must leave already imported private PDFs untouched.
+  page.once('dialog', dialog => dialog.accept());
+  await (await page.$('input[aria-label="Restore from backup"]')).uploadFile(campaignPath);
+  await waitForSave('Backup restored.');
+  const countAfterDataRestore = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    return (await all('documents')).length;
+  });
+  check(countAfterDataRestore === libraryCount,
+    'Restoring a campaign-only backup unexpectedly deleted private PDFs.');
+
+  // Corrupt PDF/index pair must fail before touching campaigns or documents.
+  page.once('dialog', dialog => dialog.accept());
+  await (await page.$('input[aria-label="Restore from backup"]')).uploadFile(corruptPath);
+  await waitForSave('different PDF');
+  const afterCorrupt = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const documents = await all('documents');
+    const campaigns = await all('campaigns');
+    return { docs: documents.length, campaigns: campaigns.length,
+      corebookPrepared: documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 210) };
+  });
+  check(afterCorrupt.docs === libraryCount && afterCorrupt.corebookPrepared && afterCorrupt.campaigns === backup.campaigns.length,
+    'A corrupt private-backup restore changed existing local data.');
+
+  // Valid private PDF-inclusive restore must reconstruct the book/index and campaign.
+  page.once('dialog', dialog => dialog.accept());
+  await (await page.$('input[aria-label="Restore from backup"]')).uploadFile(privatePath);
+  await waitForSave('Backup restored.');
+  const restored = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const docs = await all('documents'), campaigns = await all('campaigns');
+    return { docs: docs.length, campaigns: campaigns.map(c => c.title),
+      pages: docs.find(d => d.role === 'corebook')?.bookPack?.pages?.length };
+  });
+  check(restored.docs === libraryCount && restored.pages === 210 &&
+    restored.campaigns.includes('Synthetic test campaign'),
+    'A valid private backup failed to restore its campaign and book index.');
+
   await navigate('Home');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload({ waitUntil: 'networkidle0' });
@@ -192,5 +270,7 @@ try {
   if (browser) await browser.close().catch(() => {});
   rmSync(join(output, 'temporary-synthetic.pdf'), { force: true });
   rmSync(join(output, 'invalid-synthetic.pdf'), { force: true });
+  for (const name of ['synthetic-private-backup.json', 'synthetic-corrupt-backup.json', 'synthetic-campaign-backup.json'])
+    rmSync(join(output, name), { force: true });
   server.kill();
 }

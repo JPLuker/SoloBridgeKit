@@ -178,3 +178,8 @@
 - Browser storage preflight, abort-before-commit and actionable failure handling.
 - Cancel support for preparing previously imported PDFs and a browser regression for failed mixed-file imports.
 - **M1 is not finished:** complete private restore/browser rollback, interrupted large PDF, source replacement and offline upgrade acceptance before moving to M2. See [ACTIVE_ROADMAP.md](ACTIVE_ROADMAP.md).
+
+## v0.17.1 — M1 private restore coverage
+
+- Browser regression for full PDF-inclusive backup/restore, data-only restore preservation, corrupt-source rejection and IndexedDB transaction rollback, all using synthetic noncommercial content.
+- Source reimport/replacement and offline app upgrade remain in M1. See active milestone criteria.

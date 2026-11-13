@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.17.0
+## Current build: 0.17.1
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -135,3 +135,7 @@ The headless Chrome CI test now saves and inspects a downloaded single-episode M
 ## 0.17.0 import safety
 
 The Library validates a complete PDF selection and checks an approximate browser-storage estimate before writing. A multi-file batch is added in **one** IndexedDB transaction; failures cannot leave a partial batch. Cancelling corebook preparation does not save an unfinished index or remove an existing book. Existing documents can be prepared with a cancel control. Browser capacity estimates are approximate, not a guarantee. Keep your own purchased PDFs and export campaign backups regularly.
+
+### v0.17.1 restore verification
+
+Automated headless Chrome now verifies a complete user-private PDF-inclusive backup round trip, preserving source-page text and campaigns. It tests campaign-only restore without losing previously imported PDFs, mismatched PDF/index rejection, and IndexedDB rollback for a duplicate-ID write. These checks use a generated synthetic book, not the commercial rulebook.

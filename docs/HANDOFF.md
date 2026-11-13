@@ -156,3 +156,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs` stages imports and commits once, shares cancellation UI with existing-book preparation and reports storage failures.
 - `tests/import-safety.test.mjs` plus Chrome malformed multi-file import test. CI run must be verified before claiming passed.
 - Next in M1: full private backup/restore rollback cases, old document compatibility, and offline update recovery. Do not proceed to M2 until M1 acceptance passes.
+
+## v0.17.1 — M1 restore regression
+
+- `scripts/browser-smoke.mjs` tests real browser download/restore of a synthetic private PDF+index backup, data-only restore retaining local PDFs, corrupt private-index restore rejection, and true IndexedDB transaction rollback.
+- `import-safety.storageMessage()` retains calculated storage estimate information when a preflight check fails.
+- Remaining M1: explicit source replacement/reimport, interrupted import and offline service-worker upgrade tests, then physical-device acceptance.

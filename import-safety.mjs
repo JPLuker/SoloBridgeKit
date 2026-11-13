@@ -5,7 +5,9 @@ import { validateBookPack } from './book-data.mjs';
 export function storageMessage(error) {
   const name = error?.name || error?.cause?.name || '';
   if (name === 'QuotaExceededError')
-    return 'This device is out of site storage. Export a backup, free storage, and retry. Your previous books and campaigns were not replaced.';
+    return typeof error?.message === 'string' && error.message.startsWith('Not enough browser storage')
+      ? error.message
+      : 'This device is out of site storage. Export a backup, free storage, and retry. Your previous books and campaigns were not replaced.';
   if (name === 'SecurityError' || name === 'NotAllowedError' || name === 'InvalidStateError')
     return 'Local storage is unavailable. Allow site storage or leave private browsing, then retry.';
   if (name === 'AbortError') return 'Import cancelled. No files from this attempt were saved.';

@@ -1,3 +1,10 @@
+## [0.17.1] - 2026-11-13
+### M1 — Restore integrity
+- Browser automation now downloads private full backups and restores both data-only and PDF-inclusive backups.
+- Corrupted private source indexes must fail before changing existing campaigns or documents.
+- Simulated duplicate-ID IndexedDB transaction failure must roll back all attempted writes.
+- Preserve useful free-space numbers in quota-preflight errors.
+
 ## [0.17.0] - 2026-11-13
 ### M1 — Data protection (partial)
 - Multi-file PDF imports validate before mutation and add all document records in one IndexedDB transaction.
