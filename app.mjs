@@ -1806,6 +1806,8 @@ function renderLibrary() {
         if (!latest || normalizeDocumentRole(latest.role) !== 'corebook')
           throw new Error('Mark this PDF as your corebook first.');
         const pack = JSON.parse(await selected.text());
+        if(pack?.format!=='solobridgekit-prepared-corebook')
+          throw new Error('Select a prepared corebook index, not a reference-only search index.');
         await verifyPreparedBook(latest.blob, pack);
         await patchDocumentIfCurrent(document.id, { bookPack: pack }, operationGeneration);
         state.openDocumentId = document.id;
