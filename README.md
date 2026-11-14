@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.22.2 (M5 development verified; M6 next)
+## Current build: 0.23.0 (M6 in development)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -12,7 +12,7 @@ This repository contains the **application**, not the commercial rulebooks. Brin
 - Task rolls using the verified 2026 Captain's Log 2d20 resolution, source-backed resource spending (Momentum advantage/removing Threat, reroll one die; Threat complication or next-task difficulty), Focus advantages and cryptographically generated raw d6/d20 dice rolls. Mission task rolls are saved, and a reroll updates the existing record without losing the original dice.
 - Guided seven-step character lifepath with draft saves, source-book page links, numeric validation, final caps and explicit apply-to-sheet. Individual option bonuses must be cross-checked against the personal PDF.
 - Guided starship/station creation: choose the era, class, published ratings, traits, scale-based talents and identity. Stations support the smaller talent allowance. No class data or licensed talents are bundled.
-- Private PDF import into local IndexedDB with browser-native PDF reader, source-page links, manual page jumping, player-created bookmarks and locally prepared page-text search.
+- Private PDF import into local IndexedDB with browser-native PDF reader, source-page links, manual page jumping, player-created bookmarks and cross-book locally prepared page-text search.
 - JSON backup and restore for campaigns; imported PDF bytes and bookmarks are included only in explicitly selected private backups.
 - Offline service-worker shell cache, responsive desktop/mobile layouts, no account.
 
@@ -236,3 +236,7 @@ Campaigns remember which mission was selected, and each mission remembers the ex
 ### v0.22.1 — Scene Values and unresolved story threads
 
 The mission player now shows a **Scene workspace** with counts of that scene's saved task rolls, table references, and journal entries. Each scene has a player-written **Values used or challenged** field, independent of the act-level mission log. Players can add their own unresolved story threads, annotate them, resolve them during another scene, reopen them, or remove an accidental entry. Thread IDs, source/resolution scenes and notes survive local reload and private/data-only backups. A scene cannot be removed through the scene-count editor while it contains referenced threads or written Values. Markdown episode journals include only the player's thread and Value wording; the app does not generate plot suggestions or publish rulebook content.
+
+## v0.23.0 — Multi-book library foundation
+
+Non-corebook PDFs may now be individually prepared for **local reference search** even if they are short supplements or form collections. Each index is SHA-256-bound to the owner's PDF. Search results identify the exact document and source page. A reference index cannot unlock game-dependent screens: the separately validated corebook is still required. Library preparation statuses and missing/duplicate corebook warnings are presented locally. These indexes never enter the public distributable and only travel with explicitly selected private PDF backups. M6 remains in progress; removal/recovery and device verification are not yet accepted.
