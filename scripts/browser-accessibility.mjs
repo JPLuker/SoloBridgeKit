@@ -76,5 +76,35 @@ try{
   await page.setViewport({width:640,height:800,deviceScaleFactor:2});
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4),
     'The two-times responsive viewport has horizontal overflow.');
-  console.log('M7 packaged accessibility/layout smoke passed: 360, 390, 640, 768, 1280px; focus, labels and navigation.');
+  // Both supported color schemes must retain readable text on the surface
+  // and background. Measured from actual computed design tokens.
+  for(const themeName of ['light','dark']){
+    await page.emulateMediaFeatures([
+      {name:'prefers-color-scheme',value:themeName},
+      {name:'prefers-reduced-motion',value:'reduce'}
+    ]);
+    const palette=await page.evaluate(()=>{
+      const style=getComputedStyle(document.documentElement);
+      return {background:style.getPropertyValue('--bg'),surface:style.getPropertyValue('--surface'),
+        text:style.getPropertyValue('--text'),secondary:style.getPropertyValue('--sub'),
+        motion:matchMedia('(prefers-reduced-motion: reduce)').matches};
+    });
+    const luminance=value=>{
+      const hex=value.trim().replace('#','');
+      if(!/^[0-9a-f]{6}$/i.test(hex))throw new Error('Invalid theme color token: '+value);
+      const channels=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)/255)
+        .map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);
+      return channels[0]*.2126+channels[1]*.7152+channels[2]*.0722;
+    };
+    const contrast=(a,b)=>{
+      const [x,y]=[luminance(a),luminance(b)].sort((a,b)=>b-a);
+      return (x+.05)/(y+.05);
+    };
+    check(palette.motion,'Reduced-motion media setting was not respected.');
+    check(contrast(palette.text,palette.background)>=7,
+      themeName+' body text/background contrast is insufficient.');
+    check(contrast(palette.secondary,palette.surface)>=4.5,
+      themeName+' secondary text/surface contrast is insufficient.');
+  }
+  console.log('M7 packaged accessibility/layout smoke passed: 360, 390, 640, 768, 1280px; focus, labels, contrast and navigation.');
 }finally{await browser?.close();server.kill();}
