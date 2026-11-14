@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCampaign,createEpisode} from '../model.mjs';
 import {resolveActiveEpisodeId,selectActiveEpisode,resolveActiveSceneId,selectActiveScene,
-  sceneTag,makePrivateTableReference,appendSceneTableReference,saveSceneCorrection,undoSceneCorrection} from '../mission-workspace.mjs';
+  sceneTag,makePrivateTableReference,appendSceneTableReference,saveSceneCorrection,undoSceneCorrection,normalizeSceneCorrections} from '../mission-workspace.mjs';
 const sha='c'.repeat(64);
 const table={id:'private-fake-table',sourceSha256:sha,page:210,sides:3,
   title:'Private book text must never enter journal',entries:[
@@ -70,4 +70,13 @@ test('scene undo history stays bounded and does not store private book data',()=
   assert.equal(ep.sceneCorrections[0].before.title,'Edited 4');
   assert.equal(JSON.stringify(ep.sceneCorrections).includes('sourceSha256'),false);
   assert.equal(saveSceneCorrection(ep,'1:1',{title:'Edited 14',notes:'',valuesUsed:''}),ep);
+});
+
+test('malformed or dangling undo history is rejected before restoring campaign',()=>{
+ const ep=createEpisode('Restore guard');
+ const corrected=saveSceneCorrection(ep,'1:3',{title:'Kept',notes:'My notes',valuesUsed:''});
+ assert.equal(normalizeSceneCorrections(corrected.sceneCorrections,corrected.scenes).length,1);
+ assert.equal(normalizeEpisode(corrected).sceneCorrections.length,1);
+ assert.throws(()=>normalizeEpisode({...corrected,sceneCorrections:[{sceneId:'9:9',at:'now',before:{title:'x',notes:'',valuesUsed:''}}]}),/missing or damaged/);
+ assert.throws(()=>normalizeEpisode({...corrected,sceneCorrections:[{sceneId:'1:3',at:'now',before:{title:42,notes:'',valuesUsed:''}}]}),/missing or damaged/);
 });
