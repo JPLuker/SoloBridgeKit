@@ -83,3 +83,19 @@ test('scene values and linked story threads survive resizing without data loss',
   const linked={...ep,threads:[thread]};
   assert.throws(()=>updateScenePlan(linked,[5,5,4]),/linked threads/);
 });
+
+test('cannot silently orphan task rolls, player journal entries or undo history',()=>{
+  const original=createEpisode('Preserved scene history');
+  for(const [key,value] of [
+    ['taskHistory',[{id:'roll-1',sceneId:'3:5'}]],
+    ['entries',[{id:'entry-1',sceneId:'3:5',text:'Player journal'}]],
+    ['sceneCorrections',[{sceneId:'3:5',before:{title:'Draft',notes:'',valuesUsed:''},at:'2026-11-14T12:00:00Z'}]]
+  ]){
+    const mission={...original,[key]:value};
+    assert.throws(()=>updateScenePlan(mission,[5,5,4]),/linked threads\/history/);
+    assert.equal(mission.scenes.length,15);
+    assert.equal(mission[key].length,1);
+  }
+  const safe=updateScenePlan(original,[5,5,4]);
+  assert.equal(safe.scenes.length,14);
+});
