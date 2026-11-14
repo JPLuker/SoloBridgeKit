@@ -325,3 +325,7 @@
 - Importing a new corebook selects it atomically; previous editions remain as reference documents with private indexes intact and can be selected again.
 - Rebuilding private indexes preserves the original PDF and unrelated campaign data on failure; removal warns about source-linked campaigns and game lockout.
 - Extended synthetic-browser checks cover reference preparation, cross-book search, multi-source private backups and corebook switching. No publisher content is shipped.
+
+## M6 development accepted — v0.23.0
+
+- [CI run #135](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648270644) passed all automated checks including synthetic multi-book Chrome smoke and private PDF-inclusive backup/restore. M6 development is closed; actual devices belong to M7.
