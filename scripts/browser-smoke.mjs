@@ -196,6 +196,31 @@ try {
   const quickReview=await page.$eval('#content',node=>[...node.querySelectorAll('button')]
     .filter(item=>item.textContent.trim()==='Find possible choices').length);
   check(quickReview>=7,'New-player source lookup requires manual page-number preparation.');
+  await page.evaluate(()=>{
+    const first=[...document.querySelectorAll('.source-preparation button')]
+      .find(button=>button.textContent.trim()==='Find possible choices');
+    if(!first)throw new Error('Missing novice source lookup action');
+    first.click();
+  });
+  await page.waitForFunction(() =>
+    document.querySelectorAll('.source-preparation .source-suggestions .document-item').length>0,
+    {timeout:15000});
+  const unconfirmed=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const saved=(await all('documents')).find(doc=>doc.role==='corebook');
+    return {count:saved.compiledRecords?.length??0,
+      candidateLabel:document.querySelector('.source-suggestions .document-item strong')?.textContent};
+  });
+  check(unconfirmed.count===0 && unconfirmed.candidateLabel?.includes('Synthetic Example Choice'),
+    'Guided candidate discovery must suggest local PDF headings without saving them.');
+  await page.evaluate(()=>{
+    const first=document.querySelector('.source-preparation .source-suggestions button');
+    first?.click();
+  });
+  check(await page.$eval('#content',node=>
+    node.textContent.includes('Review lifepath') &&
+    node.textContent.includes('I verified these values against my own PDF')),
+    'Choosing a suggested source option did not open the guarded private review form.');
   await page.$eval('details.source-preparation-tools',element=>element.open=true);
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
   // usable after the player edits the fields and explicitly confirms the PDF.
