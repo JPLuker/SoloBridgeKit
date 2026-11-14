@@ -1,3 +1,9 @@
+## v0.26.2 — R1 search-to-review fallback (pending CI)
+
+- Beginner source preparation can search all locally indexed PDF pages by phrase, display matching pages and discover candidate headings around any result without entering technical page numbers.
+- Search hits, candidate names and source pages stay entirely in private browser storage; suggestions require manual confirmation and are never treated as verified mechanics automatically.
+- Expanded synthetic browser/unit coverage for nondefault PDF offsets and mobile layout; existing draft resume and numeric review remain intact.
+
 ## v0.26.1 — R1 draft recovery and beginner bonus review (pending CI)
 
 - Preserve and surface saved, unconfirmed source choices in their character/ship sections, with direct **Continue reviewing** actions.
