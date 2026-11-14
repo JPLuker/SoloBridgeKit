@@ -143,6 +143,34 @@ try {
   await clickText('Search');
   check((await page.$eval('#content',element=>element.textContent)).includes('temporary-supplement.pdf · page 1'),
     'M6 cross-book search hid the prepared supplement behind the long corebook.');
+  // M6: importing another prepared edition must atomically demote the old
+  // corebook; selecting the original restores exactly one active corebook.
+  const switched=await page.evaluate(async()=>{
+    const storage=await import('./storage.mjs');
+    const original=(await storage.all('documents')).find(doc=>doc.role==='corebook');
+    const alternative={...original,id:'synthetic-alternate-core',name:'Synthetic alternate edition.pdf',
+      sourceEdition:'alternate',role:'corebook'};
+    await storage.addDocumentsAtomically([alternative]);
+    const during=await storage.all('documents');
+    const activeDuring=during.filter(doc=>doc.role==='corebook').map(doc=>doc.id);
+    const retained=during.find(doc=>doc.id===original.id);
+    await storage.activatePreparedCorebook(original.id,original.bookPack);
+    const after=await storage.all('documents');
+    const activeAfter=after.filter(doc=>doc.role==='corebook').map(doc=>doc.id);
+    await storage.remove('documents',alternative.id);
+    const final=await storage.all('documents');
+    return {activeDuring,activeAfter,originalId:original.id,
+      retained:retained?.role==='reference' &&
+        retained?.bookPack?.sourceSha256===original.bookPack.sourceSha256,
+      count:final.length,corePrepared:final.some(doc=>doc.id===original.id&&doc.role==='corebook')};
+  });
+  check(switched.activeDuring.length===1 &&
+    switched.activeDuring[0]==='synthetic-alternate-core' &&
+    switched.activeAfter.length===1 && switched.activeAfter[0]===switched.originalId &&
+    switched.retained && switched.count===libraryCount+1 && switched.corePrepared,
+    'M6 active-corebook switching lost source indexes or left conflicting corebook roles.');
+  await page.reload({waitUntil:'networkidle0'});
+  await navigate('Library');
   const preparedLibraryCount=libraryCount+1;
   rmSync(shortPath,{force:true});
 
