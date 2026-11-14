@@ -1,3 +1,12 @@
+## v0.28.0 — First adventure flow (R1–R5 build checkpoint; pending CI)
+
+- R1: Move the selected source-choice review outside the advanced compiler so new players can confirm options directly from the guided source list; technical controls remain folded away.
+- R2: Verified character option cards show source-derived numerical effect previews, manual rating fields are secondary, and Back/Save-and-exit and Home resume the next unfinished decision.
+- R3: Ship class cards display local class overview; detailed source ratings are secondary; ship wizard now has Back and Save-and-exit while retaining Save step.
+- R4: Mission play presents the next action in plain language and connects player-authored journal writing with contextual task dice; never generates story, NPCs or game outcomes.
+- R5: Character/ship sheets show readable records by default; editing forms are optional. Primary navigation focuses on adventure flow; Crew, Dice and Settings remain in More.
+- Added source-safe unit tests, synthetic browser checks and offline packaging. Owner acceptance with purchased 2026 corebook remains outstanding.
+
 ## v0.26.2 — R1 search-to-review fallback (CI #322 verified)
 
 - Beginner source preparation can search all locally indexed PDF pages by phrase, display matching pages and discover candidate headings around any result without entering technical page numbers.
