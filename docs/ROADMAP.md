@@ -308,3 +308,7 @@
 
 - Scene title, notes and Values can be reverted to the prior player-written revision after an accidental save. Up to ten edits per mission are retained in campaign state, including local backups; dice/resources and private source-book content are not included in these snapshots.
 - Added unit and packaged-browser regression checks. M5 still requires complete three-act browser acceptance before closure.
+
+## M5 development accepted — v0.22.2
+
+- CI #76 passed all 157 unit tests and the three-act synthetic Chrome playthrough with import, progress persistence, scene corrections and source-free campaign exports. M5 development closed; real-device validation deferred to M7. See `docs/M5-DEVELOPMENT-ACCEPTANCE.md`.
