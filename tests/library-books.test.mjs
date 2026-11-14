@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateReferencePack, validatePreparedDocumentPack, REFERENCE_FORMAT,
   BOOK_FORMAT, BOOK_FORMAT_VERSION, hasPreparedCorebook } from '../book-data.mjs';
-import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval } from '../library-books.mjs';
+import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval, normalizeSourceEdition } from '../library-books.mjs';
 
 const sha='d'.repeat(64);
 const small=()=>({format:REFERENCE_FORMAT,version:BOOK_FORMAT_VERSION,
@@ -84,4 +84,13 @@ test('large corebook cannot starve another prepared source from the first search
  const both=searchPreparedLibrary([docs[0],{...docs[1],bookPack:mixed}],term,4);
  assert.equal(both[0].documentId,'long');
  assert.equal(both[1].documentId,'short');
+});
+
+test('edition labels are player-owned metadata and are validated',()=>{
+ assert.equal(normalizeSourceEdition(' 2026 printing '),'2026 printing');
+ assert.equal(normalizeSourceEdition(undefined),'');
+ assert.throws(()=>normalizeSourceEdition('x'.repeat(101)),/100 characters/);
+ assert.throws(()=>normalizeSourceEdition(2026),/100 characters/);
+ const editionDoc={id:'ref',name:'Book.pdf',role:'forms',bookPack:small(),sourceEdition:'Second edition'};
+ assert.equal(libraryBookStatus(editionDoc).edition,'Second edition');
 });
