@@ -182,3 +182,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## R1 v0.26.1 — review assistance checkpoint (pending CI)
 
 **R1 coding progress: 65% provisional.** Added saved draft visibility/resume and stage-linked +/− modifiers with live point allocations while retaining source confirmation and the advanced compiler. Remaining: improve extracted candidate quality/completeness and make a whole first-session workflow pass a genuine novice test. Do not count tests or source-derived copyright data as code completion.
+
+## R1 v0.26.2 — book search fallback checkpoint (pending CI)
+
+**R1 coding progress: ~75% provisional.** The player can import a private book, inspect verified-choice coverage, find suggestions by stage or whole-book search, review bonuses with live totals, save/reopen drafts, and keep their source data private. Remaining: reduce misleading candidate headings, improve source review/validation UX and complete first-time user acceptance with a real legally obtained PDF. R2–R6 remain unstarted.
