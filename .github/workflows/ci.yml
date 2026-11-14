@@ -18,6 +18,8 @@ jobs:
           node-version: '22'
       - name: Install pinned dependencies from lockfile
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit production dependency advisories
+        run: npm audit --omit=dev --audit-level=high --no-fund
       - name: Check source and syntax
         run: npm run check
       - name: Run tests
