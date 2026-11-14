@@ -417,3 +417,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Added `tests/guided-explanations.test.mjs`; updated PWA cache/packaging/allowlist to ship the new module. `v0.25.1` needs CI validation, and owner playtesting remains pending. No publisher option list or generated lore was added.
 
 - v0.25.1 follow-up: replacement of private lifepath and ship-class dropdowns with directly selectable source-linked option cards. Existing Chrome consumer checks now exercise those actions instead of the former selection widgets. Latest CI must verify this change; owner UX acceptance remains open on issue #3.
+
+## v0.25.2 novice rulebook onboarding (pending CI)
+
+- Owner explicitly requires the first run to work for someone who has never played D&D or another tabletop RPG, including rulebook import. Replaced the first-run Library role-first form with a contextual, plain-language explanation and a one-file main-book picker; advanced role switching lives under details.
+- Home gate defines roleplaying, rulebook and PDF; Library describes local preparation, readable progress and next step; successful import reveals a clear Create campaign action. Import-specific error messages now distinguish short books/forms, unreadable or locked PDFs, invalid file formats and cancellation without claiming a false unlock.
+- Added `onboarding.mjs`, `tests/onboarding.test.mjs`, and synthetic Chrome assertions for default role, single-file import, beginner copy and success guidance. Update offline cache, allowed distribution and v0.25.2 CI labels.
+- Respect `docs/NO_LIST.md`: no separate tutorial tab, no invented rules/content, no bundled publisher data. User's longer interactive guided selection issue #3 stays open pending novice device test.
