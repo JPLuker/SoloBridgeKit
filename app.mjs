@@ -165,9 +165,12 @@ function campaignRequired() {
 }
 function corebookPrompt() {
   return card([
-    el('h2', { text: 'Prepare your corebook' }),
-    el('p', { class: 'muted', text: "Import your own Captain's Log PDF. SoloBridgeKit prepares your private rules data on this device before gameplay becomes available." }),
-    button('Set up corebook', () => go('library'))
+    el('p',{class:'hint',text:'Getting started · Step 1 of 3'}),
+    el('h2',{text:'First, add the game rulebook'}),
+    el('p',{text:"A tabletop roleplaying game is a story where you make decisions as a character. The rulebook explains which choices and dice rolls the game uses. You do not need to know the rules yet."}),
+    el('p',{text:"To play here, you need your own PDF copy of Star Trek Adventures: Captain's Log (2026). A PDF is a document file you can open on your computer or phone; it is not a photo of the book."}),
+    el('p',{class:'hint',text:'Your file stays in this browser. The app reads it locally to prepare searchable rules; it does not upload it to us.'}),
+    button('I have the PDF — add my rulebook', () => go('library'))
   ]);
 }
 function render() {
