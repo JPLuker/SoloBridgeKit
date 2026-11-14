@@ -119,6 +119,34 @@ try {
     'Failed import changed previously prepared documents or partially committed a batch.');
   rmSync(badPath, { force: true });
 
+  // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
+  // usable after the player edits the fields and explicitly confirms the PDF.
+  await page.select('select[aria-label="Compiler record type"]', 'talent');
+  await clickText('Find candidates');
+  await page.waitForFunction(() =>
+    document.querySelector('#content')?.textContent?.includes('Review candidate'), { timeout: 10000 });
+  const beforeCompiler = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    return (await all('documents')).find(doc => doc.role === 'corebook')?.compiledRecords ?? [];
+  });
+  check(beforeCompiler.length === 0, 'Scanning the book must not silently save or confirm extracted source.');
+  await clickText('Review candidate');
+  await page.type('textarea[name=description]', 'Privately confirmed synthetic talent description.');
+  await page.$eval('input[aria-label="I verified the values against my own PDF"]', input => input.click());
+  await clickText('Confirm verified record');
+  await waitForSave('Private record confirmed.');
+  const confirmedCompiler = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const doc = (await all('documents')).find(d => d.role === 'corebook');
+    return { records: doc.compiledRecords?.length ?? 0,
+      status: doc.compiledRecords?.[0]?.status,
+      source: doc.compiledRecords?.[0]?.sourceSha256,
+      packSource: doc.bookPack?.sourceSha256 };
+  });
+  check(confirmedCompiler.records === 1 && confirmedCompiler.status === 'confirmed' &&
+    confirmedCompiler.source === confirmedCompiler.packSource,
+    'The private compiler failed to save a validated source-bound record.');
+
   await page.type('input[name=query]', 'starship');
   await clickText('Search');
   await page.waitForFunction(() =>

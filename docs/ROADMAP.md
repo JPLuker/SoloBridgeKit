@@ -237,3 +237,8 @@
 
 - Per owner: **M1 code/build acceptance 100%**; physical-device and purchased-book experience tests deferred to M7 and kept as release gates.
 - M2 started with source-bound schema, locally extracted draft candidates and private persistence/recovery (25% of M2 development). No licensed content is bundled.
+
+## v0.19.1 — M2 local review interface
+
+- Added a local PDF-page candidate browser, typed record review fields, explicit human confirmation, source-page opening and saved record list.
+- Confirmed data remains source-bound, while unreviewed candidates never act as verified game rules.

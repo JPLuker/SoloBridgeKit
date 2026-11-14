@@ -1,6 +1,6 @@
 import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
-import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent, stampNewCampaign } from './storage.mjs';
+import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent, stampNewCampaign, mutateCompiledRecords } from './storage.mjs';
 import { prepareImportBatch, storageMessage, assertNotCancelled, relinkDocument, checkStorageCapacity } from './import-safety.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
@@ -17,6 +17,7 @@ import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateSh
 import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
+import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord } from './compiler-data.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -1204,9 +1205,200 @@ function renderLibrary() {
       } catch (error) { failure(error); }
     });
     searchCard.append(form, results);
-    root.append(searchCard, renderPrivateTables(readyBook), renderPrivateOptions(readyBook), renderPrivateShips(readyBook));
+    root.append(searchCard, renderPrivateCompiler(readyBook), renderPrivateTables(readyBook), renderPrivateOptions(readyBook), renderPrivateShips(readyBook));
   }
   return root;
+}
+
+
+function renderPrivateCompiler(book) {
+  const pack = book.bookPack, sha = pack.sourceSha256, count = pack.pageCount;
+  const records = normalizeCompiledRecords(book.compiledRecords, sha, count, { allowStale: true });
+  const panel = card([el('h2', { text: 'Private rules compiler' }),
+    el('p', { class: 'hint', text: 'Find candidate entries in your local PDF. Review and confirm every field before it becomes available to gameplay. Nothing is uploaded or bundled.' })]);
+  const counts = el('p', { class: 'muted', text:
+    records.filter(r => r.status === 'confirmed').length + ' confirmed · ' +
+    records.filter(r => r.status !== 'confirmed').length + ' awaiting review' });
+  panel.append(counts);
+  const controls = el('form', { class: 'form-stack' }, [
+    el('div', { class: 'field-grid' }, [
+      field('PDF page', 'page', '1', { number: true, required: true }),
+      el('label', { class: 'field' }, [el('span', { text: 'Record type' }),
+        el('select', { name: 'kind', 'aria-label': 'Compiler record type' })])
+    ]),
+    el('div', { class: 'actions' }, [
+      el('button', { type: 'submit', class: 'button secondary', text: 'Find candidates' }),
+      button('Create draft manually', () => {
+        try {
+          const input = new FormData(controls);
+          const name = prompt('Name for your private record');
+          if (!name) return;
+          const draft = draftCandidate({ kind: input.get('kind'), label: name,
+            page: input.get('page'), sourceSha256: sha, pageCount: count });
+          openReview(draft);
+        } catch (error) { failure(error); }
+      }, 'secondary')
+    ])
+  ]);
+  controls.querySelector('[name=page]').max = String(count);
+  const kindSelect = controls.querySelector('[name=kind]');
+  for (const [value, name] of [
+    ['lifepath','Lifepath choice'], ['talent','Talent'], ['ship-class','Starship or station class'],
+    ['random-table','Random table']
+  ]) kindSelect.append(el('option', { value, text: name }));
+  const suggested = el('div', { class: 'document-list', 'aria-live': 'polite' });
+  const review = el('div', { 'aria-live': 'polite' });
+  const list = el('div', { class: 'document-list' });
+  const makeSelect = (name, options, current) => {
+    const select = el('select', { name });
+    for (const [value, text] of options) select.append(el('option', { value, text }));
+    if (current) select.value = current;
+    return select;
+  };
+  function openReview(record) {
+    review.replaceChildren();
+    if (record.sourceSha256 !== sha || record.page > count) {
+      review.append(el('p', { class: 'muted', text: 'This record belongs to another edition or PDF page. Re-scan it from the current book before confirming.' }));
+      return;
+    }
+    const data = record.payload || {};
+    const form = el('form', { class: 'form-stack' }, [
+      el('h3', { text: 'Review ' + record.kind }),
+      field('Verified name', 'label', record.label, { required: true }),
+      el('p', { class: 'hint', text: 'PDF page ' + record.page + ' · ' + record.status + ' · Check against your own book.' }),
+      button('Open source PDF page', () => openPdf(book, record.page).catch(failure), 'secondary')
+    ]);
+    if (record.excerpt) form.append(el('p', { class: 'muted', text: record.excerpt }));
+    if (record.kind === 'talent') {
+      form.append(
+        field('Description (verify against PDF)', 'description', data.description ?? '', { multiline: true }),
+        field('Prerequisites, if any', 'prerequisites', data.prerequisites ?? '', { multiline: true })
+      );
+    } else if (record.kind === 'random-table') {
+      const rows = field('Numbered results (1 | result)', 'rows', data.rows ?? '', { multiline: true });
+      rows.querySelector('textarea').rows = 8;
+      form.append(rows);
+    } else if (record.kind === 'lifepath') {
+      const step = makeSelect('stepId', [
+        ['species','Species'], ['environment','Environment'], ['outlook','Outlook'],
+        ['education','Education'], ['career','Career'], ['event1','Career event']
+      ], data.stepId);
+      form.append(el('label', { class: 'field' }, [el('span', { text: 'Lifepath stage' }), step]));
+      const groups = [
+        ['Attribute bonuses','attr', ['control','daring','fitness','insight','presence','reason'], data.record?.attributes],
+        ['Discipline bonuses','discipline',['command','conn','security','engineering','science','medicine'],data.record?.disciplines]
+      ];
+      for (const [heading,prefix,keys,values] of groups) {
+        form.append(el('h3', { text: heading }));
+        const grid = el('div', { class: 'field-grid' });
+        for (const key of keys) {
+          const input = field(key, prefix + '_' + key, String(values?.[key] ?? 0), { number: true });
+          input.querySelector('input').max = '5';
+          grid.append(input);
+        }
+        form.append(grid);
+      }
+      form.append(field('Value', 'value', data.record?.value ?? ''),
+        field('Focuses', 'focuses', data.record?.focuses ?? '', { multiline: true }),
+        field('Notes', 'notes', data.record?.notes ?? '', { multiline: true }));
+    } else if (record.kind === 'ship-class') {
+      form.append(
+        el('label', { class: 'field' }, [el('span', { text: 'Source type' }),
+          makeSelect('shipKind', [['starship','Starship'], ['station','Station']], data.kind)]),
+        field('Era', 'era', data.era ?? '', { required: true }),
+        field('Scale', 'scale', String(data.scale ?? ''), { number: true, required: true }),
+        el('h3', { text: 'Systems' })
+      );
+      for (const [heading,prefix,keys,values] of [
+        ['Systems','system',['comms','computers','engines','sensors','structure','weapons'],data.systems],
+        ['Departments','department',['command','conn','security','engineering','science','medicine'],data.departments]
+      ]) {
+        if (heading === 'Departments') form.append(el('h3', { text: heading }));
+        const grid = el('div', { class: 'field-grid' });
+        for (const key of keys) grid.append(field(key,prefix+'_'+key,values?.[key] ?? '',{number:true}));
+        form.append(grid);
+      }
+    }
+    const verified = el('input', { type: 'checkbox', 'aria-label': 'I verified the values against my own PDF' });
+    form.append(el('label', { class: 'check-field' }, [
+      verified, el('span', { text: 'I verified these values against my own PDF.' })
+    ]));
+    function payloadFromForm(fields) {
+      if (record.kind === 'talent') return { description: String(fields.get('description') ?? ''),
+        prerequisites: String(fields.get('prerequisites') ?? '') };
+      if (record.kind === 'random-table') return { rows: String(fields.get('rows') ?? '') };
+      if (record.kind === 'ship-class') {
+        const values = prefix => Object.fromEntries(['comms','computers','engines','sensors','structure','weapons',
+          'command','conn','security','engineering','science','medicine'].map(key => [key,String(fields.get(prefix+'_'+key) ?? '')]));
+        return { kind: String(fields.get('shipKind')), era: String(fields.get('era')), scale: String(fields.get('scale')),
+          systems: Object.fromEntries(Object.entries(values('system')).filter(([key]) =>
+            ['comms','computers','engines','sensors','structure','weapons'].includes(key))),
+          departments: Object.fromEntries(Object.entries(values('department')).filter(([key]) =>
+            ['command','conn','security','engineering','science','medicine'].includes(key))) };
+      }
+      const keys = (prefix, names) => Object.fromEntries(names.map(key => [key,Number(fields.get(prefix+'_'+key) || 0)]));
+      return { stepId: String(fields.get('stepId')),
+        record: { attributes: keys('attr',['control','daring','fitness','insight','presence','reason']),
+          disciplines: keys('discipline',['command','conn','security','engineering','science','medicine']),
+          value: String(fields.get('value') ?? ''),
+          focuses: String(fields.get('focuses') ?? ''), notes: String(fields.get('notes') ?? '') } };
+    }
+    async function saveDecision(status) {
+      try {
+        if (status === 'confirmed' && !verified.checked)
+          throw new Error('Confirm that you checked these values against your own PDF.');
+        const fields = new FormData(form);
+        const payload = payloadFromForm(fields);
+        const updated = reviewCompiledRecord(record, {
+          label: String(fields.get('label') ?? ''), payload, status }, sha, count);
+        const generation = await currentDataGeneration();
+        await mutateCompiledRecords(book.id, { type: 'upsert', record: updated }, generation);
+        state.openDocumentId = book.id;
+        await refresh();
+        notify(status === 'confirmed' ? 'Private record confirmed.' : 'Private draft saved.');
+      } catch (error) { failure(error); }
+    }
+    form.append(el('div', { class: 'actions' }, [
+      button('Save draft', () => saveDecision('draft'), 'secondary'),
+      el('button', { type: 'submit', class: 'button primary', text: 'Confirm verified record' })
+    ]));
+    form.addEventListener('submit', event => { event.preventDefault(); saveDecision('confirmed'); });
+    review.append(form);
+  }
+  controls.addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      const input = new FormData(controls);
+      const found = scanBookPage(pack, input.get('page'), input.get('kind'));
+      suggested.replaceChildren(...(found.length ? found.map(candidate =>
+        el('div', { class: 'document-item' }, [
+          el('strong', { text: candidate.label }),
+          button('Review candidate', () => openReview(candidate), 'secondary')
+        ])) : [el('p', { class: 'muted', text: 'No likely entries found on this page. Choose another page or create a manual draft.' })]));
+    } catch (error) { failure(error); }
+  });
+  panel.append(controls, suggested);
+  for (const record of records) {
+    list.append(el('div', { class: 'document-item' }, [
+      el('div', {}, [el('strong', { text: record.label }),
+        el('p', { class: 'hint', text: record.kind + ' · ' + record.status + ' · PDF page ' + record.page })]),
+      el('div', { class: 'actions' }, [
+        button('Review', () => openReview(record), 'secondary'),
+        button('Open PDF', () => openPdf(book, record.page).catch(failure), 'secondary'),
+        button('Remove', async () => {
+          if (!confirm('Remove this private compiled record?')) return;
+          try {
+            await mutateCompiledRecords(book.id,{ type: 'remove', id: record.id },await currentDataGeneration());
+            await refresh();
+            notify('Private record removed.');
+          } catch (error) { failure(error); }
+        }, 'danger subtle')
+      ])
+    ]));
+  }
+  if (records.length) panel.append(el('h3', { text: 'Saved compiler records' }), list);
+  panel.append(review);
+  return panel;
 }
 
 function renderPrivateTables(book) {
@@ -1610,7 +1802,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.18.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.19.1' })]));
   return root;
 }
 

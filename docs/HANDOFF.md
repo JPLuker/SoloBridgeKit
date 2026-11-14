@@ -240,3 +240,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `storage.mutateCompiledRecords()`: atomic single-document compiler mutation inside read-write transaction, validating the persistent database epoch. Backups include compiled records only when importing private PDFs is explicitly requested.
 - `model.validateBundle()` validates compiled records alongside previously saved choices/tables/classes; older backups remain valid.
 - Next in M2: in-app candidate review editor, source navigation, migration/recompile handling, confirmed catalog consumers, synthetic Chrome test, final M2 build-only acceptance. **Do not mark M2 100% early**.
+
+## v0.19.1 — M2 compiler review UI
+
+- `app.renderPrivateCompiler()` displays scan controls, source-linked proposed records, type-specific editors and a human verification checkbox. Only `reviewCompiledRecord()` may promote valid drafts to confirmed.
+- `storage.mutateCompiledRecords()` writes the reviewed record in one transaction and leaves unrelated book/private data intact.
+- Chrome smoke now tries scan → talent description → check box → confirmed record and validates SHA pairing. CI status must be checked before marking this batch complete.
+- Next: consume confirmed catalog in the existing lifepath/ship/table workflows, source revalidation/rebuild, and full browser backup/reimport verification. M2 remains open.

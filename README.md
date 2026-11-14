@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.19.0
+## Current build: 0.19.1
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -192,3 +192,7 @@ The verifier displays only the page count and readability summary. Its CLI outpu
 ## M2 — Private game-data compiler (development)
 
 M1 is **100% finished for coding**; real-device acceptance was moved to M7 at the owner's request. M2 now adds `compiler-data.mjs`: locally extracted **unverified candidates**, versioned and source-fingerprinted records, review state, and strict validators before any value becomes a usable game option. Draft, confirmed, rejected and needs-review states are explicit. The source-bound records stay on the locally imported document and are included **only in private PDF-inclusive backups**, never in normal campaign exports or the public app build. The initial compiler API supports lifepath steps, talents, starship classes and random tables; a guided review interface is next.
+
+### v0.19.1 guided local compiler review
+
+The Library now offers a **Private rules compiler** panel. Choose a page and record type (lifepath, talent, ship class or random table), scan that page for unverified candidates, or create a manual draft. Each candidate opens an editor with source-page navigation and structured fields. Only a user checking the explicit **verified against my PDF** box can confirm a valid record; drafts remain inactive. Records can be revisited or removed without affecting the original PDF or previously created characters. A real-browser regression demonstrates scan → edit → confirm → save using a synthetic, noncommercial PDF.

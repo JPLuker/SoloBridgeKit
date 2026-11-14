@@ -233,3 +233,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Private full backup preserves compiled records, data-only backup omits them, legacy records remain valid.
 - [ ] No commercial source text or generated private catalog appears in CI or distribution artifacts.
 - Physical device cases are now part of M7, not M2 build percentage.
+
+## v0.19.1 M2 review screen
+
+- [ ] Open Library → Private rules compiler after a locally prepared source PDF; scan page and check proposals show as drafts, never as automatic confirmed rules.
+- [ ] Confirm button refuses unchecked human-review acknowledgment and invalid fields; draft saving should keep an incomplete record.
+- [ ] Talent, lifepath, ship and table editors use the corresponding strict validator before confirmation.
+- [ ] Confirmed records show page references and can be removed without modifying the imported PDF.
+- [ ] Chrome synthetic fixture confirms one private talent and source fingerprint without containing copyrighted text.

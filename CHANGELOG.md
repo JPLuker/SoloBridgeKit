@@ -1,3 +1,11 @@
+## [0.19.1] - 2026-11-13
+### M2 — In-app compiler review (60% building)
+- Introduce Library review interface for source-page candidate scanning and manually entered private drafts.
+- Add typed local editors for lifepath attributes/discipline bonuses, talents, ship systems/departments, and numbered random tables.
+- Require explicit human verification before confirming any record. Keep raw suggestions as drafts and refuse incomplete typed fields.
+- Show record status, PDF page navigation, and removal of saved private records.
+- Add Chrome smoke for scan → verify → save with a synthetic PDF; no licensed data enters CI.
+
 ## [0.19.0] - 2026-11-13
 ### M2 — Private compiler foundation (25% build completion)
 - Owner declared M1 complete for development; move real-device acceptance requirements to M7 and start M2.
