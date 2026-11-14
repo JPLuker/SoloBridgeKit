@@ -1,3 +1,9 @@
+## v0.23.0 — M6 private multi-book search (pending CI)
+
+- Added separate local reference indexes for short supplemental PDFs, with fingerprint and pagination checks.
+- Added library preparation, cross-book search provenance and source conflict warnings.
+- Maintains corebook-only gameplay gate and source-free public distributions.
+
 \n## v0.22.2 — M5 scene corrections and linked-history protection (verified CI #76)
 
 - Prevent act scene-count reductions that would orphan task-roll, journal-entry or undo references.
