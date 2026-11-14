@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {reviewBudget,reviewBonusTotals,savedStageDrafts} from '../source-review-assist.mjs';
+import {reviewBudget,reviewBonusTotals,savedStageDrafts,checkSourceBonusBudget} from '../source-review-assist.mjs';
 import {draftCandidate,reviewCompiledRecord} from '../compiler-data.mjs';
 const sha='d'.repeat(64),pageCount=220;
 function book(records=[]){return {bookPack:{sourceSha256:sha,pageCount},compiledRecords:records};}
@@ -28,4 +28,17 @@ test('saved private drafts resume for matching stage and source only',()=>{
   assert.deepEqual(savedStageDrafts(book([candidate,other]),'event2').map(r=>r.id),['resume-2']);
   assert.equal(savedStageDrafts(book([rejected]),'species').length,0);
   assert.equal(savedStageDrafts({bookPack:{sourceSha256:'e'.repeat(64),pageCount},compiledRecords:[candidate]},'species').length,0);
+});
+
+test('confirmed choices reject incomplete or overallocated review totals',()=>{
+  const empty=checkSourceBonusBudget('species',{attributes:{},disciplines:{}});
+  assert.equal(empty.ready,false);
+  assert.match(empty.message,/expects 3 points/);
+  const exact=checkSourceBonusBudget('species',{
+    attributes:{control:1,daring:1,fitness:1},disciplines:{}});
+  assert.equal(exact.ready,true);
+  const tooMany=checkSourceBonusBudget('species',{
+    attributes:{control:2,daring:1,fitness:1},disciplines:{}});
+  assert.equal(tooMany.ready,false);
+  assert.equal(checkSourceBonusBudget('missing',{}).ready,false);
 });
