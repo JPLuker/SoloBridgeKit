@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.6 adds player-authored draft recovery from rejected saves, with a conflict-to-download-to-import browser test. Automated developer-side M1 requirements are covered; **physical Android/desktop acceptance using the actual private 336-page book is the final unverified gate**.
+**Progress:** v0.17.7 completes available developer-side testing, including 390px recovery controls, and adds [M1 owner acceptance](M1-ACCEPTANCE.md). **M1 is 98% pending actual private 336-page source on Android/desktop and owner signoff. Do not start M2.**
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

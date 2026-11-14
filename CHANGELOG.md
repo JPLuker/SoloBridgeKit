@@ -1,3 +1,9 @@
+## [0.17.7] - 2026-11-13
+### M1 — Acceptance gate and mobile recovery UI
+- Chrome smoke asserts the persistent recovery banner/buttons fit the 390px phone viewport and records a screenshot.
+- Added a single owner acceptance checklist for actual legal 336-page PDF, backup/restore, offline play and reattachment.
+- Retained explicit untested preview status pending physical-device acceptance and M1 signoff.
+
 ## [0.17.6] - 2026-11-13
 ### M1 — Unsaved-draft recovery
 - On save failure, retain a player-authored campaign snapshot and show a persistent download control.

@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.17.6
+## Current build: 0.17.7
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -159,3 +159,7 @@ An import or source reattachment that started before a database reset/restore ca
 ### v0.17.6 unsaved-draft recovery
 
 When a campaign save fails (for example because another tab saved a newer revision), a persistent **Download draft** option appears. The exported JSON contains only the player's current campaign, never a private PDF or compiled book data. In **Settings → Recover unsaved work**, import that file as a separate **(recovered)** campaign without overwriting the newer one. Keep the recovery file private. Recovery files are not automatic full backups.
+
+## M1 acceptance and real-device verification
+
+M1 developer-side protections are implemented and tested in CI. Before declaring it complete, follow [docs/M1-ACCEPTANCE.md](docs/M1-ACCEPTANCE.md) with your own 2026 PDF privately on physical Android/desktop browsers. The 336-page synthetic test PDF used by CI does not prove the full commercial PDF works on every device. The preview remains labeled untested until accepted.

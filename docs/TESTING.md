@@ -195,3 +195,9 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Export a data-only backup, optionally a private PDF-inclusive backup, and successfully restore the intended data.
 - [ ] Reload with network disabled, inspect corebook search and resume a mission; confirm no missing saves or unexpected prompts.
 - [ ] Validate source reattachment with the same PDF and refusal of a different book/edition.
+
+## v0.17.7 M1 owner gate
+
+- [ ] Headless Chrome screenshot of failure recovery action at 390px; no horizontal scroll or unreachable buttons.
+- [ ] Complete [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md) with the genuine owner-supplied book on Android and desktop.
+- **M1 stays below 100%** until user tests and accepts. All CI fixtures remain synthetic and distributable remains free of licensed content.

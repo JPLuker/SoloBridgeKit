@@ -210,3 +210,8 @@
 
 - The UI can download an unsaved player-authored draft when a save is rejected; the downloaded draft is a separate format without publisher PDF/index contents.
 - Importing it creates a recovered campaign instead of overwriting the newer revision. Browser tests cover a real conflict and recovery loop.
+
+## v0.17.7 — M1 final owner acceptance checklist
+
+- Added mobile recovery UI screenshot/layout smoke and [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md) for privately conducted Android/desktop source-book tests.
+- M1 remains at less than 100% until real-device acceptance and explicit owner signoff.

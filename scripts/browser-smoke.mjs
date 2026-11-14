@@ -412,6 +412,19 @@ try {
   await waitForSave('another tab');
   check(await page.$eval('#recovery-banner', x => !x.hidden),
     'A rejected character save did not expose recovery actions.');
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  const recoveryWidth = await page.evaluate(() => ({
+    viewport: innerWidth, document: document.documentElement.scrollWidth,
+    visibleButtons: [...document.querySelectorAll('#recovery-banner button')].every(button => {
+      const rect = button.getBoundingClientRect();
+      return rect.width > 0 && rect.left >= 0 && rect.right <= innerWidth + 2;
+    })
+  }));
+  check(recoveryWidth.document <= recoveryWidth.viewport + 4 && recoveryWidth.visibleButtons,
+    'The recovery warning or its actions overflow the phone viewport.');
+  await page.screenshot({ path: join(output, 'phone-recovery.png'), fullPage: true });
+  await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+
   await page.click('#download-recovery');
   const recoveryName = 'solobridgekit-unsaved-' + new Date().toISOString().slice(0, 10) + '.json';
   const recoveredText = await waitForDownload(recoveryName);

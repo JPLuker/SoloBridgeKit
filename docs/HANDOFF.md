@@ -198,3 +198,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs`: failed `persist()` displays a persistent recovery banner with user-triggered draft download; Settings can import the JSON draft as a separate campaign.
 - Unit tests plus full browser test simulate stale save conflict, download the unsaved draft, import it, and verify both versions coexist.
 - **Remaining M1 acceptance:** real-device Android and desktop import with actual 336-page privately owned PDF, offline reload, backup/restore and recovery smoke. No 100% claim before owner acceptance.
+
+## v0.17.7 — M1 acceptance gate
+
+- `scripts/browser-smoke.mjs` checks recovery banner/button accessibility at 390px and saves `phone-recovery.png`.
+- [M1 acceptance checklist](M1-ACCEPTANCE.md) is the owner-only real-book/hardware verification requirement; do not treat green headless CI as actual Android acceptance.
+- Developer code for M1 is otherwise covered by automated tests and documented. **Do not start M2 until user accepts the M1 device test.**
