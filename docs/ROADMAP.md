@@ -333,3 +333,5 @@
 ## v0.24.0 — M7 automated UX verification foundation (pending CI)
 
 - Added packaged Chrome keyboard-focus and semantic-label checks plus overflow gates at 360, 390, 640, 768 and 1280 pixels. No real-device acceptance or visual theme changes asserted.
+
+- M7 synthetic Chrome suite extended to test light/dark text contrast, reduced-motion preference and independent PWA offline reload; pending acceptance CI.
