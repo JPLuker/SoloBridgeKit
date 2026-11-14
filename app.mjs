@@ -23,6 +23,7 @@ import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
+import { discoverStageCandidates } from './source-candidates.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
@@ -2063,17 +2064,33 @@ function renderSourcePreparation(book) {
         el('p',{class:'hint',text:step.explanation})
       ]),
       el('div',{class:'actions'},[
-        button(step.hasChoice?'Review more choices':'Find choices in my PDF',()=>{
-          advanced.open=true;
-          const fields=compiler.querySelector('form');
-          if(!fields) {notify('The private rules preparation tool needs repair.',true);return;}
-          fields.querySelector('[name=page]').value=String(step.page);
-          fields.querySelector('[name=kind]').value=step.kind;
-          fields.requestSubmit();
-          advanced.scrollIntoView({behavior:'smooth',block:'start'});
+        button(step.hasChoice?'Look for another choice':'Find possible choices',()=>{
+          const suggestions=row.querySelector('.source-suggestions');
+          try{
+            const candidates=discoverStageCandidates(book.bookPack,step.id);
+            suggestions.replaceChildren(...(candidates.length?candidates.map(candidate=>
+              el('div',{class:'document-item'},[
+                el('strong',{text:candidate.label}),
+                el('p',{class:'hint',text:'Possible heading from your PDF · page '+candidate.page+' · not yet verified'}),
+                el('div',{class:'actions'},[
+                  button('Review this choice',()=>{
+                    if(typeof compiler.openGuidedCandidate!=='function'){
+                      notify('The private review form needs repair.',true);return;
+                    }
+                    advanced.open=true;
+                    compiler.openGuidedCandidate(candidate);
+                    advanced.scrollIntoView({behavior:'smooth',block:'start'});
+                  }),
+                  button('Read page',()=>openPdf(book,candidate.page).catch(failure),'secondary')
+                ])
+              ])): [
+              el('p',{class:'hint',text:'No likely choice headings were found in these pages. Open the PDF to check the section. You can use advanced preparation to create a source-linked choice manually.'})
+            ]));
+          }catch(error){failure(error);}
         }),
         button('Read rulebook page',()=>openPdf(book,step.page).catch(failure),'secondary')
-      ])
+      ]),
+      el('div',{class:'source-suggestions','aria-live':'polite'})
     ]);
     panel.append(row);
   }
@@ -2298,6 +2315,9 @@ function renderPrivateCompiler(book) {
       ]));
   }
   panel.append(review);
+  // Expose a private, in-memory review action to the guided preparation UI;
+  // no candidate is saved or considered verified until the owner confirms.
+  panel.openGuidedCandidate=openReview;
   return panel;
 }
 
