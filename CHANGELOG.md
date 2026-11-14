@@ -1,7 +1,7 @@
 ## v0.25.0 — M8 reproducible, audited developer preview (pending CI)
 
 - Pinned complete npm dependency tree, switched to `npm ci` and added build provenance SHA-256 manifest.
-- Added direct dependency license/integrity checks and explicit release-blocker documentation.
+- Added direct dependency license/integrity checks, independent build-checksum verification and explicit release-blocker documentation.
 - Public release, software license and actual device acceptance are pending owner decisions.
 
 ## v0.24.0 — M7 accessibility and layout gates (automated CI #158 passed; real devices pending)
