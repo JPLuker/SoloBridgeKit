@@ -754,13 +754,22 @@ try {
   // Exact-file reattachment preserves source-derived data and refuses a different PDF.
   await navigate('Library');
   await heading('Library');
-  const sameFileInput = await page.$('input[aria-label="Reattach PDF file"]');
-  check(sameFileInput, 'The PDF reattachment control was missing.');
-  await sameFileInput.uploadFile(pdfPath);
+  // Multiple imported PDFs have identical reattachment control labels.
+  // Always choose the corebook's picker, not the first PDF in the library.
+  const corebookReattachInput = async () => {
+    for (const input of await page.$('input[aria-label="Reattach PDF file"]')) {
+      const isCorebook = await input.evaluate(element =>
+        element.closest('.document-item')?.querySelector('.list-row strong')?.textContent?.trim()
+          === 'temporary-synthetic.pdf');
+      if (isCorebook) return input;
+    }
+    throw new Error('The original synthetic corebook reattachment control was missing.');
+  };
+  await (await corebookReattachInput()).uploadFile(pdfPath);
   await waitForSave('Matching PDF reattached.');
   const differentPdfPath = join(process.cwd(), output, 'different-edition.pdf');
   writeFileSync(differentPdfPath, '%PDF-1.4\nThis is deliberately not the original synthetic book.');
-  await (await page.$('input[aria-label="Reattach PDF file"]')).uploadFile(differentPdfPath);
+  await (await corebookReattachInput()).uploadFile(differentPdfPath);
   await waitForSave('does not match the original book');
   const afterRelink = await page.evaluate(async () => {
     const { all } = await import('./storage.mjs');
