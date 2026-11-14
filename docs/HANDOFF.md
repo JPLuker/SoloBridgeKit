@@ -386,3 +386,5 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 
 - Added `scripts/browser-accessibility.mjs`, run in CI after packaged Chrome smoke; tests 360/390/640/768/1280 CSS widths, keyboard focus, navigation with Enter, named buttons/inputs, mobile tap targets and landmarks. No game PDF or creative content in harness. 640px desktop CSS viewport approximates available space at 200% zoom, not real browser zoom acceptance.
 - Actual screen-reader behavior, mobile virtual keyboard/safe areas and the owner's full copyrighted PDF remain M7 device tasks. M6 verified in CI #135.
+
+- M7 follow-up: check computed WCAG text contrast for light/dark surfaces and reduced-motion preference; verify standalone manifest, registered service-worker controller and offline shell reload. Newly added checks pending CI. Original keyboard/layout/a11y baseline passed CI #150.
