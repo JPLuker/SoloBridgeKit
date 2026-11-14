@@ -1664,9 +1664,14 @@ function renderLibrary() {
   for (const [value, label] of [
     ['corebook', 'Core rulebook'], ['supplement', 'Supplement'], ['forms', 'Forms'], ['reference', 'Other reference']
   ]) roleSelect.append(el('option', { value, text: label }));
-  roleSelect.value = 'reference'; // User must explicitly identify the core rulebook.
+  const firstBook = !hasPreparedCorebook(state.documents);
+  // A new player should never have to know what a "document role" means.
+  // Preserve the advanced selector for experienced users and multi-book import.
+  roleSelect.value = firstBook ? 'corebook' : 'reference';
   const roleField = el('label', { class: 'field' }, [el('span', { text: 'Document type' }), roleSelect]);
-  const fileInput = el('input', { type: 'file', accept: '.pdf,application/pdf', multiple: '', 'aria-label': 'Choose PDF files' });
+  const fileInput = el('input', { type: 'file', accept: '.pdf,application/pdf', 'aria-label': 'Choose PDF files' });
+  fileInput.multiple = !firstBook;
+  roleSelect.addEventListener('change', () => { fileInput.multiple = roleSelect.value !== 'corebook'; });
   const progress = el('p', { class: 'hint', role: 'status', 'aria-live': 'polite', text: '' });
   let preparationController = null;
   const cancelPreparation = button('Cancel preparation', () => preparationController?.abort(), 'secondary');
@@ -1675,29 +1680,32 @@ function renderLibrary() {
     const files = [...fileInput.files];
     if (!files.length) return;
     const requestedRole = normalizeDocumentRole(roleSelect.value);
-    const importGeneration = await currentDataGeneration();
     try {
+      const importGeneration = await currentDataGeneration();
       if (preparationController) throw new Error('Another preparation is already running.');
       preparationController = new AbortController();
       fileInput.disabled = true;
       roleSelect.disabled = true;
       cancelPreparation.hidden = false;
-      $('#save-status').textContent = 'Importing…';
+      $('#save-status').textContent = 'Preparing your PDF…';
+      progress.textContent = requestedRole === 'corebook'
+        ? 'Checking your rulebook file. This happens only in this browser…'
+        : 'Checking the selected PDF files…';
       const records = await prepareImportBatch(files, {
         role: requestedRole,
         signal: preparationController.signal,
         makeId,
         preparePdf: preparePdfInBrowser,
         onProgress: ({ page, total }) => {
-          progress.textContent = `Preparing page ${page} of ${total}…`;
+          progress.textContent = `Reading page ${page} of ${total} from your PDF. Keep this tab open; your earlier saves are safe.`;
         }
       });
       assertNotCancelled(preparationController.signal);
       progress.textContent = 'Saving to this device…';
       await addDocumentsAtomically(records, importGeneration);
-      progress.textContent = requestedRole === 'corebook' ? 'Corebook prepared.' : 'PDFs imported.';
+      progress.textContent = requestedRole === 'corebook' ? 'Your rulebook is ready. Next, create your first campaign.' : 'PDFs saved on this device.';
       await refresh();
-      notify(requestedRole === 'corebook' ? 'Corebook ready to play.' : `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
+      notify(requestedRole === 'corebook' ? 'Rulebook ready! Start by creating a campaign.' : `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
     } catch (error) {
       progress.textContent = storageMessage(error);
       failure(error);
@@ -1710,10 +1718,35 @@ function renderLibrary() {
       $('#save-status').textContent = 'Ready';
     }
   });
-  root.append(card([el('h2', { text: 'Import rulebooks' }), roleField, fileInput,
-    progress, cancelPreparation,
-    el('p', { class: 'hint', text: 'Choose Core rulebook before selecting your purchased PDF. It will be prepared locally; the contents are not uploaded.' })]));
-  if (!state.documents.length) { root.append(empty('No PDFs imported.')); return root; }
+  if(firstBook){
+    root.append(card([
+      el('p',{class:'hint',text:'Getting started · Step 1 of 3'}),
+      el('h2',{text:'Add your rulebook'}),
+      el('p',{text:"Your rulebook is the PDF version of Star Trek Adventures: Captain's Log (2026). It tells the app which character choices, rules and dice results belong to this game."}),
+      el('p',{text:"You do not need to understand the rules before importing it. We will explain the next steps as you create your character."}),
+      el('h2',{text:'Choose the PDF on this device'}),
+      el('p',{class:'hint',text:'Pick the actual rulebook PDF file, not a ZIP download, a picture of the cover, or the blank character sheets. This setup accepts one rulebook at a time.'}),
+      fileInput,progress,cancelPreparation,
+      el('p',{class:'hint',text:'The PDF is read and saved locally in this browser, not uploaded to a server. Preparation can take a little time for a long book.'}),
+      el('p',{class:'hint',text:"Don't have the PDF? You'll need to obtain your own copy before this app can use the official game rules. Your existing imports and campaigns remain safe."}),
+      el('details',{},[
+        el('summary',{text:'Importing a different PDF?'}),
+        el('p',{class:'hint',text:'Forms and supplements can also be kept in your library, but they do not replace the main rulebook. Only change this if your file is not the main rulebook.'}),
+        roleField
+      ])
+    ]));
+  }else{
+    root.append(card([
+      el('p',{class:'hint',text:'Getting started · Step 1 complete'}),
+      el('h2',{text:'Your rulebook is ready'}),
+      el('p',{text:"You can now make your character. A campaign is simply your saved adventure and everything that happens in it."}),
+      button('Next: Create a campaign',()=>go('home')),
+      el('p',{class:'hint',text:'Your PDF stays stored locally in this browser. You can return here later to add other documents.'})
+    ]));
+    root.append(card([el('h2',{text:'Add another PDF (optional)'}),roleField,fileInput,progress,cancelPreparation,
+      el('p',{class:'hint',text:'You can keep forms, supplements, or another edition alongside your first rulebook. Select the correct document type before importing.'})]));
+  }
+  if (!state.documents.length) return root;
   const list = el('div', { class: 'document-list' });
   for (const document of state.documents) {
     const role = normalizeDocumentRole(document.role);
