@@ -232,8 +232,10 @@ try {
   });
   check(await page.$eval('#content',node=>
     node.textContent.includes('Review lifepath') &&
-    node.textContent.includes('I verified these values against my own PDF')),
-    'Choosing a suggested source option did not open the guarded private review form.');
+    node.textContent.includes('I verified these values against my own PDF') &&
+    !!node.querySelector('.source-review-workspace form') &&
+    node.querySelector('details.source-preparation-tools')?.open===false),
+    'R1 source confirmation must be visible without opening the technical compiler.');
   check(await page.$eval('#content',node=>
     node.textContent.includes('attributes: 0 of 3 points assigned') &&
     [...node.querySelectorAll('button')].some(b=>b.textContent.trim()==='+ control')),
