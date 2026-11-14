@@ -1,4 +1,4 @@
-\n## v0.22.2 — M5 scene corrections and linked-history protection (pending CI)
+\n## v0.22.2 — M5 scene corrections and linked-history protection (verified CI #76)
 
 - Prevent act scene-count reductions that would orphan task-roll, journal-entry or undo references.
 - Reject corrupted scene undo history during campaign restore; correct CI artifact version labels.\n\n- Preserve up to ten previous player-authored scene edits per mission and allow undo from the scene editor.\n- Keep dice history, story threads and private source material outside scene writing snapshots.\n- Add automated coverage for repeated corrections and restoration.\n## [0.22.1] - 2026-11-14
