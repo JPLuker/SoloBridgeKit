@@ -1,3 +1,10 @@
+## [0.17.5] - 2026-11-13
+### M1 — Import/reset race protection
+- Track database generation across resets/restores and reject obsolete staged PDF imports.
+- Guard long-running existing-book preparation and source reattachment against reset races.
+- Update documents through transaction-protected patches that preserve current bookmarks and private options.
+- Add browser regression proving a stale import/reattachment cannot write after restore.
+
 ## [0.17.4] - 2026-11-13
 ### M1 — Concurrent save and restore protection
 - Use atomic per-campaign revision checks to reject stale overwrites from other tabs.

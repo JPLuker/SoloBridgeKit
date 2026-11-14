@@ -346,6 +346,31 @@ try {
   }, backup);
   check(restoreRace.blocked && restoreRace.title === 'Synthetic test campaign',
     'An overlapping save overwrote restored campaign data.');
+  // An import or source reattachment prepared before a reset/restore cannot commit afterward.
+  const previousGeneration = await page.evaluate(async () =>
+    (await import('./storage.mjs')).currentDataGeneration());
+  await page.evaluate(async bundle => {
+    const { restoreBackup } = await import('./storage.mjs');
+    await restoreBackup(bundle);
+  }, backup);
+  const staleImport = await page.evaluate(async expectedGeneration => {
+    const { all, addDocumentsAtomically, patchDocumentIfCurrent } = await import('./storage.mjs');
+    const before = await all('documents');
+    const fake = { id: crypto.randomUUID(), name: 'stale.pdf', role: 'reference',
+      blob: new Blob(['%PDF-1.7'], { type: 'application/pdf' }), size: 8,
+      importedAt: new Date().toISOString(), bookmarks: [] };
+    let importRejected = false, patchRejected = false;
+    try { await addDocumentsAtomically([fake], expectedGeneration); }
+    catch (error) { importRejected = error.message.includes('database changed'); }
+    try { await patchDocumentIfCurrent(before[0].id, { name: 'should-not-replace.pdf' }, expectedGeneration); }
+    catch (error) { patchRejected = error.message.includes('library changed'); }
+    const after = await all('documents');
+    return { importRejected, patchRejected, unchanged:
+      after.length === before.length && after[0].name === before[0].name };
+  }, previousGeneration);
+  check(staleImport.importRejected && staleImport.patchRejected && staleImport.unchanged,
+    'An obsolete import or reattachment wrote data after a restore.');
+
 
 
 

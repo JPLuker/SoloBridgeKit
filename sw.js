@@ -1,4 +1,4 @@
-const CACHE = 'solobridgekit-shell-v0.17.4';
+const CACHE = 'solobridgekit-shell-v0.17.5';
 const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs',
   './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs',
   './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs',

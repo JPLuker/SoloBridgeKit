@@ -183,3 +183,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - DB `onversionchange` automatically closes old connections so new app schema versions can proceed.
 - Chrome tests cover concurrent stale saves, serialized rapid saves, blocked overlapping restore and connection re-open.
 - **Do not declare M1 100% without actual physical-device user-owned book test and review.**
+
+## v0.17.5 — M1 import epoch guard
+
+- `storage.currentDataGeneration()` increases for database restore/reset; `addDocumentsAtomically(records, expectedGeneration)` refuses obsolete batches.
+- `storage.patchDocumentIfCurrent()` updates the latest existing document in a read-write transaction, refusing removed records and obsolete generations; unrelated metadata remains intact.
+- `app.mjs` captures import generation before long tasks and passes it to the final database mutation.
+- Chrome test restores a data-only backup then attempts obsolete document insertion and patch: both must fail without changing records.
+- **Pending:** actual physical-device test with the owner's legal 336-page corebook and a final M1 acceptance signoff. Do not call M1 complete without those checks.

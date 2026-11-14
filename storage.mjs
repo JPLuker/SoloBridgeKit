@@ -11,10 +11,13 @@ const STORE_NAMES = ['campaigns', 'documents', 'settings'];
 let dbPromise;
 const campaignWriteQueues = new Map();
 let destructiveMutation = false;
+let dataGeneration = 0;
+export function currentDataGeneration() { return dataGeneration; }
 
 async function withExclusiveMutation(action) {
   if (destructiveMutation) throw new Error('Another restore or reset is already running.');
   destructiveMutation = true;
+  dataGeneration++; // Invalidates any import prepared against the old database.
   try {
     await Promise.all([...campaignWriteQueues.values()].map(p => p.catch(() => {})));
     return await action();
@@ -68,8 +71,10 @@ export const remove = (store, id) => run(store, 'readwrite', objectStore => obje
 
 // Add an entire selected import batch in one IndexedDB transaction.
 // If ANY add fails (including quota, duplicate ID or serialization), none persist.
-export async function addDocumentsAtomically(records) {
+export async function addDocumentsAtomically(records, expectedGeneration = dataGeneration) {
   if (!Array.isArray(records) || !records.length) throw new Error('No documents to import.');
+  if (expectedGeneration !== dataGeneration)
+    throw new Error('The local database changed during PDF preparation. Re-import the file; no partial records were saved.');
   const ids = new Set();
   for (const doc of records) {
     if (!doc || typeof doc.id !== 'string' || !doc.id || ids.has(doc.id) ||
@@ -79,6 +84,8 @@ export async function addDocumentsAtomically(records) {
     ids.add(doc.id);
   }
   const db = await database();
+  if (expectedGeneration !== dataGeneration || destructiveMutation)
+    throw new Error('The local database was reset or restored during PDF preparation. Retry the import.');
   return new Promise((resolve, reject) => {
     const tx = db.transaction('documents', 'readwrite');
     tx.oncomplete = () => resolve();
@@ -125,6 +132,32 @@ async function commitCampaignSnapshot(campaign) {
       }
       committed = { ...snapshot, revision: expected + 1, updatedAt: new Date().toISOString() };
       store.put(committed);
+    };
+  });
+}
+
+// Patch the latest stored document without resurrecting a removed source or
+// overwriting unrelated user metadata after long-running PDF preparation.
+export async function patchDocumentIfCurrent(id, changes, expectedGeneration) {
+  if (!id || !changes || typeof changes !== 'object' || Array.isArray(changes))
+    throw new Error('Invalid document update.');
+  const db = await database();
+  if (expectedGeneration !== dataGeneration || destructiveMutation)
+    throw new Error('The library changed during preparation. Retry; existing data was preserved.');
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('documents', 'readwrite');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error('Could not save document changes.'));
+    tx.onabort = () => reject(tx.error ?? new Error('Document update was rolled back.'));
+    const store = tx.objectStore('documents');
+    const request = store.get(id);
+    request.onsuccess = () => {
+      if (!request.result) {
+        reject(new Error('The original PDF was removed. It was not recreated.'));
+        tx.abort();
+      } else {
+        store.put({ ...request.result, ...changes, id });
+      }
     };
   });
 }

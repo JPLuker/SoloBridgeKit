@@ -173,3 +173,10 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Database restore waits for pending queued writes and rejects new saves while destructive replacement runs.
 - [ ] Database connection can close on simulated versionchange and be reopened without losing existing records.
 - [ ] Real cross-tab/physical-device verification still required before marking M1 complete.
+
+## v0.17.5 interrupted import following reset
+
+- [ ] Prepare a PDF using a pre-restore database generation. Restore a backup, then attempt the old import: no stale document is inserted.
+- [ ] Reattach/update an old document with a pre-restore generation: refuse without changing the latest document.
+- [ ] During a long extraction, independently modify bookmarks: final patch must preserve latest unrelated document fields.
+- [ ] Physical-device verification on Android and desktop still needed before 100% M1.

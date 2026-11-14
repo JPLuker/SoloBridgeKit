@@ -200,3 +200,8 @@
 - Campaign revision checks prevent stale copies from overwriting newer versions; per-campaign queues preserve rapid same-tab edits.
 - Database restore/reset waits for pending campaign writes before destructive changes; attempted new writes are rejected until completion.
 - Database connections close on versionchange; verified by headless Chrome synthetic regression.
+
+## v0.17.5 — M1 obsolete import and restore guard
+
+- Stale import/reattachment jobs cannot resurrect documents after a reset or restore; document metadata patches retain changes made while extraction was running.
+- Browser regression checks that both obsolete batch insertion and obsolete document patch are rejected.

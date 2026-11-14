@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.4 adds same-tab save ordering, stale-tab conflict rejection, overlapping restore protection and IndexedDB upgrade safety. Developer-side automated M1 coverage is substantially complete; **actual Android/desktop acceptance with the private 336-page PDF is still unverified**.
+**Progress:** v0.17.5 adds generation-based rejection of obsolete imports and reattachments after database resets/restores, plus atomic document patches. Developer-side automated M1 coverage is substantially complete; **physical Android/desktop acceptance with the actual privately owned 336-page PDF is still required**.
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

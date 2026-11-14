@@ -1,6 +1,6 @@
 import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
-import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically } from './storage.mjs';
+import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent } from './storage.mjs';
 import { prepareImportBatch, storageMessage, assertNotCancelled, relinkDocument, checkStorageCapacity } from './import-safety.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
@@ -978,6 +978,7 @@ function renderLibrary() {
     const files = [...fileInput.files];
     if (!files.length) return;
     const requestedRole = normalizeDocumentRole(roleSelect.value);
+    const importGeneration = currentDataGeneration();
     try {
       if (preparationController) throw new Error('Another preparation is already running.');
       preparationController = new AbortController();
@@ -996,7 +997,7 @@ function renderLibrary() {
       });
       assertNotCancelled(preparationController.signal);
       progress.textContent = 'Saving to this device…';
-      await addDocumentsAtomically(records);
+      await addDocumentsAtomically(records, importGeneration);
       progress.textContent = requestedRole === 'corebook' ? 'Corebook prepared.' : 'PDFs imported.';
       await refresh();
       notify(requestedRole === 'corebook' ? 'Corebook ready to play.' : `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
@@ -1032,6 +1033,7 @@ function renderLibrary() {
         }
         if (preparationController) throw new Error('Another preparation is already running.');
         preparationController = new AbortController();
+        const importGeneration = currentDataGeneration();
         changeRole.disabled = true;
         cancelPreparation.hidden = false;
         changeRole.textContent = 'Preparing…';
@@ -1041,8 +1043,9 @@ function renderLibrary() {
         });
         assertNotCancelled(preparationController.signal);
         const current = await get('documents', document.id);
-        if (!current) throw new Error('The PDF was removed during preparation.');
-        await put('documents', { ...current, role: 'corebook', bookPack: pack });
+        if (!current || currentDataGeneration() !== importGeneration)
+          throw new Error('The book was removed or storage was reset during preparation. Nothing was saved.');
+        await patchDocumentIfCurrent(document.id, { role: 'corebook', bookPack: pack }, importGeneration);
         await refresh();
         notify('Corebook prepared and ready.');
       } catch (error) {
@@ -1061,11 +1064,17 @@ function renderLibrary() {
       const selected = relinkInput.files?.[0];
       if (!selected) return;
       try {
+        const importGeneration = currentDataGeneration();
         const latest = await get('documents', document.id);
         if (!latest) throw new Error('The imported document no longer exists.');
         const replacement = await relinkDocument(latest, selected);
         await checkStorageCapacity([selected]);
-        await put('documents', replacement);
+        if (importGeneration !== currentDataGeneration() || !(await get('documents', document.id)))
+          throw new Error('The document was removed or local data was reset during reattachment. Nothing was saved.');
+        await patchDocumentIfCurrent(document.id, {
+          blob: replacement.blob, name: replacement.name,
+          size: replacement.size, reattachedAt: replacement.reattachedAt
+        }, importGeneration);
         state.openDocumentId = document.id;
         await refresh();
         notify('Matching PDF reattached. Bookmarks and private choices preserved.');
@@ -1079,13 +1088,14 @@ function renderLibrary() {
     privatePackInput.addEventListener('change', async () => {
       const selected = privatePackInput.files?.[0];
       if (!selected) return;
+      const operationGeneration = currentDataGeneration();
       try {
         const latest = await get('documents', document.id);
         if (!latest || normalizeDocumentRole(latest.role) !== 'corebook')
           throw new Error('Mark this PDF as your corebook first.');
         const pack = JSON.parse(await selected.text());
         await verifyPreparedBook(latest.blob, pack);
-        await put('documents', { ...latest, bookPack: pack });
+        await patchDocumentIfCurrent(document.id, { bookPack: pack }, operationGeneration);
         state.openDocumentId = document.id;
         await refresh();
         notify('Corebook prepared. Gameplay is available.');
