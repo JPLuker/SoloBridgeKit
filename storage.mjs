@@ -1,7 +1,7 @@
 import { DATA_VERSION, validateBundle } from './model.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeDocumentRole, shouldIncludeDocuments, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
-import { validateBookPack, verifyPreparedBook } from './book-data.mjs';
+import { validatePreparedDocumentPack, verifyPreparedBook } from './book-data.mjs';
 import { normalizePrivateTables } from './private-tables.mjs';
 import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
@@ -314,7 +314,7 @@ export async function createBackup(options = {}) {
     const bytes = new Uint8Array(await doc.blob.arrayBuffer());
     documents.push({ id: doc.id, name: doc.name, size: doc.size, importedAt: doc.importedAt,
       role: normalizeDocumentRole(doc.role), bookmarks: normalizeBookmarks(doc.bookmarks),
-      ...(doc.bookPack ? { bookPack: validateBookPack(doc.bookPack),
+      ...(doc.bookPack ? { bookPack: validatePreparedDocumentPack(doc.bookPack),
         tables: normalizePrivateTables(doc.tables, doc.bookPack.sourceSha256),
         options: normalizePrivateOptions(doc.options, doc.bookPack.sourceSha256),
         ships: normalizePrivateShips(doc.ships, doc.bookPack.sourceSha256),
@@ -328,7 +328,7 @@ export async function restoreBackup(raw) {
   const bundle = validateBundle(raw);
   const docs = bundle.documents.map(d => ({ id: d.id, name: d.name, size: d.size,
     importedAt: d.importedAt, role: normalizeDocumentRole(d.role), bookmarks: normalizeBookmarks(d.bookmarks),
-    ...(d.bookPack ? { bookPack: validateBookPack(d.bookPack),
+    ...(d.bookPack ? { bookPack: validatePreparedDocumentPack(d.bookPack),
       tables: normalizePrivateTables(d.tables, d.bookPack.sourceSha256),
       options: normalizePrivateOptions(d.options, d.bookPack.sourceSha256),
       ships: normalizePrivateShips(d.ships, d.bookPack.sourceSha256),
