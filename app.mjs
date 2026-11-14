@@ -23,7 +23,7 @@ import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
-import { verifiedChoicePreview, nextIncompleteCreationStep } from './guided-choice-preview.mjs';
+import { verifiedChoicePreview, verifiedShipPreview, nextIncompleteCreationStep } from './guided-choice-preview.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
 import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -1010,6 +1010,7 @@ function renderShipBuilder() {
           el('div',{class:'document-item'},[
             el('strong',{text:selection.className}),
             el('p',{class:'hint',text:selection.kind+' · PDF page '+selection.page}),
+            el('p',{class:'hint',text:verifiedShipPreview(selection).join(' · ')}),
             el('div',{class:'actions'},[
               button('Choose '+selection.className,async()=>{
                 try{
@@ -1063,9 +1064,20 @@ function renderShipBuilder() {
   if(idx===3)sections.push(field('Additional trait (optional)','uniqueTrait',builder.uniqueTrait));
   if(idx===4)sections.push(field('Ship talents · one per line','talents',builder.talents,{multiline:true}));
   if(idx===5)sections.push(field('Name','name',builder.name),field('Registry (starship)','registry',builder.registry));
-  form.append(card(sections));
+  const shipEditor=card(sections);
+  if(builder.mode==='guided'&&idx===1){
+    form.append(el('details',{class:'guided-choice-editor'},[
+      el('summary',{text:builder.sourceRef?'Review published class ratings':'Enter class ratings manually (advanced)'}),
+      shipEditor
+    ]));
+  }else form.append(shipEditor);
   const shipActions = el('div',{class:'actions'},[
-    button('Save step',()=>save().then(()=>notify('Ship setup saved.')).catch(failure),'secondary'),
+    button('Save and exit',async()=>{
+      try{await save();notify('Ship setup draft saved.');go('home');}catch(error){failure(error);}
+    },'secondary'),
+    ...(idx>0?[button('Back',async()=>{
+      try{await save();state.shipStep--;render();}catch(error){failure(error);}
+    },'secondary')]:[]),
     button(idx===5?'Save and review':'Save and next',async()=>{
       try{await save();if(state.shipStep<5)state.shipStep++;render();}catch(error){failure(error);}
     })
