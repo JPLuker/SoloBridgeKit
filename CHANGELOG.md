@@ -1,3 +1,7 @@
+## Product review — D&D Beyond-inspired beginner redesign (documentation only)
+
+- Audited v0.25.2 source flows against official D&D Beyond builder guidance; recorded an ordered first-session redesign and acceptance criteria in `docs/DND-BEYOND-PRODUCT-REVIEW.md` and issue #4. No application behavior changed in this documentation update.
+
 ## v0.25.2 — Beginner-first rulebook setup (pending CI)
 
 - First-time setup defaults to the main rulebook, importing one PDF without asking the player to understand document types.
