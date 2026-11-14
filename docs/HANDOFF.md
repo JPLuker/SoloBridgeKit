@@ -409,3 +409,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - See `docs/M8-AUTOMATED-ACCEPTANCE.md`, `docs/RELEASE-READINESS.md`, and one-pass `docs/M7-DEVICE-ACCEPTANCE.md`. **Automated coding scope M1–M8 is complete; do not close owner-only release gates** until Joseph accepts actual hardware and explicitly approves license, identity and public release.
 - Open issues: [#1](https://github.com/JPLuker/SoloBridgeKit/issues/1) real-device/source acceptance; [#2](https://github.com/JPLuker/SoloBridgeKit/issues/2) owner release decisions. Neither is a blocker for private development preview, both block a public 1.0 claim.
 - Keep app standalone, local-first and copyright safe. No further agreed developer-only roadmap feature remains currently; handle future discovered regressions as exceptions.
+
+## v0.25.1 — first-session guidance repair (pending CI)
+
+- Owner playtest: app felt like an empty D&D Beyond-style editor, asking the user to fill unexplained fields. This is a UX regression against product target; the prior automated M1–M8 checks did not validate pedagogy or whether a new user understands the next choice.
+- Added `guided-explanations.mjs` with original, general-purpose, source-safe help for every character/ship stage and initial mission prompts. UI now shows one explanation and next action before the fields, explains why private lists are missing and how to open/prepare them, and offers an explicit create-character/ship/mission path from Home.
+- Added `tests/guided-explanations.test.mjs`; updated PWA cache/packaging/allowlist to ship the new module. `v0.25.1` needs CI validation, and owner playtesting remains pending. No publisher option list or generated lore was added.
