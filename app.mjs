@@ -24,6 +24,7 @@ import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './gu
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
 import { verifiedChoicePreview, verifiedShipPreview, nextIncompleteCreationStep } from './guided-choice-preview.mjs';
+import { soloPlayPrompt } from './solo-play-guidance.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
 import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -1363,6 +1364,24 @@ function renderLog() {
   root.append(card([el('h2', { text: 'Missions' }), createForm, ...(campaign.episodes.length ? [missionSelect] : [])]));
   const selected = campaign.episodes.find(e => e.id === chosenEpisode) || campaign.episodes[0];
   if (!selected) { root.append(empty('No missions yet.')); return root; }
+  const playGuide=soloPlayPrompt(selected);
+  const playPanel=card([
+    el('p',{class:'hint',text:'Your next action'}),
+    el('h2',{text:playGuide.title}),
+    el('p',{text:playGuide.explanation}),
+    el('p',{class:'hint',text:playGuide.instruction}),
+    el('div',{class:'actions'},[
+      button(playGuide.next,()=>{
+        const editor=document.querySelector('#content textarea[aria-label="New log entry"]');
+        editor?.scrollIntoView({behavior:'smooth',block:'center'});
+        editor?.focus();
+      }),
+      button('Try something uncertain (roll dice)',()=>{
+        document.querySelector('#content .scene-actions')?.scrollIntoView({behavior:'smooth',block:'start'});
+      },'secondary')
+    ])
+  ]);
+  root.append(playPanel);
   const missionForm = el('form', { class: 'form-stack' });
   const act = selected.actLogs;
   const marks = selected.valueMarks;
@@ -1466,7 +1485,11 @@ function ratingPicker(names, label, source) {
   return { wrapper, select };
 }
 function renderMissionActions(mission) {
-  const cardNode = card([el('h2', { text: 'Scene actions' })]);
+  const cardNode = card([
+    el('h2', { text: 'Scene actions' }),
+    el('p',{class:'hint',text:'Use a task roll when your character attempts something uncertain. Choose an Attribute (approach), a Discipline (training), and Difficulty (how hard it is). Do not roll for routine actions.'})
+  ]);
+  cardNode.classList.add('scene-actions');
   const activeSceneId = resolveActiveSceneId(mission);
   const scene = mission.scenes.find(x => x.id === activeSceneId) || mission.scenes[0];
   if (scene) cardNode.append(line('Current scene', `Act ${scene.act} · Scene ${scene.number}`));
