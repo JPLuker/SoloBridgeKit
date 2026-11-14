@@ -1,6 +1,6 @@
 # Release readiness — v0.25.0 developer preview
 
-**Status:** NOT APPROVED FOR A PUBLIC 1.0 RELEASE. This is a reproducible, source-free build candidate for development review only.
+**Status:** Automated developer safety checks passed [CI #188](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43649559686). NOT APPROVED FOR A PUBLIC 1.0 RELEASE. This is a reproducible, source-free build candidate for development review only.
 
 ## Automated build gates
 - Install exact dependency versions using the committed npm v3 lockfile and `npm ci --ignore-scripts --no-audit --no-fund`.
@@ -12,7 +12,7 @@
 ## Manual hold points (owner)
 - [ ] Choose a public software code license (none has been chosen; the public PDF.js component retains its own license).
 - [ ] Approve final visual identity/trademark presentation; existing styling remains unchanged.
-- [ ] Complete [M7 real-device checklist](M1-ACCEPTANCE.md) on Android and desktop with privately owned 2026 source PDFs, including accessible PDF browsing, import/restore/offline and actual screen-reader/zoom behavior.
+- [ ] Complete [M7 one-pass real-device checklist](M7-DEVICE-ACCEPTANCE.md) on Android and desktop with privately owned 2026 source PDFs, including accessible PDF browsing, import/restore/offline and actual screen-reader/zoom behavior.
 - [ ] Audit release assets, CI screenshots and archives for publisher material before making any release public.
 - [ ] Approve a version 1.0 candidate and maintenance mode separately.
 
