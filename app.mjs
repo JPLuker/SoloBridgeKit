@@ -2054,6 +2054,8 @@ function renderSourcePreparation(book) {
     el('summary',{text:'Review suggestions and correct rules (advanced tools)'})
   ]);
   const compiler=renderPrivateCompiler(book);
+  const reviewWorkspace=el('section',{class:'source-review-workspace','aria-live':'polite'});
+  if(typeof compiler.mountGuidedReview==='function')compiler.mountGuidedReview(reviewWorkspace);
   advanced.append(compiler);
   for(const step of status.steps){
     const drafts=savedStageDrafts(book,step.id);
@@ -2071,9 +2073,8 @@ function renderSourcePreparation(book) {
                 if(typeof compiler.openGuidedCandidate!=='function'){
                   notify('The private review form needs repair.',true);return;
                 }
-                advanced.open=true;
                 compiler.openGuidedCandidate(candidate);
-                advanced.scrollIntoView({behavior:'smooth',block:'start'});
+                reviewWorkspace.scrollIntoView({behavior:'smooth',block:'start'});
               }),
               button('Read page',()=>openPdf(book,candidate.page).catch(failure),'secondary')
             ])
@@ -2132,16 +2133,15 @@ function renderSourcePreparation(book) {
             if(typeof compiler.openGuidedCandidate!=='function'){
               notify('The private review form needs repair.',true);return;
             }
-            advanced.open=true;
             compiler.openGuidedCandidate(draft);
-            advanced.scrollIntoView({behavior:'smooth',block:'start'});
+            reviewWorkspace.scrollIntoView({behavior:'smooth',block:'start'});
           })
         ]));
       }
     }
     panel.append(row);
   }
-  panel.append(advanced);
+  panel.append(reviewWorkspace,advanced);
   if(status.complete){
     panel.append(el('p',{class:'hint',text:'You have at least one confirmed choice in each section. You can return to confirm more at any time.'}),
       button('Continue to my character',()=>go('lifepath'),'secondary'));
@@ -2405,6 +2405,7 @@ function renderPrivateCompiler(book) {
   // Expose a private, in-memory review action to the guided preparation UI;
   // no candidate is saved or considered verified until the owner confirms.
   panel.openGuidedCandidate=openReview;
+  panel.mountGuidedReview=target=>target.append(review);
   return panel;
 }
 
