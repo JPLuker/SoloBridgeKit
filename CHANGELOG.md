@@ -1,4 +1,4 @@
-## v0.26.2 — R1 search-to-review fallback (pending CI)
+## v0.26.2 — R1 search-to-review fallback (CI #322 verified)
 
 - Beginner source preparation can search all locally indexed PDF pages by phrase, display matching pages and discover candidate headings around any result without entering technical page numbers.
 - Search hits, candidate names and source pages stay entirely in private browser storage; suggestions require manual confirmation and are never treated as verified mechanics automatically.
