@@ -312,3 +312,9 @@
 ## M5 development accepted — v0.22.2
 
 - CI #76 passed all 157 unit tests and the three-act synthetic Chrome playthrough with import, progress persistence, scene corrections and source-free campaign exports. M5 development closed; real-device validation deferred to M7. See `docs/M5-DEVELOPMENT-ACCEPTANCE.md`.
+
+## v0.23.0 — M6 multi-book library foundation (pending CI)
+
+- Short supplements, forms and reference PDFs can be prepared into locally owned, SHA-256-bound searchable source indexes without acting as corebook gameplay unlocks.
+- Combined search identifies the originating imported PDF and page. Library diagnostics show preparation and source conflicts; private indexes remain excluded from default campaign backups and public packages.
+- M6 completion awaits recovery/rebuild/remove safety and browser round-trip verification.
