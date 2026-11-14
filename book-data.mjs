@@ -3,6 +3,7 @@ import { normalizeDocumentRole } from './content-policy.mjs';
 
 export const BOOK_FORMAT = 'solobridgekit-prepared-corebook';
 export const BOOK_FORMAT_VERSION = 1;
+export const REFERENCE_FORMAT = 'solobridgekit-prepared-reference';
 const MIN_PAGES = 200;
 const MAX_PAGES = 2000;
 const REQUIRED_TOPICS = Object.freeze(['lifepath', 'mission', 'starship', 'momentum', 'threat', 'focus']);
@@ -34,6 +35,29 @@ export function validateBookPack(pack) {
   return pack;
 }
 
+
+// Supplements, form collections and other references may be much shorter than
+// the game corebook. They are searchable only, not valid gameplay unlock keys.
+export function validateReferencePack(pack) {
+  if(!pack || pack.format!==REFERENCE_FORMAT || pack.version!==BOOK_FORMAT_VERSION ||
+    !PDF_SHA.test(pack.sourceSha256??'') ||
+    !Number.isSafeInteger(pack.pageCount) || pack.pageCount<1 || pack.pageCount>MAX_PAGES ||
+    !Array.isArray(pack.pages) || pack.pages.length!==pack.pageCount)
+    throw new Error('Invalid prepared reference index.');
+  let readable=0;
+  for(let i=0;i<pack.pages.length;i++){
+    const page=pack.pages[i];
+    if(!page || page.page!==i+1 || typeof page.text!=='string' || page.text.length>100000)
+      throw new Error('Invalid reference page index.');
+    if(page.text.trim())readable++;
+  }
+  if(!readable)throw new Error('This reference contains no searchable text.');
+  return pack;
+}
+export function validatePreparedDocumentPack(pack){
+  return pack?.format===REFERENCE_FORMAT?validateReferencePack(pack):validateBookPack(pack);
+}
+
 export function hasPreparedCorebook(documents) {
   return Array.isArray(documents) && documents.some(doc =>
     doc && normalizeDocumentRole(doc.role) === 'corebook' &&
@@ -55,7 +79,7 @@ export async function pdfSha256(blob) {
 }
 
 export async function verifyPreparedBook(pdf, pack) {
-  validateBookPack(pack);
+  validatePreparedDocumentPack(pack);
   if ((await pdfSha256(pdf)) !== pack.sourceSha256) {
     throw new Error('This data pack belongs to a different PDF. Prepare the selected corebook again.');
   }
