@@ -1,3 +1,11 @@
+## v0.25.2 — Beginner-first rulebook setup (pending CI)
+
+- First-time setup defaults to the main rulebook, importing one PDF without asking the player to understand document types.
+- Explains tabletop RPG play, what a rulebook/PDF is, what stays private, why the complete 2026 book is required and what happens during preparation.
+- Import progress and common invalid/short/unreadable file errors are understandable to new players.
+- Successful preparation gives a direct next step into their first campaign; supplemental import controls remain available for experienced users.
+- Added browser and unit regression tests without bundling licensed game content.
+
 ## v0.25.1 — Guided first-session explanation (pending CI)
 
 - Character lifepath and ship setup now explain each decision before presenting input fields, including unfamiliar terms and next actions.
