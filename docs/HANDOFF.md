@@ -393,3 +393,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 
 - CI #158 passed all source/unit/build/public audit, synthetic browser smoke and new a11y/contrast/offline/zoom-width gates. See `docs/M7-AUTOMATED-ACCEPTANCE.md`.
 - Physical M7 acceptance is OPEN, only owner with actual 336-page purchased book and devices can sign off. Keep GitHub issue #1 open. No 1.0/maintenance claim. Continue M8 code preparation.
+
+## M8 v0.25.0 developer preview (pending CI)
+
+- Added `package-lock.json` obtained verbatim from clean hosted CI npm resolution; `npm ci` now installs exact version/integrity-pinned dependencies.
+- `scripts/audit-release.mjs` hashes packaged files into an **UNTESTED** build provenance manifest and inventories the licenses/versions of direct dependencies. Manifest lives outside `dist/`, so service-worker cache stays source-free.
+- `.github/workflows/ci.yml` validates provenance and uploads separate preview/checksum artifacts; no official release or license has been authorized.
+- `docs/RELEASE-READINESS.md` records explicit owner hold points. Finish automated M8 checks but leave M7 device issue and 1.0 decision open.
