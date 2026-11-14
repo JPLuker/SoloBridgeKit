@@ -448,3 +448,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Implemented `source-review-assist.mjs`: stage-scoped saved draft retrieval, source-fingerprint checking, and stage budget guidance from existing `LIFEPATH_STEPS`. Unconfirmed drafts appear in guided Library sections and open the existing strict review flow. No automatic confirmation or publisher records included.
 - Lifepath source review has +/− adjustments for six attributes/six disciplines and displays assigned vs expected totals; raw numeric inputs remain and are not overwritten. The player must still check bonuses against their imported book, and existing compiler validation remains authoritative.
 - Added `tests/source-review-assist.test.mjs` and a synthetic browser check for changing Control and observing recalculated totals. Updated local offline packaging, cache, lockfile and CI artifact labels to 0.26.1. CI and owner new-player UX acceptance pending. R1 is not closed.
+
+## R1 v0.26.2 — source page search fallback (pending CI)
+
+- Expanded `discoverStageCandidates()` to accept a validated `startPage` for privately indexed editions whose page offsets differ from default stage hints. In `renderSourcePreparation`, every section now exposes a collapsed **Can’t find the right choices? Search my book** flow: local `searchBookPack` results, matching page excerpts and one-click candidate scanning at chosen page. No new publisher content or network calls.
+- Added synthetic unit case for arbitrary source page offset and Chrome test for searching the indexed private PDF, selecting a matching page, and seeing *unverified* candidates. This is the same strict owner confirmation workflow; advanced compiler remains accessible.
+- Updated offline cache and CI artifacts to v0.26.2. Pending full CI and real novice acceptance; R1 not declared complete.
