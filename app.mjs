@@ -15,7 +15,7 @@ import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePr
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption, categoryForStep } from './private-options.mjs';
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 import { commitTaskToMission } from './mission-actions.mjs';
-import { resolveActiveEpisodeId, selectActiveEpisode, resolveActiveSceneId, selectActiveScene, sceneTag, makePrivateTableReference, appendSceneTableReference } from './mission-workspace.mjs';
+import { resolveActiveEpisodeId, selectActiveEpisode, resolveActiveSceneId, selectActiveScene, sceneTag, makePrivateTableReference, appendSceneTableReference, saveSceneCorrection, undoSceneCorrection } from './mission-workspace.mjs';
 import { createMissionThread, setMissionThreadStatus, deleteMissionThread, normalizeMissionThreads, summarizeSceneWorkspace } from './mission-threads.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
@@ -1490,11 +1490,19 @@ function renderSceneTracker(mission) {
     ]);
     editor.append(el('div', { class: 'actions' }, [
       el('button', { type: 'submit', class: 'button secondary', text: 'Save scene' }),
+      ...(mission.sceneCorrections?.some(x=>x.sceneId===active.id)?[
+        button('Undo last scene edit',async()=>{
+          try { Object.assign(mission,undoSceneCorrection(mission,active.id)); await persist();
+            notify('Previous scene writing restored.'); } catch(error){failure(error);}
+        },'secondary')
+      ]:[]),
       button(active.completed ? 'Reopen scene' : 'Complete scene', async () => {
         try {
           const values = new FormData(editor);
-          active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
-          active.valuesUsed = String(values.get('valuesUsed') || '');
+          Object.assign(mission, saveSceneCorrection(mission,active.id,{
+            title:String(values.get('title') || ''),notes:String(values.get('notes') || ''),
+            valuesUsed:String(values.get('valuesUsed') || '')
+          }));
           Object.assign(mission, toggleMissionScene(mission, active.act, active.number, !active.completed));
           mission.activeSceneId = active.id; await persist();
         } catch (error) { failure(error); }
@@ -1503,9 +1511,13 @@ function renderSceneTracker(mission) {
     editor.addEventListener('submit', async event => {
       event.preventDefault();
       const values = new FormData(editor);
-      active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
-          active.valuesUsed = String(values.get('valuesUsed') || '');
-      try { await persist(); notify('Scene saved.'); } catch (error) { failure(error); }
+      try {
+        Object.assign(mission,saveSceneCorrection(mission,active.id,{
+          title:String(values.get('title') || ''),notes:String(values.get('notes') || ''),
+          valuesUsed:String(values.get('valuesUsed') || '')
+        }));
+        await persist(); notify('Scene saved.');
+      } catch (error) { failure(error); }
     });
     tracker.append(editor);
   }
