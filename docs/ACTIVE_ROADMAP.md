@@ -117,7 +117,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M7. UX, accessibility and actual-device verification
 
-**Development progress: 25% (v0.24.0, pending CI).** Added packaged headless browser checks for keyboard navigation and visible focus, programmatic input/button labels, minimum navigation tap targets, and layout widths 360/390/640/768/1280px. Remaining: verify CI, fix reported accessibility or layout defects, install/upgrade/offline checks, and owner-only real Android/desktop acceptance with legally purchased books.
+**Development progress: 65% (v0.24.0, pending expanded CI).** Baseline accessibility/layout checks passed [CI #150](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648482098). Additional light/dark text-contrast and reduced-motion checks, install manifest and an independent offline service-worker reload are implemented, pending verification. Remaining: correct any new automated failures, check full responsive/navigation coverage, and owner-only actual Android/desktop/screen-reader acceptance.
 
 **Build**
 - Test keyboard-only operation, focus visibility, accessibility labels, contrast, large text/200% zoom and screen readers.
