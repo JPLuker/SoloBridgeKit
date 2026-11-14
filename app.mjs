@@ -24,7 +24,7 @@ import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './gu
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
-import { reviewBonusTotals, savedStageDrafts } from './source-review-assist.mjs';
+import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
@@ -2308,6 +2308,10 @@ function renderPrivateCompiler(book) {
           throw new Error('Confirm that you checked these values against your own PDF.');
         const fields = new FormData(form);
         const payload = payloadFromForm(fields);
+        if(status==='confirmed' && record.kind==='lifepath'){
+          const allocation=checkSourceBonusBudget(payload.stepId,payload.record);
+          if(!allocation.ready)throw new Error(allocation.message);
+        }
         const updated = reviewCompiledRecord(record, {
           label: String(fields.get('label') ?? ''), payload, status }, sha, count);
         const generation = await currentDataGeneration();
