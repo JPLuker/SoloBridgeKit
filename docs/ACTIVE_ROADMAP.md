@@ -162,3 +162,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 5. Run syntax/unit/browser and public distribution audits; green CI means ready for a milestone playtest, not hardware verified.
 6. Every completed change updates `CHANGELOG.md`, `HANDOFF.md`, historic `ROADMAP.md`, relevant tests, and issues in the same commit.
 7. Follow [InternalDesignGuidelines](https://github.com/JPLuker/InternalDesignGuidelines); project decisions override optional conventions.
+
+## v0.25.1 owner UX regression — guided play must teach, not just collect data
+
+**Status: implemented, pending CI and real user UX acceptance.** Owner playtest found that the app lacked D&D Beyond-style explanations and surfaced empty fields. Original explanatory copy was added to the character and ship wizards, Home, missing private-choice states, and first mission creation. The private publisher option catalog remains a separate local preparation step and cannot be embedded in public app. This remediation is not proof that the full interactive guided experience has reached owner acceptance; refine after actual use.
