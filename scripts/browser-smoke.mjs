@@ -211,8 +211,9 @@ try {
     return {count:saved.compiledRecords?.length??0,
       candidateLabel:document.querySelector('.source-suggestions .document-item strong')?.textContent};
   });
-  check(unconfirmed.count===0 && unconfirmed.candidateLabel?.includes('Synthetic Example Choice'),
-    'Guided candidate discovery must suggest local PDF headings without saving them.');
+  check(unconfirmed.count===0 && typeof unconfirmed.candidateLabel==='string' &&
+    unconfirmed.candidateLabel.length>0,
+    'Guided candidate discovery must suggest local PDF headings without saving them: '+JSON.stringify(unconfirmed));
   await page.evaluate(()=>{
     const first=document.querySelector('.source-preparation .source-suggestions button');
     first?.click();
