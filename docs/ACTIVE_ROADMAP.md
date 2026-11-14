@@ -88,7 +88,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M5. Integrated solo mission player
 
-**Development progress: 85% (v0.22.2, pending CI).** Mission/scene persistence, scene-linked roll references, source-safe table history, player-written Values per scene, unresolved/resolved threads, contextual workspace counts, and bounded per-scene writing undo are implemented. The synthetic three-act end-to-end browser playthrough has been added to CI but has not yet been verified passing. Remaining: verify it, correct failures, complete M5 development acceptance. Undo covers scene writing only, not task rolls, resources, or thread deletion.
+**Development completion: 100% — VERIFIED (v0.22.2).** All 157 unit tests, public distribution audit and synthetic three-act browser smoke passed in [CI run #76](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43646580064). Scene selection, task provenance, private table references, player-written Values/threads, closing logs, bounded scene undo and safe scene-count changes are implemented. [M5 acceptance](M5-DEVELOPMENT-ACCEPTANCE.md) is closed. Physical-device testing remains M7. **Next: M6.**
 
 **Build**
 - Use one active-scene workspace for roll outcomes, Momentum/Threat, available private random tables, notes, status and source references.
