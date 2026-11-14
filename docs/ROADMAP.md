@@ -365,3 +365,5 @@
 ## v0.26.0 — R1 private source preparation foundation (pending CI)
 
 - Implemented a first guided source readiness screen: PDF indexed does not imply verified character and ship choices. Per-section progress, local PDF page access and a one-click candidate scan now sit above technical tools, which remain accessible in an advanced disclosure. No imported/copyrighted book content ships. R1 is **not complete** until choice review itself is approachable to brand-new players.
+
+- R1 candidate discovery updated: nearby page headings are displayed as unverified cards on each character/ship stage; users select a card for explicit source-value review, without supplying page number/record type. Existing compiler remains accessible in Advanced.
