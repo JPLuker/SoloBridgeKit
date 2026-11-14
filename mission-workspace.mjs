@@ -78,3 +78,17 @@ export function undoSceneCorrection(episode,sceneId){
   return {...episode,scenes:episode.scenes.map(s=>sceneKey(s)===sceneId?{...s,...before}:s),
     sceneCorrections:history.filter((_,i)=>i!==position)};
 }
+
+export function normalizeSceneCorrections(raw,scenes){
+  if(raw==null)return [];
+  if(!Array.isArray(raw)||raw.length>SCENE_HISTORY_LIMIT)
+    throw new Error('Damaged scene correction history.');
+  return raw.map(item=>{
+    if(!item||!scenes?.some(scene=>sceneKey(scene)===item.sceneId)||
+      typeof item.at!=='string'||item.at.length>80||
+      !item.before||['title','notes','valuesUsed'].some(key=>typeof item.before[key]!=='string'))
+      throw new Error('Scene correction refers to missing or damaged writing.');
+    return {sceneId:item.sceneId,at:item.at,before:{
+      title:item.before.title,notes:item.before.notes,valuesUsed:item.before.valuesUsed}};
+  });
+}
