@@ -51,3 +51,27 @@ export function searchPreparedLibrary(documents,query,limit=30){
   }
   return results;
 }
+
+function referencesSource(value,sha,seen=new WeakSet(),depth=0){
+  if(!value||typeof value!=='object'||depth>12||seen.has(value))return false;
+  seen.add(value);
+  if(value.sourceSha256===sha||value.sourcePdfSha256===sha)return true;
+  return Object.values(value).some(item=>referencesSource(item,sha,seen,depth+1));
+}
+export function summarizeDocumentRemoval(document,documents,campaigns=[]){
+  if(!document||typeof document.id!=='string'||!document.id)
+    throw new Error('Select a saved document.');
+  const remaining=(documents??[]).filter(item=>item.id!==document.id);
+  const sourceSha=document.bookPack?.sourceSha256??null;
+  const campaignsWithSource=sourceSha?(campaigns??[]).filter(c=>referencesSource(c,sourceSha)).length:0;
+  const matchingSources=sourceSha?remaining.filter(doc=>doc.bookPack?.sourceSha256===sourceSha).length:0;
+  const lastPreparedCorebook=libraryBookStatus(document).gameplay &&
+    !remaining.some(doc=>libraryBookStatus(doc).gameplay);
+  return {campaignsWithSource,matchingSources,lastPreparedCorebook,
+    warning:[
+      'Removing this PDF also removes its locally compiled private options, tables and page index.',
+      ...(campaignsWithSource?[`${campaignsWithSource} campaign(s) reference this source. Their saved data remains, but links may need reattachment.`]:[]),
+      ...(lastPreparedCorebook?['This is the last prepared corebook; game screens will lock until another corebook is prepared.']:[]),
+      'Other books and campaigns are not deleted.'
+    ].join(' ')};
+}
