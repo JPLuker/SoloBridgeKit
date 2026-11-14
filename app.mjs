@@ -217,8 +217,24 @@ function renderHome() {
       await refresh(); notify('Campaign created.');
     } catch (error) { failure(error); }
   });
+  if(!state.campaigns.length){
+    root.append(card([
+      el('h2',{text:'Your first adventure'}),
+      el('p',{text:'Start by naming your campaign. Next, you’ll build a character one decision at a time, set up a starship or station, and begin a mission. You do not need to write an entire story in advance.'}),
+      el('p',{class:'hint',text:'Your corebook supplies the official choices and bonuses. SoloBridgeKit explains each step and helps track what you select.'})
+    ]));
+  }
   root.append(card([el('h2', { text: 'Campaigns' }), ...(state.campaigns.length ? [select] : [el('p', { class: 'muted', text: 'No campaigns yet.' })]), createForm]));
   if (state.campaign) {
+    root.append(card([
+      el('h2',{text:'Continue setting up'}),
+      el('p',{text:'Choose what to work on next. Each guided builder explains the decision before asking for information from your book.'}),
+      el('div',{class:'actions'},[
+        button('Create character',()=>{state.lifepathIndex=0;go('lifepath');}),
+        button('Set up ship',()=>{state.shipStep=0;go('shipbuilder');},'secondary'),
+        button('Begin a mission',()=>go('log'),'secondary')
+      ])
+    ]));
     const campaign = state.campaign;
     const active = campaign.episodes.find(e => e.status === 'active');
     const overview = card([
