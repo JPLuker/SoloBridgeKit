@@ -193,6 +193,18 @@ try {
     'R1 source preparation readiness was missing after importing an unreviewed PDF.');
   const prepareAction=await page.$('#content button');
   check(!!prepareAction,'Guided source actions were not rendered.');
+  await page.$eval('.source-section-search-details',details=>{details.open=true;});
+  await page.type('input[aria-label="Search this PDF for Species"]','Synthetic Example Choice Alpha');
+  await page.evaluate(()=>{
+    const first=document.querySelector('.source-section-search');
+    first?.requestSubmit();
+  });
+  await page.waitForFunction(()=>document.querySelector('.source-search-results')?.textContent?.includes('page 97'),
+    {timeout:10000});
+  await page.evaluate(()=>document.querySelector('.source-search-results button')?.click());
+  check(await page.$eval('.source-preparation',node=>
+    node.querySelector('.source-suggestions')?.textContent?.includes('not yet verified')),
+    'Searching a private source did not expose unverified option suggestions near the matched page.');
   const quickReview=await page.$eval('#content',node=>[...node.querySelectorAll('button')]
     .filter(item=>item.textContent.trim()==='Find possible choices').length);
   check(quickReview>=7,'New-player source lookup requires manual page-number preparation.');
