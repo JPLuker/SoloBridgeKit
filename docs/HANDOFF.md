@@ -400,3 +400,5 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/audit-release.mjs` hashes packaged files into an **UNTESTED** build provenance manifest and inventories the licenses/versions of direct dependencies. Manifest lives outside `dist/`, so service-worker cache stays source-free.
 - `.github/workflows/ci.yml` validates provenance and uploads separate preview/checksum artifacts; no official release or license has been authorized.
 - `docs/RELEASE-READINESS.md` records explicit owner hold points. Finish automated M8 checks but leave M7 device issue and 1.0 decision open.
+
+- M8 checksum consumer added: `scripts/verify-release-provenance.mjs` checks every bundled path, size and SHA-256, rejects extra files and path traversal. Tests use only temporary synthetic artifacts; CI verifies its own recorded manifest.
