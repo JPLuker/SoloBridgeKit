@@ -88,7 +88,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M5. Integrated solo mission player
 
-**Development progress: 75% (v0.22.2, pending CI).** Mission/scene persistence, scene-linked roll references, source-safe table history, player-written Values per scene, unresolved/resolved threads, contextual workspace counts, and bounded per-scene writing undo are implemented. Remaining: comprehensive three-act end-to-end browser playthrough and M5 development acceptance. Undo covers scene writing only, not task rolls, resources, or thread deletion.
+**Development progress: 75% (v0.22.2, pending CI).** Mission/scene persistence, scene-linked roll references, source-safe table history, player-written Values per scene, unresolved/resolved threads, contextual workspace counts, and bounded per-scene writing undo are implemented. The synthetic three-act end-to-end browser playthrough has been added to CI but has not yet been verified passing. Remaining: verify it, correct failures, complete M5 development acceptance. Undo covers scene writing only, not task rolls, resources, or thread deletion.
 
 **Build**
 - Use one active-scene workspace for roll outcomes, Momentum/Threat, available private random tables, notes, status and source references.
