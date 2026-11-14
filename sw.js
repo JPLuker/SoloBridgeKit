@@ -1,8 +1,8 @@
-const CACHE = 'solobridgekit-shell-v0.25.1';
+const CACHE = 'solobridgekit-shell-v0.25.2';
 const SHELL = ['./', './index.html', './styles.css', './app.mjs', './storage.mjs',
   './model.mjs', './lifepath.mjs', './missions.mjs', './resources.mjs',
   './shipbuilder.mjs', './bookmarks.mjs', './rollhistory.mjs',
-  './content-policy.mjs', './book-data.mjs', './library-books.mjs', './guided-explanations.mjs', './browser-compiler.mjs', './private-tables.mjs', './private-options.mjs', './private-ships.mjs', './compiler-data.mjs', './character-guidance.mjs', './ship-guidance.mjs', './crew-management.mjs', './ship-development.mjs', './mission-workspace.mjs', './mission-threads.mjs', './character-development.mjs', './mission-actions.mjs', './campaign-export.mjs', './import-safety.mjs', './recovery.mjs',
+  './content-policy.mjs', './book-data.mjs', './library-books.mjs', './guided-explanations.mjs', './onboarding.mjs', './browser-compiler.mjs', './private-tables.mjs', './private-options.mjs', './private-ships.mjs', './compiler-data.mjs', './character-guidance.mjs', './ship-guidance.mjs', './crew-management.mjs', './ship-development.mjs', './mission-workspace.mjs', './mission-threads.mjs', './character-development.mjs', './mission-actions.mjs', './campaign-export.mjs', './import-safety.mjs', './recovery.mjs',
   './manifest.webmanifest', './vendor/asset-manifest.json'];
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
