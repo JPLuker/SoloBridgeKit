@@ -103,7 +103,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M6. Multi-book and library quality
 
-**Development progress: 95% (v0.23.0, pending CI).** Private short-reference indexes, cross-book provenance search, per-book edition labels, source-conflict/orphan warnings, index repair and rebuild, safe PDF removal warnings, atomic single-corebook selection, private-backup compatibility, and synthetic browser regression coverage are implemented. Remaining: verify an uncancelled full CI run, correct failures if any, and close M6 development acceptance.
+**Development completion: 100% — VERIFIED (v0.23.0).** Multi-book local indexing and provenance, edition labeling, missing-source diagnostics, safe rebuild/removal, single-primary-corebook selection and multi-book private-backup/browser flows passed syntax, unit, static distribution audit and Chrome smoke in [CI run #135](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648270644). [M6 acceptance](M6-DEVELOPMENT-ACCEPTANCE.md) is closed. Physical device testing remains M7. **Next: M7.**
 
 **Build**
 - Support source roles/versions for corebook, supplements and forms; identify conflicting or missing rule dependencies.
