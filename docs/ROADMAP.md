@@ -347,3 +347,7 @@
 - No software code license, logo/visual identity or public 1.0 decision is assumed. User M7 device checklist remains open.
 
 - M8 added an independent integrity verifier and synthetic regression tests that reject package modification, extra assets and unsafe paths.
+
+## v0.25.0 — Automated M8 release-safety work verified
+
+- [CI #188](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43649559686) passed reproducible locked dependencies, production security advisory checks, unit/browser/accessibility suites, public-content and runtime asset audits, SHA-256 provenance generation and independent verification. No 1.0 claim or public release approval is implied. Owner-device and owner-license decisions remain issues #1 and #2.
