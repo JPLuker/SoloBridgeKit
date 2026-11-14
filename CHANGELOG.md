@@ -1,4 +1,4 @@
-## v0.26.0 — R1 private source readiness, first build (pending CI)
+## v0.26.0 — R1 private source readiness, first build (CI #283 verified)
 
 - Separate searchable PDF preparation from private, verified options needed for character and ship selection.
 - Guide players by character/ship choice section with source-page links and bounded nearby-page candidate cards, without entering PDF page numbers or record types. Candidates remain unverified until owner review; keep the full rules editor behind an advanced disclosure.
