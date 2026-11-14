@@ -402,3 +402,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `docs/RELEASE-READINESS.md` records explicit owner hold points. Finish automated M8 checks but leave M7 device issue and 1.0 decision open.
 
 - M8 checksum consumer added: `scripts/verify-release-provenance.mjs` checks every bundled path, size and SHA-256, rejects extra files and path traversal. Tests use only temporary synthetic artifacts; CI verifies its own recorded manifest.
+
+## v0.25.0 — M8 automated development verified; owner-only gates remain
+
+- [CI #188](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43649559686) passed locked `npm ci`, high production-severity `npm audit`, source/build safety audits, complete unit and browser work, M7 accessibility suite, SHA-256 release manifest generation and independent manifest verification.
+- See `docs/M8-AUTOMATED-ACCEPTANCE.md`, `docs/RELEASE-READINESS.md`, and one-pass `docs/M7-DEVICE-ACCEPTANCE.md`. **Automated coding scope M1–M8 is complete; do not close owner-only release gates** until Joseph accepts actual hardware and explicitly approves license, identity and public release.
+- Open issues: [#1](https://github.com/JPLuker/SoloBridgeKit/issues/1) real-device/source acceptance; [#2](https://github.com/JPLuker/SoloBridgeKit/issues/2) owner release decisions. Neither is a blocker for private development preview, both block a public 1.0 claim.
+- Keep app standalone, local-first and copyright safe. No further agreed developer-only roadmap feature remains currently; handle future discovered regressions as exceptions.
