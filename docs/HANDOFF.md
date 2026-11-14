@@ -218,3 +218,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - The 0.17.8 Chrome run failed on importing a recovery draft after the other-tab restore (timeout waiting for 'Recovery draft imported'). Root cause: the recovered campaign retained the original storageEpoch and correctly triggered stale-save protection.
 - `recovery.recoverDraftAsNewCampaign()` now strips storageEpoch from a fresh imported campaign, preserving intended conflict protection while allowing recovery as a new independent campaign.
 - The unit test and two-tab Chrome smoke must pass together. M1 physical Android acceptance remains open.
+
+## v0.17.9 acceptance setup addendum
+
+- Updated [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md) with real Linux desktop/Android USB port-forwarding instructions for the passing 0.17.9 preview. `adb reverse` connects Android Chrome localhost to the desktop's loopback-only server without exposing licensed material.
+- Independently inspected actual private 2026 source PDF (336 pages) and verified index hash matches; does not supersede unverified Android/browser import.
+- **Current state:** 101 unit tests + Chrome smoke passed for v0.17.9. Owner physical-device acceptance remains the only M1 completion gate; do not start M2 until approved.

@@ -1,4 +1,5 @@
 ## [0.17.9] - 2026-11-13
+- Documentation follow-up: provided reproducible localhost preview and Android USB-debugging acceptance instructions; no gameplay code changed.
 ### M1 — Cross-tab recovery regression fix
 - Fix recovery drafts failing to import after an external restore by stripping the original campaign's stale storage epoch when creating a new recovered campaign.
 - Add a dedicated recovery unit test; retain the two-tab Chrome restore and import regression.

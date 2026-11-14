@@ -2,7 +2,7 @@
 
 **Status:** Developer work verified by CI; real-device acceptance pending. **Do not mark 100% or begin M2** until the actual purchased source book and device tests pass.
 
-**Test build:** v0.17.7; source and screenshots downloadable from the matching GitHub Actions run. This is an **untested preview**, not a public 1.0 release.
+**Test build:** v0.17.9; get the **SoloBridgeKit-0.17.9-UNTESTED** ZIP and screenshots from [GitHub Actions run 43536179137](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43536179137). CI passes 101 unit tests plus Chrome smoke and distribution auditing. This is **not** a fully device-tested release.
 
 ## What CI has already verified (noncommercial test source)
 
@@ -11,9 +11,38 @@
 - Mid-extraction cancellation, retry, offline parser, service-worker cache replacement.
 - Data-only backup preserves private PDFs; PDF-inclusive backups restore index/source; corrupted source pairing is rejected before changes.
 - Reattaching a matching source preserves compiled records; different source is rejected.
-- Stale-tab campaign save conflicts, serialized rapid saves, restore barriers, generation guard against old imports after reset.
+- Stale-tab campaign conflicts, rapid saves, restore barriers and persisted generation checks preventing old imports or saves after a reset/restore in another tab.
 - Recovery draft download and re-import as a *new* campaign with no private PDF/index data.
 - Mobile 390px overflow checks and screenshots, including the save-failure recovery controls.
+
+## Run the preview privately — desktop and Android
+
+The GitHub Actions ZIP is a **static website**, not an APK. Do not double-click `index.html` or host your licensed PDFs with it: use a localhost server so IndexedDB, WebCrypto and the offline service worker work properly.
+
+On Linux, after downloading `SoloBridgeKit-0.17.9-UNTESTED.zip`:
+
+```bash
+mkdir -p ~/SoloBridgeKit-preview
+unzip SoloBridgeKit-0.17.9-UNTESTED.zip -d ~/SoloBridgeKit-preview
+python3 -m http.server 4173 --bind 127.0.0.1 --directory ~/SoloBridgeKit-preview
+```
+
+Open **http://localhost:4173/** in desktop Chrome or Firefox. Keep that terminal open while testing.
+
+**Android over USB (without any public server):** With Android USB debugging enabled, connect the phone to the Linux desktop and run in another terminal:
+
+```bash
+adb devices
+adb reverse tcp:4173 tcp:4173
+```
+
+On the phone, open **http://localhost:4173/** in Chrome. Android's localhost is forwarded to the computer over USB. Only the empty application shell is served; you select the private book from your phone's own Files picker. Do not place the purchased PDF under `~/SoloBridgeKit-preview`. To disconnect forwarding later, use `adb reverse --remove tcp:4173`.
+
+If your device cannot use USB debugging, the alternative is an HTTPS origin under your own control; don't expose your private book or backups to a public website. An HTTP address on a LAN IP is not a substitute for secure localhost or HTTPS for this PWA.
+
+### Local verification already performed
+
+The supplied purchased 2026 PDF was opened locally and has **336 pages**. Independent extraction found readable text across 326 pages. Its SHA-256 exactly matches the previously generated private 336-page index. This confirms source/index pairing but **does not** replace the app's real-device import and backup tests.
 
 ## Owner acceptance — use privately owned 2026 book
 

@@ -171,3 +171,7 @@ The PDF import and source reattachment safeguards now use a durable generation m
 ### v0.17.9 recovery after cross-tab restore
 
 After a restore in another tab, a downloaded unsaved-work draft now imports as a new campaign with a fresh storage identity. The original newer campaign remains protected. Regression tests cover a recovered draft carrying an obsolete database epoch and the complete Chrome recovery workflow.
+
+### M1 local testing (v0.17.9)
+
+The preview is a static PWA ZIP rather than an APK. See [M1 acceptance instructions](docs/M1-ACCEPTANCE.md) for a localhost desktop server and Android Chrome through `adb reverse` over USB. This method does **not** require publishing your rulebook or opening a public server. M1 stays at 98% until real-device tests and owner signoff.
