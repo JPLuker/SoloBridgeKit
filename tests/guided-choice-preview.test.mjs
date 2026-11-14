@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifiedChoicePreview,nextIncompleteCreationStep} from '../guided-choice-preview.mjs';
+import {verifiedChoicePreview,verifiedShipPreview,nextIncompleteCreationStep} from '../guided-choice-preview.mjs';
 import {LIFEPATH_STEPS,createLifepath} from '../lifepath.mjs';
 test('only verified record effects are displayed; never invent bonuses',()=>{
   const rows=verifiedChoicePreview({record:{attributes:{control:1,daring:2,reason:0},disciplines:{science:1,medicine:0}}});
@@ -19,4 +19,11 @@ test('resume points to next unresolved sourced decision',()=>{
     path.stages[step.id].sourceRef={recordId:'id'};
   }
   assert.equal(nextIncompleteCreationStep(path,LIFEPATH_STEPS),LIFEPATH_STEPS.length-1);
+});
+
+test('player-owned ship class preview does not bundle publisher statistics',()=>{
+  assert.deepEqual(verifiedShipPreview({kind:'starship',scale:'4',
+    systems:{engines:'6',sensors:'9'},departments:{science:'3'}}),
+    ['Starship','Scale 4','Systems ratings: 2 recorded','Departments ratings: 1 recorded']);
+  assert.deepEqual(verifiedShipPreview(null),[]);
 });
