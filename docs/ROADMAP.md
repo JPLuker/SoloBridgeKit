@@ -339,3 +339,9 @@
 ## v0.24.0 — M7 automated checks verified
 
 - [CI #158](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648819631) passed new accessibility, contrast, reduced-motion and offline reload checks. Real Android/desktop/assistive technology acceptance remains separate and open under issue #1. Continue buildable M8 release safety work.
+
+## v0.25.0 — M8 reproducible developer preview (pending CI)
+
+- Pinned exact npm dependency tree in source with committed lockfile and `npm ci`.
+- Added SHA-256 public distribution provenance and direct third-party dependency license/integrity audit; CI artifacts remain UNTESTED.
+- No software code license, logo/visual identity or public 1.0 decision is assumed. User M7 device checklist remains open.
