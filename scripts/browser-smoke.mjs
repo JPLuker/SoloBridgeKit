@@ -452,9 +452,40 @@ try {
   check(!campaignMarkdown.includes('Synthetic sample page lifepath mission'),
     'Campaign journal leaked private indexed book content.');
 
+  // M5: traverse all three acts and preserve the author's opening,
+  // middle, ending and closing entries after an offline-safe reload.
+  await navigate("Captain's log");
+  await page.type('textarea[name=actOne]','Player authored an opening log.');
+  await page.type('textarea[name=actTwo]','Player authored a second-act log.');
+  await page.type('textarea[name=actThree]','Player authored a third-act log.');
+  await page.type('textarea[name=closing]','Player authored the ending.');
+  await clickText('Save mission record');
+  await waitForSave('Mission record saved.');
+  for(const [act,number] of [[1,1],[2,3],[3,1]]){
+    await page.click(`button[aria-label="Act ${act} scene ${number}, pending"]`);
+    await page.waitForFunction(([a,n])=>document.querySelector('.scene-editor h3')?.textContent?.includes(`Act ${a} · Scene ${n}`),
+      {timeout:15000},[act,number]);
+    await clickText('Complete scene');
+    await page.waitForFunction(([a,n])=>document.querySelector(`button[aria-label="Act ${a} scene ${n}, complete"]`),
+      {timeout:15000},[act,number]);
+  }
+  await page.reload({waitUntil:'networkidle0'});
+  await navigate("Captain's log");
+  const threeAct=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs'); const ep=(await all('campaigns'))[0].episodes[0];
+    return {active:ep.activeSceneId,completed:ep.scenes.filter(s=>s.completed).map(s=>s.id),
+      logs:ep.actLogs,notes:ep.scenes.find(s=>s.id==='2:3')?.notes,
+      threadCount:ep.threads?.length};
+  });
+  check(threeAct.active==='3:1' && ['1:1','2:3','3:1'].every(id=>threeAct.completed.includes(id)) &&
+    threeAct.logs.actOne==='Player authored an opening log.' &&
+    threeAct.logs.actTwo==='Player authored a second-act log.' &&
+    threeAct.logs.actThree==='Player authored a third-act log.' &&
+    threeAct.logs.closing==='Player authored the ending.' &&
+    threeAct.notes==='Player wrote this scene description.' && threeAct.threadCount===1,
+    'M5 three-act playthrough or author-written closing log failed to resume.');
   // M3: completed-mission character development uses the source-verified
   // 2026 milestone actions, and injury status stays narrative-only.
-  await navigate("Captain's log");
   await clickText('Complete mission');
   // Ship milestones can only be entered after a completed mission.
   await navigate('Starship');
