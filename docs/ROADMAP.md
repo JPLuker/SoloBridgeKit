@@ -194,3 +194,9 @@
 - Added browser checks of 336-page source processing, in-flight cancellation and successful retry with no source-data loss.
 - Simulated offline shell replacement with stale-cache cleanup and tested preparation without network connectivity.
 - Reduced temporary import memory by digesting the existing PDF buffer.
+
+## v0.17.4 — M1 cross-tab and overlapping-save integrity
+
+- Campaign revision checks prevent stale copies from overwriting newer versions; per-campaign queues preserve rapid same-tab edits.
+- Database restore/reset waits for pending campaign writes before destructive changes; attempted new writes are rejected until completion.
+- Database connections close on versionchange; verified by headless Chrome synthetic regression.

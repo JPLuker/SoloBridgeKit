@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.3 now covers atomic import, quota warning, full private restore/rollback, source reattachment, mid-extraction cancellation/retry and offline update simulation in Chrome. M1 is still open for actual 336-page owner-book / physical-device acceptance and release-data review.
+**Progress:** v0.17.4 adds same-tab save ordering, stale-tab conflict rejection, overlapping restore protection and IndexedDB upgrade safety. Developer-side automated M1 coverage is substantially complete; **actual Android/desktop acceptance with the private 336-page PDF is still unverified**.
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

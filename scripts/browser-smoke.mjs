@@ -298,6 +298,56 @@ try {
     return (await preparePdfInBrowser((await all('documents')).find(d => d.role === 'corebook').blob)).pageCount;
   });
   check(retryPageCount === 336, 'Retry after cancelled preparation failed.');
+  // Simulate two tabs holding different revisions. A stale writer must never overwrite newer data.
+  const conflict = await page.evaluate(async () => {
+    const { all, saveCampaign, database } = await import('./storage.mjs');
+    const original = (await all('campaigns'))[0];
+    const first = structuredClone(original), stale = structuredClone(original);
+    first.character.notes = 'Latest authenticated save';
+    await saveCampaign(first);
+    stale.character.notes = 'Stale overwrite attempt';
+    let refused = false;
+    try { await saveCampaign(stale); }
+    catch (error) { refused = error.message.includes('another tab'); }
+    const current = (await all('campaigns'))[0];
+    const originalRevision = current.revision;
+    current.character.notes = 'first in-tab edit';
+    const p1 = saveCampaign(current);
+    current.character.notes = 'second in-tab edit';
+    const p2 = saveCampaign(current);
+    await Promise.all([p1, p2]);
+    const after = (await all('campaigns'))[0];
+    // Simulate a future database schema upgrade closing this tab's old connection.
+    const db = await database();
+    db.onversionchange(new Event('versionchange'));
+    const reopened = await database();
+    const newDbWorked = (await all('campaigns')).length > 0;
+    return { refused, saved: after.character.notes,
+      revisionRaised: after.revision === originalRevision + 2,
+      newerWasProtected: current.character.notes !== 'Stale overwrite attempt',
+      newDbWorked, open: reopened.objectStoreNames.contains('campaigns') };
+  });
+  check(conflict.refused && conflict.revisionRaised && conflict.newerWasProtected &&
+      conflict.saved === 'second in-tab edit' && conflict.newDbWorked && conflict.open,
+    'Revisioned campaign saves permitted stale overwrites or failed concurrent-save recovery.');
+  // Restore must drain already queued saves and refuse fresh writes until it is complete.
+  const restoreRace = await page.evaluate(async bundle => {
+    const { all, saveCampaign, restoreBackup } = await import('./storage.mjs');
+    const draft = structuredClone((await all('campaigns'))[0]);
+    draft.title = 'a pending write that must not win after restore';
+    const queuedSave = saveCampaign(draft);
+    const restoring = restoreBackup(bundle);
+    let blocked = false;
+    try { await saveCampaign(draft); }
+    catch (error) { blocked = error.message.includes('restore or reset'); }
+    await Promise.all([queuedSave, restoring]);
+    const after = (await all('campaigns'))[0];
+    return { blocked, title: after.title };
+  }, backup);
+  check(restoreRace.blocked && restoreRace.title === 'Synthetic test campaign',
+    'An overlapping save overwrote restored campaign data.');
+
+
 
   await navigate('Home');
   await page.evaluate(() => navigator.serviceWorker.ready);

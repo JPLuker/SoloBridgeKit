@@ -31,7 +31,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SoloBridgeKit-0.17.3-BROWSER-CAPTURES
+          name: SoloBridgeKit-0.17.4-BROWSER-CAPTURES
           path: test-output/
           if-no-files-found: warn
           retention-days: 14
@@ -39,7 +39,7 @@ jobs:
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: SoloBridgeKit-0.17.3-UNTESTED
+          name: SoloBridgeKit-0.17.4-UNTESTED
           path: dist/
           if-no-files-found: error
           retention-days: 14

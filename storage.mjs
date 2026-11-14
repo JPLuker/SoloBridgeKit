@@ -9,6 +9,19 @@ import { normalizePrivateShips } from './private-ships.mjs';
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
 let dbPromise;
+const campaignWriteQueues = new Map();
+let destructiveMutation = false;
+
+async function withExclusiveMutation(action) {
+  if (destructiveMutation) throw new Error('Another restore or reset is already running.');
+  destructiveMutation = true;
+  try {
+    await Promise.all([...campaignWriteQueues.values()].map(p => p.catch(() => {})));
+    return await action();
+  } finally {
+    destructiveMutation = false;
+  }
+}
 
 
 export function database() {
@@ -22,7 +35,12 @@ export function database() {
           }
         }
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onsuccess = () => {
+        const db = req.result;
+        // Permit a new app version in another tab to upgrade this database.
+        db.onversionchange = () => { db.close(); dbPromise = undefined; };
+        resolve(db);
+      };
       req.onerror = () => reject(req.error ?? new Error('Storage unavailable.'));
       req.onblocked = () => reject(new Error('Close other SoloBridgeKit tabs and retry.'));
     }).catch(error => { dbPromise = undefined; throw error; });
@@ -76,20 +94,65 @@ export async function addDocumentsAtomically(records) {
   });
 }
 
+function campaignRevision(value) {
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+}
+
+async function commitCampaignSnapshot(campaign) {
+  // Capture the latest state AFTER any earlier queued save of this campaign finishes.
+  const snapshot = structuredClone(campaign);
+  const expected = campaignRevision(snapshot.revision);
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('campaigns', 'readwrite');
+    let committed;
+    tx.oncomplete = () => {
+      if (!committed) return reject(new Error('Campaign save did not complete.'));
+      campaign.revision = committed.revision;
+      campaign.updatedAt = committed.updatedAt;
+      resolve(committed);
+    };
+    tx.onerror = () => reject(tx.error ?? new Error('Campaign save failed.'));
+    tx.onabort = () => reject(tx.error ?? new Error('Campaign save was cancelled.'));
+    const store = tx.objectStore('campaigns');
+    const request = store.get(snapshot.id);
+    request.onsuccess = () => {
+      const storedRevision = campaignRevision(request.result?.revision);
+      if (storedRevision !== expected) {
+        reject(new Error('This campaign was updated in another tab. Your stale edit was not saved. Export your data before reloading.'));
+        tx.abort();
+        return;
+      }
+      committed = { ...snapshot, revision: expected + 1, updatedAt: new Date().toISOString() };
+      store.put(committed);
+    };
+  });
+}
+
 export async function saveCampaign(campaign) {
-  const updated = { ...campaign, updatedAt: new Date().toISOString() };
-  await put('campaigns', updated);
-  campaign.updatedAt = updated.updatedAt; // Do not imply a failed write was saved.
+  if (destructiveMutation) throw new Error('A restore or reset is in progress. Retry the save after it completes.');
+  if (!campaign || typeof campaign.id !== 'string' || !campaign.id) {
+    throw new Error('Cannot save an invalid campaign.');
+  }
+  const previous = campaignWriteQueues.get(campaign.id) ?? Promise.resolve();
+  const next = previous.catch(() => {}).then(() => commitCampaignSnapshot(campaign));
+  campaignWriteQueues.set(campaign.id, next);
+  try { await next; }
+  finally {
+    if (campaignWriteQueues.get(campaign.id) === next) campaignWriteQueues.delete(campaign.id);
+  }
 }
 
 export async function resetData() {
-  const db = await database();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAMES, 'readwrite');
-    STORE_NAMES.forEach(name => tx.objectStore(name).clear());
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error ?? new Error('Could not erase data.'));
-    tx.onabort = () => reject(tx.error ?? new Error('Could not erase data.'));
+  return withExclusiveMutation(async () => {
+    const db = await database();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAMES, 'readwrite');
+      STORE_NAMES.forEach(name => tx.objectStore(name).clear());
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? new Error('Could not erase data.'));
+      tx.onabort = () => reject(tx.error ?? new Error('Could not erase data.'));
+    });
   });
 }
 
@@ -138,18 +201,20 @@ export async function restoreBackup(raw) {
   for (const doc of docs) {
     if (doc.bookPack) await verifyPreparedBook(doc.blob, doc.bookPack);
   }
-  const db = await database();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAMES, 'readwrite');
-    for (const name of STORE_NAMES) {
-      if (name !== 'documents' || shouldReplaceDocumentsInRestore(bundle)) tx.objectStore(name).clear();
-    }
-    for (const c of bundle.campaigns) tx.objectStore('campaigns').put(c);
-    if (shouldReplaceDocumentsInRestore(bundle)) {
-      for (const d of docs) tx.objectStore('documents').put(d);
-    }
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error ?? new Error('Restore failed.'));
-    tx.onabort = () => reject(tx.error ?? new Error('Restore failed.'));
+  return withExclusiveMutation(async () => {
+    const db = await database();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAMES, 'readwrite');
+      for (const name of STORE_NAMES) {
+        if (name !== 'documents' || shouldReplaceDocumentsInRestore(bundle)) tx.objectStore(name).clear();
+      }
+      for (const c of bundle.campaigns) tx.objectStore('campaigns').put(c);
+      if (shouldReplaceDocumentsInRestore(bundle)) {
+        for (const d of docs) tx.objectStore('documents').put(d);
+      }
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? new Error('Restore failed.'));
+      tx.onabort = () => reject(tx.error ?? new Error('Restore failed.'));
+    });
   });
 }

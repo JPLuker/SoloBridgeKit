@@ -165,3 +165,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Re-register the service worker with a legacy cache; obsolete cache is removed without losing campaigns.
 - [ ] With network disabled, the bundled parser prepares a new private index from the saved source.
 - [ ] Final physical Android and desktop test must use the owner's private real PDF; it is not a CI fixture.
+
+## v0.17.4 concurrent data integrity
+
+- [ ] Browser test: two independent copies of a campaign with the same initial revision; the second stale save is refused, not silently committed.
+- [ ] Two rapid saves in one tab serialize and leave the latest state with two revision increments.
+- [ ] Database restore waits for pending queued writes and rejects new saves while destructive replacement runs.
+- [ ] Database connection can close on simulated versionchange and be reopened without losing existing records.
+- [ ] Real cross-tab/physical-device verification still required before marking M1 complete.

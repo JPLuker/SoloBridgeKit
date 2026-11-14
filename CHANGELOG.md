@@ -1,3 +1,11 @@
+## [0.17.4] - 2026-11-13
+### M1 — Concurrent save and restore protection
+- Use atomic per-campaign revision checks to reject stale overwrites from other tabs.
+- Serialize saves to the same campaign within a tab.
+- Drain pending saves before restoring or clearing the database; reject new saves while destructive mutation runs.
+- Close old IndexedDB connections when a newer version needs to upgrade.
+- Exercise stale-copy conflict, queued-save order, database reopen and overlapping restore in Chrome.
+
 ## [0.17.3] - 2026-11-13
 ### M1 — Interrupted import and offline resilience
 - Chrome regression uses a generated, noncommercial 336-page PDF to reflect the 2026 edition's page count.

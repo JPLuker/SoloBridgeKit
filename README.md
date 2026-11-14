@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.17.3
+## Current build: 0.17.4
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -147,3 +147,7 @@ Use **Reattach the same PDF** for an already imported book when restoring a loca
 ### v0.17.3 interruption and offline recovery
 
 Chrome acceptance now includes a synthetic 336-page book, abort during page extraction with no saved-data changes, successful retry, a simulated service-worker replacement, and another private PDF preparation with network access disabled. The parser also hashes the existing in-memory PDF bytes instead of reading a second copy of the entire PDF into memory.
+
+### v0.17.4 multi-tab save safety
+
+Campaign saves now carry monotonically increasing revisions. A stale copy from another tab cannot silently overwrite a newer revision. Saves of the same campaign are serialized within each tab, and a full database restore/reset drains pending campaign saves before replacing data. Other tabs close old IndexedDB connections when a future schema version needs to upgrade. A rejected conflict leaves newer stored data intact; reload or export any unsaved personal edits before continuing.

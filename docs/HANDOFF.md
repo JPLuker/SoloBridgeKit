@@ -174,3 +174,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/browser-smoke.mjs` uses 336-page synthetic source and checks mid-parse cancellation, retry, service-worker re-registration and legacy-cache cleanup, and PDF index preparation while offline.
 - `browser-compiler.mjs` hashes already-loaded bytes to reduce temporary memory use and checks the AbortSignal after reading input.
 - Pending: CI validation; physical Android and desktop browser tests with the actual privately owned 336-page edition remain owner-only acceptance gates.
+
+## v0.17.4 — M1 concurrent-save protection
+
+- `storage.commitCampaignSnapshot()`: atomic transaction-level revision match, increment only after transaction commit, and explicit stale-tab error. Legacy campaigns with no revision load as revision zero.
+- `storage.saveCampaign()`: per-campaign queue prevents in-tab out-of-order writes.
+- `storage.withExclusiveMutation()`: drain campaign save queues and reject conflicting saves during full restore/reset.
+- DB `onversionchange` automatically closes old connections so new app schema versions can proceed.
+- Chrome tests cover concurrent stale saves, serialized rapid saves, blocked overlapping restore and connection re-open.
+- **Do not declare M1 100% without actual physical-device user-owned book test and review.**
