@@ -381,6 +381,24 @@ try {
     story.thread?.status==='open' && story.thread?.createdSceneId==='2:3' &&
     story.thread?.notes==='An unresolved player-written plot point',
     'M5 story thread or scene Value was not saved independently of the current scene.');
+  // M5: a mistaken scene edit can be undone after persistence without
+  // removing the active scene's Value, rolls, or narrative thread.
+  await page.type('.scene-editor textarea[name=notes]',' Accidental addition');
+  await clickText('Save scene');
+  await waitForSave('Scene saved.');
+  await clickText('Undo last scene edit');
+  await waitForSave('Previous scene writing restored.');
+  const corrected=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const ep=(await all('campaigns'))[0].episodes[0];
+    return {scene:ep.activeSceneId,source:ep.scenes.find(x=>x.id==='2:3'),
+      threadCount:ep.threads?.length,undoCount:ep.sceneCorrections?.length};
+  });
+  check(corrected.scene==='2:3' &&
+    corrected.source.notes==='Player wrote this scene description.' &&
+    corrected.source.valuesUsed==='Player-described challenged Value A' &&
+    corrected.threadCount===1 && corrected.undoCount>=1,
+    'M5 scene undo lost unrelated writing, active scene or story thread.');
   await clickText('Roll task');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20:'), { timeout: 20000 });
   const compiledTableVisible = await page.$eval('select[aria-label="Private random table"]', select =>
