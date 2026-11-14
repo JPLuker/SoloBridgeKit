@@ -6,7 +6,7 @@ const allowed = new Set([
   'index.html', 'styles.css', 'app.mjs', 'storage.mjs', 'model.mjs',
   'lifepath.mjs', 'missions.mjs', 'resources.mjs', 'shipbuilder.mjs',
   'bookmarks.mjs', 'rollhistory.mjs', 'content-policy.mjs',
-  'book-data.mjs', 'library-books.mjs', 'guided-explanations.mjs', 'onboarding.mjs', 'browser-compiler.mjs', 'private-tables.mjs', 'private-options.mjs', 'private-ships.mjs', 'compiler-data.mjs', 'character-guidance.mjs', 'ship-guidance.mjs', 'crew-management.mjs', 'ship-development.mjs', 'mission-workspace.mjs', 'mission-threads.mjs', 'character-development.mjs', 'mission-actions.mjs', 'campaign-export.mjs', 'import-safety.mjs', 'recovery.mjs', 'manifest.webmanifest', 'sw.js'
+  'book-data.mjs', 'library-books.mjs', 'source-readiness.mjs', 'guided-explanations.mjs', 'onboarding.mjs', 'browser-compiler.mjs', 'private-tables.mjs', 'private-options.mjs', 'private-ships.mjs', 'compiler-data.mjs', 'character-guidance.mjs', 'ship-guidance.mjs', 'crew-management.mjs', 'ship-development.mjs', 'mission-workspace.mjs', 'mission-threads.mjs', 'character-development.mjs', 'mission-actions.mjs', 'campaign-export.mjs', 'import-safety.mjs', 'recovery.mjs', 'manifest.webmanifest', 'sw.js'
 ]);
 const errors = [];
 function walk(folder) {
