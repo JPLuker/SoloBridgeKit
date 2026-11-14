@@ -68,7 +68,8 @@ export function searchPreparedLibrary(documents,query,limit=30){
     if(!status.searchable||typeof doc.id!=='string')continue;
     const hits=searchBookPack(doc.bookPack,term,limit).map(hit=>({
       documentId:doc.id,documentName:doc.name??'Imported PDF',
-      role:status.role,sourceSha256:status.sourceSha256,page:hit.page,excerpt:hit.excerpt}));
+      edition:status.edition,role:status.role,sourceSha256:status.sourceSha256,
+      page:hit.page,excerpt:hit.excerpt}));
     if(hits.length)perBook.push(hits);
   }
   // Interleave results: the corebook cannot crowd every supplement off page one.
