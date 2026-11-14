@@ -48,3 +48,33 @@ export function appendSceneTableReference(episode,entry) {
     throw new Error('The referenced scene no longer exists.');
   return {...episode,entries:[...episode.entries,entry]};
 }
+
+
+// Bounded, player-only scene editing history. Keep snapshots separate from
+// licensed reference records and preserve them in ordinary campaign backups.
+const SCENE_HISTORY_LIMIT=10;
+export function saveSceneCorrection(episode,sceneId,changes,at=new Date().toISOString()){
+  const scene=episode?.scenes?.find(s=>sceneKey(s)===sceneId);
+  if(!scene)throw new Error('Cannot correct a missing scene.');
+  if(!changes||['title','notes','valuesUsed'].some(k=>typeof changes[k]!=='string'))
+    throw new Error('Scene changes must be player-written text.');
+  const before={title:scene.title??'',notes:scene.notes??'',valuesUsed:scene.valuesUsed??''};
+  const after={title:changes.title,notes:changes.notes,valuesUsed:changes.valuesUsed};
+  if(Object.keys(before).every(k=>before[k]===after[k]))return episode;
+  const existing=Array.isArray(episode.sceneCorrections)?episode.sceneCorrections:[];
+  const correction={sceneId,at,before};
+  return {...episode,scenes:episode.scenes.map(s=>sceneKey(s)===sceneId?{...s,...after}:s),
+    sceneCorrections:[...existing,correction].slice(-SCENE_HISTORY_LIMIT)};
+}
+export function undoSceneCorrection(episode,sceneId){
+  const history=Array.isArray(episode?.sceneCorrections)?episode.sceneCorrections:[];
+  const position=history.findLastIndex(entry=>entry.sceneId===sceneId);
+  if(position<0)throw new Error('No previous edit for this scene.');
+  const scene=episode?.scenes?.find(s=>sceneKey(s)===sceneId);
+  if(!scene)throw new Error('Cannot undo an edit to a missing scene.');
+  const before=history[position].before;
+  if(!before||['title','notes','valuesUsed'].some(k=>typeof before[k]!=='string'))
+    throw new Error('Damaged scene edit history.');
+  return {...episode,scenes:episode.scenes.map(s=>sceneKey(s)===sceneId?{...s,...before}:s),
+    sceneCorrections:history.filter((_,i)=>i!==position)};
+}
