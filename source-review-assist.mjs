@@ -42,3 +42,15 @@ export function savedStageDrafts(book,stepId){
         ['event1','event2'].includes(record.payload?.stepId))))
   );
 }
+
+export function checkSourceBonusBudget(stepId,record={}){
+  const totals=reviewBonusTotals(stepId,record);
+  if(!totals)return {ready:false,message:'Choose a supported character creation stage.'};
+  for(const [name,result] of Object.entries(totals)){
+    if(!result.valid)return {ready:false,message:'Enter valid whole-number '+name+' bonuses from your PDF.'};
+    if(result.remaining!==0)return {ready:false,
+      message:'Check the '+name+' bonuses against your PDF. This stage expects '+
+        result.expected+' points, but '+result.assigned+' are assigned.'};
+  }
+  return {ready:true,message:'Point totals match this stage. Confirm the exact choices against your book.'};
+}
