@@ -143,6 +143,7 @@ try {
   await clickText('Search');
   check((await page.$eval('#content',element=>element.textContent)).includes('temporary-supplement.pdf · page 1'),
     'M6 cross-book search hid the prepared supplement behind the long corebook.');
+  const preparedLibraryCount=libraryCount+1;
   rmSync(shortPath,{force:true});
 
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
@@ -646,7 +647,7 @@ try {
   await page.$eval('input[aria-label="Include imported PDFs in private backup"]', el => el.click());
   await clickText('Export backup');
   const privateBundle = JSON.parse(await waitForDownload(backupName, 30000));
-  check(privateBundle.includesDocuments === true && privateBundle.documents.length === libraryCount,
+  check(privateBundle.includesDocuments === true && privateBundle.documents.length === preparedLibraryCount,
     'Private backup omitted its explicit PDF-inclusive setting.');
   check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
     'Private backup lost its compiled source book.');
@@ -674,7 +675,7 @@ try {
     const { all } = await import('./storage.mjs');
     return (await all('documents')).length;
   });
-  check(countAfterDataRestore === libraryCount,
+  check(countAfterDataRestore === preparedLibraryCount,
     'Restoring a campaign-only backup unexpectedly deleted private PDFs.');
 
   // Corrupt PDF/index pair must fail before touching campaigns or documents.
@@ -689,7 +690,7 @@ try {
       corebookPrepared: documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
       compilerCount: documents.find(d=>d.role==='corebook')?.compiledRecords?.length ?? 0 };
   });
-  check(afterCorrupt.docs === libraryCount && afterCorrupt.corebookPrepared &&
+  check(afterCorrupt.docs === preparedLibraryCount && afterCorrupt.corebookPrepared &&
     afterCorrupt.compilerCount === 5 && afterCorrupt.campaigns === backup.campaigns.length,
     'A corrupt private-backup restore changed existing local data or its reviewed compiler records.');
 
@@ -714,7 +715,7 @@ try {
       shipEngine: campaigns.find(c=>c.title==='Synthetic test campaign')?.ship?.systems?.engines,
       shipSource: campaigns.find(c=>c.title==='Synthetic test campaign')?.ship?.builder?.sourceRef?.recordId };
   });
-  check(restored.docs === libraryCount && restored.pages === 336 &&
+  check(restored.docs === preparedLibraryCount && restored.pages === 336 &&
     restored.compiled === 5 && restored.confirmed === 4 && restored.rejected === 1 &&
     restored.history === 3 && restored.conditions === 1 && restored.originalStage === 'synthetic-life' &&
     restored.shipHistory === 1 && restored.shipConditions === 1 &&
@@ -737,7 +738,7 @@ try {
     const docs = await all('documents');
     return { count: docs.length, pages: docs.find(d => d.role === 'corebook')?.bookPack?.pages?.length };
   });
-  check(afterRelink.count === libraryCount && afterRelink.pages === 336,
+  check(afterRelink.count === preparedLibraryCount && afterRelink.pages === 336,
     'A different edition replaced the original local book or invalidated the index.');
   rmSync(differentPdfPath, { force: true });
 
