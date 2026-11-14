@@ -69,3 +69,13 @@
 .source-section-search{margin:10px 0;min-width:0;max-width:100%}
 .source-section-search input{min-width:0;flex:1}
 .source-search-results .document-item{overflow-wrap:anywhere}
+
+/* R2–R5: keep optional raw editors discoverable without dominating play. */
+.guided-choice-editor,.sheet-advanced-editor{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.guided-choice-editor>summary,.sheet-advanced-editor>summary{
+  cursor:pointer;min-height:44px;padding:12px 14px;font-weight:650;
+  border:1px solid var(--edge);border-radius:10px;color:var(--text)
+}
+.guided-choice-editor[open]>summary,.sheet-advanced-editor[open]>summary{margin-bottom:12px}
+.sheet-advanced-editor>.form-stack{min-width:0;max-width:100%}
+.sheet-advanced-editor .card,.guided-choice-editor .card{min-width:0;max-width:100%}
