@@ -612,8 +612,12 @@ function renderLifepath() {
       ]));
     } else if (path.mode === 'guided') {
       root.append(card([
-        el('p', { class: 'hint', text: 'No confirmed source choices for this stage. Review an entry in Library first.' }),
-        button('Open private rules compiler', () => go('library'), 'secondary')
+        el('h2',{text:'Choose from your book'}),
+        el('p',{text:'No choices for this step have been confirmed yet. The app cannot safely invent them or package the publisher’s list. You can read the matching PDF page, enter one choice manually, or prepare reusable choices once in the Library.'}),
+        el('div',{class:'actions'},[
+          button('Read this step in PDF',()=>openPdf(corebook,current.page).catch(failure),'secondary'),
+          button('Prepare choices in Library',()=>go('library'),'secondary')
+        ])
       ]));
     }
   }
@@ -967,8 +971,12 @@ function renderShipBuilder() {
       ]));
     } else if (builder.mode==='guided') {
       root.append(card([
-        el('p',{class:'hint',text:'No private, confirmed class record is available. Review a class in Library first.'}),
-        button('Open private rules compiler',()=>go('library'),'secondary')
+        el('h2',{text:'Choose a class from your book'}),
+        el('p',{text:'No class statistics have been confirmed from your PDF. Open the class page and enter its published ratings, or prepare a verified class once in the Library so you can choose it next time.'}),
+        el('div',{class:'actions'},[
+          button('Open class PDF page',()=>openPdf(corebook,SHIP_STEPS[idx][1]).catch(failure),'secondary'),
+          button('Prepare class in Library',()=>go('library'),'secondary')
+        ])
       ]));
     }
   }
