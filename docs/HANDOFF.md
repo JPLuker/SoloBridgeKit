@@ -362,3 +362,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 ## M5 closed — 2026-11-14
 
 - Verified v0.22.2 in [CI #76](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43646580064): all 157 unit tests, packaged three-act Chrome playthrough, build and audit passed. See `docs/M5-DEVELOPMENT-ACCEPTANCE.md`. M1–M5 development closed. Start M6, not further feature creep in M5. M7 remains owner device testing.
+
+## M6 v0.23.0 development checkpoint (pending CI)
+
+- Added separate `solobridgekit-prepared-reference` v1 packs. They support short PDFs, remain local and cannot replace the 200+-page validated corebook unlock.
+- `library-books.mjs`: prepared/unprepared/repair-needed diagnostics, duplicate corebook warnings, multi-book page search with document identity and fingerprint. No private index text is distributed.
+- Library UI prepares other documents individually for local search and renders results linked to each source page.
+- Changed book pack validation in campaign-private backup/restore to accept either supported local index type. New `tests/library-books.test.mjs`. v0.23.0 artifacts, offline cache and audits include only code.
+- M6 still open; verify CI and complete repair/removal/round trips. M5 accepted in CI #76.
