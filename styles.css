@@ -39,3 +39,16 @@
 .recovery-banner span{flex:1 1 230px}
 .recovery-banner[hidden]{display:none}
 @media(max-width:400px){.recovery-banner .button{flex:1}}
+
+/* R1: advanced private-source review lives inside a narrow, nested disclosure. 
+   Nested forms and candidate text must not dictate viewport width. */
+.source-preparation,.source-preparation-tools,
+.source-preparation-tools>.card,.source-preparation-tools form,
+.source-preparation-tools .field-grid,.source-preparation-tools .document-list{
+  min-width:0;max-width:100%;width:100%;
+}
+.source-preparation-tools{overflow-wrap:anywhere}
+.source-preparation-tools summary{cursor:pointer;min-height:44px;padding:12px 0;font-weight:650}
+.source-preparation-tools>.card{padding:14px;margin-top:10px;box-shadow:none}
+.source-preparation-tools .form-stack{min-width:0}
+.source-preparation-tools .document-item{min-width:0;overflow-wrap:anywhere}
