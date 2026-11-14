@@ -1,9 +1,9 @@
 ## [0.19.3] - 2026-11-13
-### M2 — Developer completion (100% subject to green CI)
+### M2 — Developer completion (100%, CI verified)
 - Completed typed private-data compiler workflow: page scanning, editable reviews, explicit confirmation, rejected candidates and original PDF references.
 - Show future/incompatible compiler records safely without destroying user data; never consume unconfirmed, rejected or source-stale rules.
 - Final Chrome regression covers unchecked confirmation refusal, approved and rejected records, all game catalog consumers, 390px review layout, private backup and restore.
-- Added M2 build acceptance checklist. Real hardware testing is tracked in M7, not counted against module build completion.
+- Added M2 build acceptance checklist. **Verified 111/111 unit tests, Chrome smoke, and distribution audit** in run 43540777249. Real hardware testing is tracked in M7.
 
 ## [0.19.2] - 2026-11-13
 ### M2 — Integrated compiler catalogs and revalidation (85% development)

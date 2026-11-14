@@ -253,11 +253,13 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 
 ## v0.19.3 M2 developer acceptance
 
-- [ ] Chrome: scan candidate and refuse confirmation until checkbox is selected.
-- [ ] Chrome: after confirmation, revalidation, and rejection, exactly one verified talent is available and rejected entry stays inactive.
-- [ ] Chrome: lifepath choice, source-linked class, and random table reuse independently validated with synthetic data; mission rolling works.
-- [ ] Chrome: full private PDF-inclusive backup and restore retain all compiled records/statuses; data-only backup excludes them.
-- [ ] Chrome: private review editor fits a 390px screen without horizontal overflow; screenshot available as artifact.
-- [ ] Unit: future compiler schemas are not silently used; invalidated records are preserved and require review.
-- [ ] Source, build and distribution audits remain passing and free of publisher PDFs/proprietary table catalogs.
+- [x] Chrome: scan candidate and refuse confirmation until checkbox is selected.
+- [x] Chrome: after confirmation, revalidation, and rejection, exactly one verified talent is available and rejected entry stays inactive.
+- [x] Chrome: lifepath choice, source-linked class, and random table reuse independently validated with synthetic data; mission rolling works.
+- [x] Chrome: full private PDF-inclusive backup and restore retain all compiled records/statuses; data-only backup excludes them.
+- [x] Chrome: private review editor fits a 390px screen without horizontal overflow; screenshot available as artifact.
+- [x] Unit: future compiler schemas are not silently used; invalidated records are preserved and require review.
+- [x] Source, build and distribution audits remain passing and free of publisher PDFs/proprietary table catalogs.
 - Full real-device and owner-book browser acceptance is deferred to M7.
+
+**Verification:** GitHub Actions run 43540777249 passed 111 unit tests, full Chrome synthetic PDF workflow, distribution audit. Physical-device checks remain M7.
