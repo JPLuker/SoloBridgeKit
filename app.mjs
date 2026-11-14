@@ -23,6 +23,7 @@ import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
+import { verifiedChoicePreview, nextIncompleteCreationStep } from './guided-choice-preview.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
 import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -626,6 +627,7 @@ function renderLifepath() {
           el('div',{class:'document-item'},[
             el('strong',{text:option.label}),
             el('p',{class:'hint',text:'Verified in your PDF · page '+option.page}),
+            el('p',{class:'hint',text:verifiedChoicePreview(option).join(' · ')||'This option has no numerical bonuses in its verified record.'}),
             el('div',{class:'actions'},[
               button('Choose '+option.label,async()=>{
                 try{
@@ -661,13 +663,13 @@ function renderLifepath() {
     selectRef ? button(`Open PDF · page ${current.page}`, () => openPdf(selectRef, current.page).catch(failure), 'secondary') :
       el('span', { class: 'hint', text: `Corebook PDF page ${current.page}` })
   ]);
-  form.append(card([
+  const editCard=card([
     heading,
     ...(current.id !== 'finishing' ? [el('p', { class: 'hint',
       text: 'Source verification: ' + sourceState.replaceAll('-', ' ') +
         (saved.sourceRef ? ' · PDF page ' + saved.sourceRef.page : '') })] : []),
     field(current.id === 'finishing' ? 'Final notes (optional)' : 'Selected option', 'choice', saved.choice),
-    el('p', { class: 'hint', text: 'Use your purchased book for the legal option and its specific bonuses. The builder checks totals and final caps, not every species or career-event restriction.' }),
+    el('p', { class: 'hint', text: 'Use your purchased book for the legal option and its specific bonuses. Verified choices fill in their bonuses; the fields below allow you to correct your own draft. The builder checks totals and final caps, not every species or career-event restriction.' }),
     ...(current.attributes ? [el('h2', { text: `Attribute bonuses · ${current.attributes} points` }),
       el('div', { class: 'field-grid ratings' }, CHARACTER_ATTRIBUTES.map(name => {
         const control = field(name, `attribute_${name.toLowerCase()}`, String(saved.attributes[name.toLowerCase()]), { number: true });
@@ -683,10 +685,24 @@ function renderLifepath() {
     ...(current.values ? [field('Value', 'value', saved.value)] : []),
     ...(current.focuses ? [field(`Focuses · ${current.focuses} line${current.focuses > 1 ? 's' : ''}`, 'focuses', saved.focuses, { multiline: true })] : []),
     field('Notes', 'notes', saved.notes, { multiline: true }), report
-  ]));
+  ]);
+  if(path.mode==='guided'&&current.id!=='finishing'){
+    const editDetails=el('details',{class:'guided-choice-editor'},[
+      el('summary',{text:saved.sourceRef?'Review or adjust this choice':'Enter a choice manually (advanced)'}),
+      editCard
+    ]);
+    form.append(editDetails);
+  }else form.append(editCard);
   form.addEventListener('input', validateDraft);
   const actions = el('div', { class: 'actions' }, [
-    button('Save step', () => saveStep().then(() => notify('Lifepath saved.')).catch(failure), 'secondary'),
+    button('Save and exit', async()=>{
+      try{await saveStep();notify('Character creation draft saved.');go('home');}
+      catch(error){failure(error);}
+    },'secondary'),
+    ...(state.lifepathIndex>0?[button('Back',async()=>{
+      try{await saveStep();state.lifepathIndex--;render();}
+      catch(error){failure(error);}
+    },'secondary')]:[]),
     button(state.lifepathIndex < LIFEPATH_STEPS.length - 1 ? 'Save and next' : 'Save and review', async () => {
       try {
         await saveStep();
