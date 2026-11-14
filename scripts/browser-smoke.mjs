@@ -67,6 +67,13 @@ try {
     'The empty-profile setup gate did not appear.');
   await navigate('Library');
   await heading('Library');
+  const onboarding = await page.evaluate(()=>({
+    role:document.querySelector('select[aria-label="Document type"]')?.value,
+    multiple:document.querySelector('input[aria-label="Choose PDF files"]')?.multiple,
+    beginnerCopy:document.querySelector('#content')?.textContent?.includes('You do not need to understand the rules')
+  }));
+  check(onboarding.role==='corebook' && onboarding.multiple===false && onboarding.beginnerCopy,
+    'A first-time player was not shown the one-book novice setup by default.');
   await page.select('select[aria-label="Document type"]', 'corebook');
   const input = await page.$('input[aria-label="Choose PDF files"]');
   check(input, 'PDF picker missing.');
@@ -83,6 +90,10 @@ try {
   await input.uploadFile(pdfPath);
   await page.waitForFunction(() =>
     document.querySelector('#content')?.textContent?.includes('corebook · prepared'), { timeout: 180000 });
+  check(await page.$eval('#content',node=>
+      node.textContent.includes('Next: Create a campaign') &&
+      node.textContent.includes('Your rulebook is ready')),
+    'Import success did not explain the next beginner action.');
   await page.screenshot({ path: join(output, 'phone-library.png'), fullPage: true });
   // A malformed second file must abort the WHOLE batch, preserving the prepared corebook.
   const libraryCount = await page.evaluate(async () => {
