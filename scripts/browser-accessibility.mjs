@@ -106,5 +106,20 @@ try{
     check(contrast(palette.secondary,palette.surface)>=4.5,
       themeName+' secondary text/surface contrast is insufficient.');
   }
-  console.log('M7 packaged accessibility/layout smoke passed: 360, 390, 640, 768, 1280px; focus, labels, contrast and navigation.');
+  // Installation prerequisites and a no-network reload of the packaged
+  // shell are checked independently of gameplay source import.
+  const install=await page.evaluate(async()=>{
+    const manifest=await fetch('./manifest.webmanifest').then(response=>response.json());
+    await navigator.serviceWorker.ready;
+    return {manifestName:manifest.name,display:manifest.display,
+      controller:!!navigator.serviceWorker.controller};
+  });
+  check(!!install.manifestName&&install.display==='standalone'&&install.controller,
+    'The PWA manifest or offline service worker is not ready.');
+  await page.setOfflineMode(true);
+  await page.reload({waitUntil:'domcontentloaded',timeout:15000});
+  check(await page.evaluate(()=>!!document.querySelector('#content h1')),
+    'The packaged PWA failed to load its shell offline.');
+  await page.setOfflineMode(false);
+  console.log('M7 packaged accessibility/layout/offline smoke passed: 360, 390, 640, 768, 1280px; focus, labels, contrast and navigation.');
 }finally{await browser?.close();server.kill();}
