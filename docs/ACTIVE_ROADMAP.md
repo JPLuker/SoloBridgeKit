@@ -170,3 +170,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## v0.25.2 novice first-run remediation — pending CI and owner acceptance
 
 **Requirement:** All paths must assume someone who has never played any tabletop RPG. The rulebook import now defaults to the complete main PDF and explains each step at the point of use, without a separate tutorial tab. Follow-up: confirm a genuinely new player can import, make a character and begin a scene without interpreting technical terms or compiling rules by hand. Keep [issue #3](https://github.com/JPLuker/SoloBridgeKit/issues/3) open until that is true.
+
+## Product reset: D&D Beyond-inspired, beginner-first flow (review only)
+
+**Priority proposal:** [D&D Beyond product audit](DND-BEYOND-PRODUCT-REVIEW.md), tracked by [issue #4](https://github.com/JPLuker/SoloBridgeKit/issues/4). R1 private book-to-options flow → R2 guided character → R3 ship + sheets → R4 first playable scene → R5 navigation and progressive disclosure → R6 novice acceptance. The previous M1–M8 automated milestone completion is not evidence of usability acceptance. **No implementation claimed** and no 1.0 approval.
