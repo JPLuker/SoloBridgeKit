@@ -166,3 +166,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## v0.25.1 owner UX regression — guided play must teach, not just collect data
 
 **Status: implemented, pending CI and real user UX acceptance.** Owner playtest found that the app lacked D&D Beyond-style explanations and surfaced empty fields. Original explanatory copy was added to the character and ship wizards, Home, missing private-choice states, and first mission creation. Confirmed local lifepath/ship classes now appear as one-tap source-linked selections instead of bare dropdowns. The private publisher option catalog remains a separate local preparation step and cannot be embedded in public app. This remediation is not proof that the full interactive guided experience has reached owner acceptance; refine after actual use.
+
+## v0.25.2 novice first-run remediation — pending CI and owner acceptance
+
+**Requirement:** All paths must assume someone who has never played any tabletop RPG. The rulebook import now defaults to the complete main PDF and explains each step at the point of use, without a separate tutorial tab. Follow-up: confirm a genuinely new player can import, make a character and begin a scene without interpreting technical terms or compiling rules by hand. Keep [issue #3](https://github.com/JPLuker/SoloBridgeKit/issues/3) open until that is true.
