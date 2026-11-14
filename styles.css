@@ -62,3 +62,10 @@
 /* Private source headings may be unusually long; their controls must wrap. */
 .source-preparation .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .source-preparation .document-item{max-width:100%;min-width:0}
+
+/* Optional private source lookup never requires a numeric page field. */
+.source-section-search-details{max-width:100%;min-width:0;overflow-wrap:anywhere}
+.source-section-search-details>summary{cursor:pointer;min-height:44px;padding:12px 0;font-weight:650;color:var(--accent)}
+.source-section-search{margin:10px 0;min-width:0;max-width:100%}
+.source-section-search input{min-width:0;flex:1}
+.source-search-results .document-item{overflow-wrap:anywhere}
