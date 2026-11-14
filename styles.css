@@ -52,3 +52,9 @@
 .source-preparation-tools>.card{padding:14px;margin-top:10px;box-shadow:none}
 .source-preparation-tools .form-stack{min-width:0}
 .source-preparation-tools .document-item{min-width:0;overflow-wrap:anywhere}
+
+/* R1 nested source tools: never allow an implicit grid min-content column to
+   widen the whole page on 360–390px phones. */
+.page{grid-template-columns:minmax(0,1fr);min-width:0;width:100%}
+.page>.card,.page>.page-heading{min-width:0;max-width:100%}
+.source-preparation .document-item{min-width:0;overflow-wrap:anywhere}
