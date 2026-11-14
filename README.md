@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.21.2
+## Current build: 0.22.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -228,3 +228,7 @@ Crew members now support optional **private NPC character sheets** with user-ent
 ### v0.21.2 — M4 vessel development
 
 Players can record **optional, mission-linked ship and station milestones** using the privately imported 2026 book's ship-development rules (PDF page 181): shifting a point between two Systems or Departments within allowed ranges, or improving one allowed rating. The system never automatically awards a milestone, changes stats without consent, or generates story text. Players also record vessel condition/repair notes and mark them active, recovering, or resolved without applying invented penalties. Every history entry includes its original source PDF fingerprint, mission ID, page and user-authored reason. Existing ships and campaign-only/private PDF backups retain this history. [M4 developer acceptance](docs/M4-DEVELOPMENT-ACCEPTANCE.md) defines the build-only completion gate; real-device tests remain in M7.
+
+### v0.22.0 — M5 resumable scene workspace
+
+Campaigns remember which mission was selected, and each mission remembers the exact active act and scene across reloads and backup restoration. Scene notes and completions remain independent. Character task rolls now retain their originating scene ID—even after a reroll—and are visibly labeled in the task history and Markdown journal. Privately rolled random-table references store **only** the source PDF fingerprint/page, private table ID, numerical roll and scene ID; extracted table titles and row prose are never copied to default campaign exports. Older generated text references are sanitized during Markdown export without altering the user's local records. No AI-generated narrative or commercial book content is included.

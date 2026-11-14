@@ -9,6 +9,7 @@ import { normalizePrivateShips } from './private-ships.mjs';
 import { normalizeCompiledRecords } from './compiler-data.mjs';
 import { normalizeCrewRoster } from './crew-management.mjs';
 import { normalizeShipDevelopment } from './ship-development.mjs';
+import { resolveActiveEpisodeId, resolveActiveSceneId } from './mission-workspace.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -46,9 +47,10 @@ export function createShip() {
 export function normalizeCampaign(campaign) {
   const character = campaign.character || {};
   const ship = campaign.ship || {};
-  const episodes = Array.isArray(campaign.episodes) ? campaign.episodes : [];
+  const episodes = (Array.isArray(campaign.episodes) ? campaign.episodes : []).map(normalizeEpisode);
   return {
     ...campaign,
+    activeEpisodeId: resolveActiveEpisodeId({...campaign,episodes}),
     character: {...createCharacter(), ...character,
       attributes: {...emptyRatings(CHARACTER_ATTRIBUTES), ...character.attributes},
       disciplines: {...emptyRatings(CHARACTER_DISCIPLINES), ...character.disciplines},
@@ -63,13 +65,15 @@ export function normalizeCampaign(campaign) {
       development: normalizeShipDevelopment(ship.development)
     },
     crew: normalizeCrewRoster(campaign.crew),
-    episodes: episodes.map(normalizeEpisode)
+    episodes
   };
 }
 
 export function normalizeEpisode(episode) {
+  const sceneData=normalizeMissionScenes(episode);
   return {
-    ...episode, ...normalizeMissionScenes(episode),
+    ...episode, ...sceneData,
+    activeSceneId: resolveActiveSceneId(episode,sceneData.scenes),
     summary: episode.summary ?? '', development: episode.development ?? '',
     careerEvents: episode.careerEvents ?? '',
     valueMarks: { minus: false, plus: false, challenged: false, ...episode.valueMarks },

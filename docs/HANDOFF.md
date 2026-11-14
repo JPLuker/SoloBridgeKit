@@ -337,3 +337,13 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - M4 development is **100%** per the owner's build-only milestones. The [v0.21.2 CI run](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43644543711) passed **139/139 unit tests**, full headless Chrome synthetic book and guided vessel/NPC/milestone/backup smoke, static build, and distribution audit.
 - [M4 acceptance checklist](M4-DEVELOPMENT-ACCEPTANCE.md) is closed for coding scope. User-owned vessel and crew choices remain in private campaign data; the public app contains no source book or official class/NPC catalogs.
 - No planned M4 backlog remains. Only regression/security/data-loss defects should reopen it. Begin M5 integrated scene/mission play. Device acceptance remains M7.
+
+## v0.22.0 — M5 first build: scene/mission resume and private roll provenance
+
+- `mission-workspace.mjs`: source-safe pure helpers for selecting a saved mission, selecting exact scene ID, deriving safe fallback when a scene disappears, and creating numerical private-table references that omit table prose and titles.
+- `model.normalizeCampaign()/normalizeEpisode()` preserve selected mission and active scene with legacy fallbacks; source/mission IDs remain local campaign data.
+- `rollhistory.mjs` and `mission-actions.mjs` record the scene where a task roll occurred; rerolls preserve its provenance. Existing unlinked rolls still deserialize.
+- `app.renderLog()/renderSceneTracker()/renderMissionActions()` save selections, display scene-linked results, and record table-reference IDs/SHA/page/roll without extracted book strings.
+- `campaign-export.mjs` annotates scene references in journals and removes private table names from legacy auto-generated entries during Markdown export.
+- Unit and headless Chrome regressions include exact Act 2 Scene 3 resume after browser reload and no source-text leakage in exported journals.
+- **Next M5:** integrated scene workspace, Values and unresolved threads, corrections/undo, and full 3-act episode testing. Real devices remain M7; no release claim.

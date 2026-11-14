@@ -1,0 +1,50 @@
+// Player-authored, resumable solo mission workspace. No proprietary source text.
+const SHA=/^[a-f0-9]{64}$/;
+const sceneKey = scene => scene?.id ?? (scene ? scene.act+':'+scene.number : '');
+export function resolveActiveEpisodeId(campaign) {
+  const episodes=Array.isArray(campaign?.episodes)?campaign.episodes:[];
+  const selected=episodes.find(item=>item.id===campaign?.activeEpisodeId);
+  return selected?.id ?? episodes.find(item=>item.status==='active')?.id ?? episodes[0]?.id ?? null;
+}
+export function selectActiveEpisode(campaign,id) {
+  if (!Array.isArray(campaign?.episodes)||!campaign.episodes.some(x=>x.id===id))
+    throw new Error('Choose a saved mission before continuing.');
+  return {...campaign,activeEpisodeId:id};
+}
+export function resolveActiveSceneId(episode,scenes=episode?.scenes) {
+  if(!Array.isArray(scenes)||!scenes.length)return null;
+  if (scenes.some(s=>sceneKey(s)===episode?.activeSceneId))return episode.activeSceneId;
+  return sceneKey(scenes.find(s=>!s.completed)??scenes[0]);
+}
+export function selectActiveScene(episode,id){
+  if (!Array.isArray(episode?.scenes)||!episode.scenes.some(scene=>sceneKey(scene)===id))
+    throw new Error('That scene is not part of the saved mission.');
+  return {...episode,activeSceneId:id};
+}
+export function sceneTag(id) {
+  const match=typeof id==='string'?/^([1-3]):([1-9]\d*)$/.exec(id):null;
+  return match?'Act '+match[1]+', Scene '+match[2]:null;
+}
+export function makePrivateTableReference(table,roll,sourceSha256,sceneId=null,
+  id=globalThis.crypto?.randomUUID?.(),at=new Date().toISOString()){
+  if(!SHA.test(sourceSha256??'')||table?.sourceSha256!==sourceSha256)
+    throw new Error('The private table belongs to another PDF.');
+  const page=Number(table.page),result=Number(roll?.value);
+  if(!Number.isSafeInteger(page)||page<1||page>2000||
+    !Number.isSafeInteger(result)||result<1||result>table.sides||
+    !table?.entries?.some(row=>result>=row.min&&result<=row.max)||
+    typeof table.id!=='string'||!table.id)
+    throw new Error('The private table result is invalid.');
+  if(sceneId!=null&&!sceneTag(sceneId))throw new Error('Invalid source scene.');
+  // The title, extracted random-table row and publisher prose NEVER enter
+  // the player's default campaign journal. Only mechanical provenance.
+  return {id,at,kind:'table-reference',tableId:table.id,
+    sourceSha256,page,rollValue:result,sceneId,
+    text:'Private table reference · PDF page '+page+' · roll '+result};
+}
+export function appendSceneTableReference(episode,entry) {
+  if(!episode||!Array.isArray(episode.entries))throw new Error('Mission log is missing.');
+  if(entry?.sceneId&&!episode.scenes?.some(s=>sceneKey(s)===entry.sceneId))
+    throw new Error('The referenced scene no longer exists.');
+  return {...episode,entries:[...episode.entries,entry]};
+}

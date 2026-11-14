@@ -57,3 +57,14 @@ test('invalid saved roll histories are rejected, not silently stripped',()=>{
   assert.throws(()=>normalizeTaskHistory([record('a'),record('a')]));
   assert.throws(()=>normalizeTaskHistory([{...record('a'),dice:[1,40]}]));
 });
+
+test('scene provenance survives a reroll and older unlinked tasks remain readable',()=>{
+  const initial=createTaskRecord({attribute:'control',discipline:'science',
+    focusApplies:false,result:roll([4,20]),sceneId:'3:2'},'scene-linked');
+  assert.equal(normalizeTaskHistory([initial])[0].sceneId,'3:2');
+  const rerolled=rerollTaskRecord([initial],initial.id,1,roll([4,8]));
+  assert.equal(rerolled[0].sceneId,'3:2');
+  assert.deepEqual(rerolled[0].originalDice,[4,20]);
+  assert.throws(()=>normalizeTaskHistory([{...initial,sceneId:'4:1'}]),/damaged/);
+  assert.equal(normalizeTaskHistory([record('legacy')])[0].sceneId,null);
+});

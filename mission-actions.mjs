@@ -2,6 +2,7 @@
 // No publisher prose or table contents are stored here.
 import { createTaskRecord, appendTaskRecord } from './rollhistory.mjs';
 import { applyTaskOutcome } from './resources.mjs';
+import { resolveActiveSceneId } from './mission-workspace.mjs';
 
 export function commitTaskToMission(episode, labels, params, outcome) {
   if (!episode || !Array.isArray(episode.taskHistory)) throw new Error('Mission data is missing.');
@@ -13,8 +14,12 @@ export function commitTaskToMission(episode, labels, params, outcome) {
     threat: episode.threat === true,
     nextTaskHard: episode.nextTaskHard === true
   };
+  const sceneId = params?.sceneId ?? resolveActiveSceneId(episode);
+  if (sceneId && !episode.scenes?.some(s => s.id === sceneId))
+    throw new Error('The task scene no longer exists in this mission.');
   const record = createTaskRecord({
-    attribute, discipline, focusApplies: params?.focusApplies === true, result: outcome
+    attribute, discipline, focusApplies: params?.focusApplies === true,
+    result: outcome, sceneId
   });
   const updatedEpisode = {
     ...episode,

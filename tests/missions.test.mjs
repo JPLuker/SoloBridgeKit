@@ -58,3 +58,15 @@ test('scene counts validate bounds and membership',()=>{
   assert.throws(()=>toggleMissionScene(createEpisode('Test'),9,1,true));
   assert.equal(createMissionScenes([1,1,1]).length,3);
 });
+
+test('mission resume location survives normalization and a harmless scene-plan update',()=>{
+  const ep=createEpisode('Retained scene');
+  ep.activeSceneId='2:3';
+  const recovered=normalizeEpisode(ep);
+  assert.equal(recovered.activeSceneId,'2:3');
+  const expanded=updateScenePlan(recovered,[5,6,5]);
+  const normalized=normalizeEpisode({...expanded,...recovered,scenePlan:expanded.scenePlan,scenes:expanded.scenes});
+  assert.equal(normalized.activeSceneId,'2:3');
+  const removed=normalizeEpisode({...ep,activeSceneId:'3:10'});
+  assert.equal(removed.activeSceneId,'1:1');
+});

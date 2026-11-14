@@ -25,3 +25,19 @@ test('journal filename is bounded, portable and does not inherit path separators
   assert.equal(journalFilename('../../  Sample / Voyage'), 'sample-voyage-journal.md');
   assert.ok(journalFilename('Some name').endsWith('.md'));
 });
+
+
+test('journal preserves scene context but strips private table text and old generated titles',()=>{
+  const ep=createEpisode('Player journal');
+  ep.activeSceneId='3:2';
+  ep.entries.push({id:'ref1',at:new Date().toISOString(),kind:'table-reference',
+    text:'Private table reference · PDF page 210 · roll 2',
+    sceneId:'3:2',sourceSha256:'b'.repeat(64),page:210,rollValue:2,tableId:'private-table'});
+  ep.entries.push({id:'legacy-ref',at:new Date().toISOString(),
+    text:'Table: Licensed privately imported title, PDF page 210, roll 3'});
+  const journal=renderEpisodeJournal(ep);
+  assert.ok(journal.includes('Act 3, Scene 2'));
+  assert.ok(journal.includes('PDF page 210 · roll 2'));
+  assert.ok(journal.includes('PDF page 210 · roll 3'));
+  assert.equal(journal.includes('Licensed privately imported title'),false);
+});

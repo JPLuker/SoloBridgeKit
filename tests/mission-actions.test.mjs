@@ -24,3 +24,17 @@ test('mission action preserves threat state and uses source-backed roll history'
   assert.equal(stored.record.success, false);
   assert.throws(() => commitTaskToMission({}, {attribute:'daring', discipline:'security'}, {}, result));
 });
+
+
+test('recorded task inherits the selected saved scene without changing another scene',()=>{
+  const ep=createEpisode('Synthetic scene-based mission');
+  ep.activeSceneId='2:3';
+  const outcome=resolveTask({attribute:8,discipline:3,dice:[1,4]});
+  const {updatedEpisode,record}=commitTaskToMission(ep,
+    {attribute:'control',discipline:'science'},{focusApplies:true},outcome);
+  assert.equal(record.sceneId,'2:3');
+  assert.equal(updatedEpisode.taskHistory[0].sceneId,'2:3');
+  assert.equal(ep.taskHistory.length,0);
+  assert.throws(()=>commitTaskToMission(ep,{attribute:'control',discipline:'science'},
+    {sceneId:'3:99'},outcome),/scene no longer exists/);
+});

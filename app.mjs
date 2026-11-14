@@ -15,6 +15,7 @@ import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePr
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption, categoryForStep } from './private-options.mjs';
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 import { commitTaskToMission } from './mission-actions.mjs';
+import { resolveActiveEpisodeId, selectActiveEpisode, resolveActiveSceneId, selectActiveScene, sceneTag, makePrivateTableReference, appendSceneTableReference } from './mission-workspace.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -1236,19 +1237,29 @@ function renderLog() {
     event.preventDefault();
     try {
       const episode = createEpisode(missionName.value);
-      campaign.episodes.unshift(episode); state.activeEpisodeId = episode.id; state.taskRoll = null; state.taskMeta = null;
+      campaign.episodes.unshift(episode); campaign.activeEpisodeId = episode.id;
+      state.activeEpisodeId = episode.id; state.taskRoll = null; state.taskMeta = null;
       await persist(); notify('Mission started.');
     } catch (error) { failure(error); }
   });
+  const chosenEpisode = resolveActiveEpisodeId(campaign);
   const missionSelect = el('select', { 'aria-label': 'Select mission' });
   for (const episode of campaign.episodes) {
     const option = el('option', { value: episode.id, text: `${episode.title}${episode.status === 'completed' ? ' (Complete)' : ''}` });
-    if ((state.activeEpisodeId || campaign.episodes[0]?.id) === episode.id) option.selected = true;
+    if (chosenEpisode === episode.id) option.selected = true;
     missionSelect.append(option);
   }
-  missionSelect.addEventListener('change', () => { state.activeEpisodeId = missionSelect.value; state.taskRoll = null; state.taskMeta = null; render(); });
+  missionSelect.addEventListener('change', async () => {
+    try {
+      const selected = selectActiveEpisode(campaign, missionSelect.value);
+      campaign.activeEpisodeId = selected.activeEpisodeId;
+      state.activeEpisodeId = selected.activeEpisodeId;
+      state.taskRoll = null; state.taskMeta = null;
+      await persist();
+    } catch (error) { failure(error); }
+  });
   root.append(card([el('h2', { text: 'Missions' }), createForm, ...(campaign.episodes.length ? [missionSelect] : [])]));
-  const selected = campaign.episodes.find(e => e.id === state.activeEpisodeId) || campaign.episodes[0];
+  const selected = campaign.episodes.find(e => e.id === chosenEpisode) || campaign.episodes[0];
   if (!selected) { root.append(empty('No missions yet.')); return root; }
   const missionForm = el('form', { class: 'form-stack' });
   const act = selected.actLogs;
@@ -1301,7 +1312,10 @@ function renderLog() {
   form.append(textarea, el('button', { class: 'button primary', type: 'submit', text: 'Add log entry' }));
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    try { selected.entries.push(createEntry(textarea.value)); await persist(); notify('Log entry saved.'); }
+    try {
+      selected.entries.push({ ...createEntry(textarea.value), sceneId: resolveActiveSceneId(selected) });
+      await persist(); notify('Log entry saved.');
+    }
     catch (error) { failure(error); }
   });
   root.append(card([
@@ -1350,8 +1364,8 @@ function ratingPicker(names, label, source) {
 }
 function renderMissionActions(mission) {
   const cardNode = card([el('h2', { text: 'Scene actions' })]);
-  const scene = mission.scenes.find(x => `${x.act}:${x.number}` === state.activeScene) ||
-    mission.scenes.find(x => !x.completed) || mission.scenes[0];
+  const activeSceneId = resolveActiveSceneId(mission);
+  const scene = mission.scenes.find(x => x.id === activeSceneId) || mission.scenes[0];
   if (scene) cardNode.append(line('Current scene', `Act ${scene.act} · Scene ${scene.number}`));
   cardNode.append(el('div', { class: 'actions' }, [
     button('Open full dice tools', () => go('dice'), 'secondary'),
@@ -1383,7 +1397,7 @@ function renderMissionActions(mission) {
       if (!a || !d) throw new Error('Set both ratings on your character sheet first.');
       const params = { attribute: Number(a), discipline: Number(d),
         difficulty: taskDifficulty(mission, difficulty.value === '2'),
-        focusApplies: focusCheck.checked };
+        focusApplies: focusCheck.checked, sceneId: scene?.id ?? null };
       const outcome = resolveTask({ ...params, dice: rollDice(2, 20) });
       await recordMissionTask(mission, { attribute: attribute.select.value,
         discipline: discipline.select.value }, params, outcome);
@@ -1411,7 +1425,8 @@ function renderMissionActions(mission) {
             button('Record reference', async () => {
               try {
                 // The default campaign export contains a reference, never table prose.
-                mission.entries.push(createEntry(`Table: ${table.title}, PDF page ${table.page}, roll ${roll.value}`));
+                Object.assign(mission, appendSceneTableReference(mission,
+                   makePrivateTableReference(table, roll, book.bookPack.sourceSha256, scene?.id ?? null)));
                 await persist();
                 notify('Table reference added to the mission.');
               } catch (error) { failure(error); }
@@ -1439,7 +1454,8 @@ function renderSceneTracker(mission) {
     try {
       const values = new FormData(form);
       Object.assign(mission, updateScenePlan(mission, [1,2,3].map(n => Number(values.get(`act${n}`)))));
-      state.activeScene = null; await persist();
+      mission.activeSceneId = resolveActiveSceneId(mission);
+      await persist();
     } catch (error) { failure(error); }
   });
   tracker.append(form);
@@ -1449,16 +1465,20 @@ function renderSceneTracker(mission) {
     const buttons = el('div', { class: 'scene-buttons' });
     for (const scene of mission.scenes.filter(s => s.act === act)) {
       const key = `${act}:${scene.number}`;
-      const control = button(`${scene.completed ? '✓ ' : ''}${scene.number}`, () => { state.activeScene = key; render(); },
-        `${state.activeScene === key ? 'selected-step' : 'secondary'} ${scene.completed ? 'scene-completed' : ''}`);
+      const control = button(`${scene.completed ? '✓ ' : ''}${scene.number}`, async () => {
+        try {
+          mission.activeSceneId = selectActiveScene(mission,key).activeSceneId;
+          await persist();
+        } catch(error) { failure(error); }
+      }, `${resolveActiveSceneId(mission) === key ? 'selected-step' : 'secondary'} ${scene.completed ? 'scene-completed' : ''}`);
       control.setAttribute('aria-label', `Act ${act} scene ${scene.number}, ${scene.completed ? 'complete' : 'pending'}`);
-      control.setAttribute('aria-pressed', String(state.activeScene === key));
+      control.setAttribute('aria-pressed', String(resolveActiveSceneId(mission) === key));
       buttons.append(control);
     }
     group.append(buttons); scenes.append(group);
   }
   tracker.append(scenes);
-  const active = mission.scenes.find(s => `${s.act}:${s.number}` === state.activeScene) || mission.scenes.find(s => !s.completed) || mission.scenes[0];
+  const active = mission.scenes.find(s => s.id === resolveActiveSceneId(mission)) || mission.scenes[0];
   if (active) {
     const editor = el('form', { class: 'form-stack scene-editor' }, [
       el('h3', { text: `Act ${active.act} · Scene ${active.number}` }),
@@ -1472,7 +1492,7 @@ function renderSceneTracker(mission) {
           const values = new FormData(editor);
           active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
           Object.assign(mission, toggleMissionScene(mission, active.act, active.number, !active.completed));
-          state.activeScene = `${active.act}:${active.number}`; await persist();
+          mission.activeSceneId = active.id; await persist();
         } catch (error) { failure(error); }
       })
     ]));
@@ -1501,6 +1521,7 @@ function renderTaskHistory(mission) {
       el('time', { text: isoDate(roll.at), datetime: roll.at }),
       el('strong', { text: `${roll.attribute} + ${roll.discipline} · ${roll.success ? 'Success' : 'Failure'}` }),
       el('p', { text: `2d20: ${roll.dice.join(', ')} · target ${roll.target} · successes ${roll.successes}/${roll.difficulty}` }),
+      ...(roll.sceneId ? [el('p',{class:'hint',text:sceneTag(roll.sceneId)??'Scene reference unavailable'})] : []),
       ...(roll.originalDice ? [el('p', { class: 'hint', text: `Rerolled die ${roll.rerolledDie} from ${roll.originalDice.join(', ')}` })] : []),
       el('p', { class: 'hint', text: [roll.momentumEarned && 'Momentum', roll.threatGenerated && 'Threat', roll.focusAdvantage && 'Focus advantage'].filter(Boolean).join(' · ') || 'No resources generated' }),
       button('Delete roll', async () => {
@@ -2365,7 +2386,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.21.2' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.22.0' })]));
   return root;
 }
 

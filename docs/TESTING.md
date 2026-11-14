@@ -325,3 +325,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [x] Physical-device validation remains M7 and does not count against M4 developer completion.
 
 **Verified:** CI run 43644543711 passed 139/139 unit tests, full Chrome smoke, static build, public-content audit. Real-device acceptance stays M7.
+
+## v0.22.0 M5 exact scene and table-source regression
+
+- [ ] Create an episode, select Act 2 Scene 3, write original notes, reload and confirm the precise scene remains selected.
+- [ ] Roll a character task; its history and exported journal retain that scene ID, even when rerolled.
+- [ ] Roll a private table and choose Record reference. The saved reference includes source SHA/page, table ID, die result and scene but **no extracted private row or table title**.
+- [ ] Legacy auto-generated table references lose publisher table titles in Markdown exports; manually authored narrative remains intact.
+- [ ] Save/restore campaign-only JSON and verify selected mission, scene notes, roll provenance and reference IDs survive without book content.
+- [ ] Physical device acceptance remains M7, not included in M5 development percentage.

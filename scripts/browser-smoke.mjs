@@ -340,6 +340,26 @@ try {
   await clickText('Start mission');
   await waitForSave('Mission started.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Scene actions'), { timeout: 10000 });
+  await page.click('button[aria-label="Act 2 scene 3, pending"]');
+  await page.waitForFunction(async () => {
+    const {all}=await import('./storage.mjs');
+    return (await all('campaigns'))[0]?.episodes?.[0]?.activeSceneId==='2:3';
+  },{timeout:15000});
+  await page.type('.scene-editor input[name=title]','Synthetic act-two scene');
+  await page.type('.scene-editor textarea[name=notes]','Player wrote this scene description.');
+  await clickText('Save scene');
+  await waitForSave('Scene saved.');
+  await page.reload({waitUntil:'networkidle0'});
+  await navigate("Captain's log");
+  const activeScene=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const campaign=(await all('campaigns'))[0];
+    return {missionId:campaign.activeEpisodeId,scene:campaign.episodes[0].activeSceneId,
+      notes:campaign.episodes[0].scenes.find(x=>x.id==='2:3')?.notes};
+  });
+  check(activeScene.missionId && activeScene.scene==='2:3' &&
+    activeScene.notes==='Player wrote this scene description.',
+    'M5 failed to resume the exact saved act/scene and its authored notes after reload.');
   await clickText('Roll task');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20:'), { timeout: 20000 });
   const compiledTableVisible = await page.$eval('select[aria-label="Private random table"]', select =>
@@ -347,6 +367,19 @@ try {
   check(compiledTableVisible, 'A confirmed compiled table was not offered in active mission play.');
   await clickText('Roll table');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic private result'), { timeout: 10000 });
+  await clickText('Record reference');
+  await waitForSave('Table reference added to the mission.');
+  const sceneRecords=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const ep=(await all('campaigns'))[0].episodes[0];
+    return {scene:ep.activeSceneId,rollScene:ep.taskHistory[0]?.sceneId,
+      reference:ep.entries.find(e=>e.kind==='table-reference')};
+  });
+  check(sceneRecords.scene==='2:3' && sceneRecords.rollScene==='2:3' &&
+    sceneRecords.reference?.sceneId==='2:3' && sceneRecords.reference?.tableId==='synthetic-table' &&
+    !JSON.stringify(sceneRecords.reference).includes('Synthetic private result') &&
+    !JSON.stringify(sceneRecords.reference).includes('Synthetic source table'),
+    'Task or private table reference lost the scene or leaked source table prose.');
   await page.screenshot({ path: join(output, 'phone-mission.png'), fullPage: true });
   const phoneGeometry = await page.evaluate(() => ({
     viewport: window.innerWidth, document: document.documentElement.scrollWidth
@@ -364,8 +397,11 @@ try {
   const episodeMarkdown = await waitForDownload('synthetic-test-mission-episode.md');
   check(episodeMarkdown.includes('Synthetic test mission') && episodeMarkdown.includes('Task rolls') && episodeMarkdown.includes('control + command'),
     'Episode export omitted player-created mission or dice data.');
-  check(!episodeMarkdown.includes('Synthetic sample page lifepath mission'),
-    'Episode export leaked private indexed book content.');
+  check(!episodeMarkdown.includes('Synthetic sample page lifepath mission') &&
+    !episodeMarkdown.includes('Synthetic private result') &&
+    !episodeMarkdown.includes('Synthetic source table') &&
+    episodeMarkdown.includes('Act 2, Scene 3'),
+    'Episode export leaked private table prose or lost the resume scene.');
   await navigate('Home');
   await heading('Home');
   await clickText('Export journal');

@@ -13,6 +13,8 @@ function validateRecord(record) {
       typeof record.success !== 'boolean' || typeof record.momentumEarned !== 'boolean' ||
       typeof record.threatGenerated !== 'boolean' || typeof record.focusAdvantage !== 'boolean' ||
       typeof record.focusApplies !== 'boolean' ||
+      (record.sceneId != null && (typeof record.sceneId !== 'string' ||
+        !/^[1-3]:[1-9]\d*$/.test(record.sceneId))) ||
       (record.originalDice != null && (!Array.isArray(record.originalDice) || record.originalDice.length !== 2 ||
         record.originalDice.some(x => !Number.isInteger(x) || x < 1 || x > 20))) ||
       (record.rerolledDie != null && ![1,2].includes(record.rerolledDie))) {
@@ -32,11 +34,11 @@ export function normalizeTaskHistory(history) {
   });
 }
 
-export function createTaskRecord({ attribute, discipline, focusApplies, result },
+export function createTaskRecord({ attribute, discipline, focusApplies, result, sceneId = null },
   id = globalThis.crypto?.randomUUID?.(), at = new Date().toISOString()) {
   const record = {
     id, at, attribute: String(attribute ?? ''), discipline: String(discipline ?? ''),
-    focusApplies: Boolean(focusApplies), dice: [...(result?.dice ?? [])],
+    focusApplies: Boolean(focusApplies), sceneId, dice: [...(result?.dice ?? [])],
     target: result?.target, difficulty: result?.difficulty, successes: result?.successes,
     success: result?.success, momentumEarned: result?.momentumEarned,
     threatGenerated: result?.threatGenerated, focusAdvantage: result?.focusAdvantage
@@ -59,7 +61,7 @@ export function rerollTaskRecord(history, id, dieIndex, newResult) {
   if (!previous) throw new Error('The original roll could not be found.');
   if (previous.originalDice) throw new Error('This roll has already been rerolled.');
   const changed = createTaskRecord({ attribute: previous.attribute, discipline: previous.discipline,
-    focusApplies: previous.focusApplies, result: newResult }, id, previous.at);
+    focusApplies: previous.focusApplies, result: newResult, sceneId: previous.sceneId ?? null }, id, previous.at);
   if (changed.dice[1-dieIndex] !== previous.dice[1-dieIndex]) {
     throw new Error('Only one die can change during this reroll.');
   }

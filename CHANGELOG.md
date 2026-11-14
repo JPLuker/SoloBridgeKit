@@ -1,3 +1,11 @@
+## [0.22.0] - 2026-11-14
+### M5 — Persist mission/scene selection and source-safe roll references (30% development)
+- Persist the player's selected mission and exact scene in the campaign/episode instead of relying on transient browser state.
+- Record task rolls with their originating scene and preserve it through rerolls, normalizations and JSON backup restore.
+- Record user-approved private table rolls with source SHA/page, table ID, roll value and scene ID; never save extracted row text or publisher table titles in player journal entries.
+- Show associated scenes in task history and Markdown journal; sanitize generated legacy private-table titles during export while keeping authored prose intact.
+- Add pure workspace helpers, unit tests for resumability/source provenance, and a Chrome regression for scene selection, reload, task roll, table reference and export.
+
 ## [0.21.2] - 2026-11-14
 ### M4 — Vessel milestones, conditions and development-completion (100% CI verified)
 - Add player-authorized, completed-mission ship System or Department redistribution/improvement with source page references and rating bounds.

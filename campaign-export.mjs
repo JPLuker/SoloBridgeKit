@@ -1,5 +1,6 @@
 // Portable, user-authored campaign journals; never include private rulebook documents.
 import { normalizeCampaign, normalizeEpisode } from './model.mjs';
+import { sceneTag } from './mission-workspace.mjs';
 
 const safe = value => String(value ?? '').replace(/\r/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim();
 const oneLine = value => safe(value).replace(/\n+/g, ' ');
@@ -16,7 +17,7 @@ export function renderEpisodeJournal(raw) {
   const mission = normalizeEpisode(raw);
   const result = ['# ' + (oneLine(mission.title) || 'Untitled mission'), '',
     field('Status', mission.status === 'completed' ? 'Completed' : 'Active'),
-    field('Started', mission.createdAt), '',
+    field('Started', mission.createdAt), field('Resume scene',sceneTag(mission.activeSceneId)??'Not selected'), '',
     ...section('Summary', safe(mission.summary)),
     ...section('Development', safe(mission.development)),
     ...section('Career events', safe(mission.careerEvents))];
@@ -38,12 +39,20 @@ export function renderEpisodeJournal(raw) {
   const entries = Array.isArray(mission.entries) ? mission.entries : [];
   if (!entries.length) result.push('_No entries_', '');
   for (const entry of entries) {
-    result.push(`### ${oneLine(entry.at) || 'Undated'}`, '', safe(entry.text), '');
+    // Older versions stored a private table title in a generated reference.
+    // Strip it when exporting; keep any actual player-written narrative intact.
+    const legacyTable = /^Table: .+, PDF page (\d+), roll (\d+)$/.exec(String(entry.text??''));
+    const journalText = legacyTable
+      ? 'Private table reference · PDF page '+legacyTable[1]+' · roll '+legacyTable[2]
+      : safe(entry.text);
+    result.push(`### ${oneLine(entry.at) || 'Undated'}`, '',
+      ...(entry.sceneId ? [sceneTag(entry.sceneId)??'Scene not found',''] : []),
+      journalText, '');
   }
   result.push('## Task rolls', '');
   if (!mission.taskHistory.length) result.push('_No task rolls_', '');
   for (const roll of mission.taskHistory) {
-    result.push(`- ${oneLine(roll.at)} · ${oneLine(roll.attribute)} + ${oneLine(roll.discipline)} · ${roll.success ? 'Success' : 'Failure'} · ${roll.dice.join(', ')} · ${roll.successes}/${roll.difficulty} successes`);
+    result.push(`- ${oneLine(roll.at)} · ${oneLine(roll.attribute)} + ${oneLine(roll.discipline)} · ${roll.success ? 'Success' : 'Failure'} · ${roll.dice.join(', ')} · ${roll.successes}/${roll.difficulty} successes${roll.sceneId ? ' · '+(sceneTag(roll.sceneId)??'Unlinked scene') : ''}`);
   }
   return result.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 }

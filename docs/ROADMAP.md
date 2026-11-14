@@ -290,3 +290,10 @@
 - After completed missions, player-authorized vessel milestones may adjust Systems/Departments under existing source limits, with recorded mission, source page and original rating snapshot.
 - Persistent user-entered vessel conditions have repair progress states without invented penalties; source records survive legacy migration and private backups.
 - Final M4 Chrome workflow completes a guided ship, creates two crew and relationships, then records ship milestones and backup round trips. M4 completion requires full passing CI; device testing stays M7.
+
+## v0.22.0 — M5 exact scene resume and source-safe roll history
+
+- Store active mission and selected act/scene inside their owner campaign and episode records, preserving the current scene after offline reload or backup restoration.
+- Tag mechanical task results and journal log entries with the original scene; preserve tags through rerolls.
+- Private random table rolls save source references, result numbers and scene IDs without table prose or titles in default exports; legacy generated table labels are removed when exporting.
+- M5 continues with fuller scene workspace and player notes, thread tracking, undo/correction and complete 3-act workflow.
