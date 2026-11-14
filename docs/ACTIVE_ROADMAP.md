@@ -174,3 +174,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## Product reset: D&D Beyond-inspired, beginner-first flow (review only)
 
 **Priority proposal:** [D&D Beyond product audit](DND-BEYOND-PRODUCT-REVIEW.md), tracked by [issue #4](https://github.com/JPLuker/SoloBridgeKit/issues/4). R1 private book-to-options flow → R2 guided character → R3 ship + sheets → R4 first playable scene → R5 navigation and progressive disclosure → R6 novice acceptance. The previous M1–M8 automated milestone completion is not evidence of usability acceptance. **No implementation claimed** and no 1.0 approval.
+
+## R1 first development checkpoint — v0.26.0 (pending CI)
+
+**Progress (build scope): 35%.** Added verified-option readiness, guided section source lookup and advanced compiler disclosure. Preserved previously indexed PDFs, verified records, source fingerprints, manual workflow and offline data safety. Next: intuitive source option confirmation without entering technical page/type fields; ensure confirmed choices feed the builder and complete first-session smoke tests. No owner usability acceptance has been claimed. Prior M1–M8 technical completeness remains historical; R1–R6 product rebuild is current forward roadmap.
