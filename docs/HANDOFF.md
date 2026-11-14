@@ -224,3 +224,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Updated [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md) with real Linux desktop/Android USB port-forwarding instructions for the passing 0.17.9 preview. `adb reverse` connects Android Chrome localhost to the desktop's loopback-only server without exposing licensed material.
 - Independently inspected actual private 2026 source PDF (336 pages) and verified index hash matches; does not supersede unverified Android/browser import.
 - **Current state:** 101 unit tests + Chrome smoke passed for v0.17.9. Owner physical-device acceptance remains the only M1 completion gate; do not start M2 until approved.
+
+## v0.18.0 — M1 initial-campaign epoch guard and real-source compiler verification
+
+- `storage.stampNewCampaign()` captures the persistent IndexedDB generation at creation. `saveCampaign()` now checks it and the revision in the **same transaction** as the write, including an absent/never-saved record. Old tabs cannot resurrect deleted campaigns after a reset/restore.
+- UI campaign creation and recovery draft imports both call `stampNewCampaign()`. Legacy campaigns remain compatible when the database epoch is still `legacy`.
+- `scripts/verify-private-corebook.mjs` runs the exact shipped `dist/browser-compiler.mjs` preparation function with minimal Node rendering-API stubs, prints ONLY page counts/readability, and never writes/exposes book data. `npm run browser:smoke` verifies it against a synthetic 336-page book.
+- Independent LOCAL test of the actual purchased 336-page 2026 PDF successfully returned 336 prepared pages, 327 readable pages and matching stored SHA-256 in approximately 2.2 seconds on a server; this does not prove Chrome/Android performance. No private source/index was pushed to GitHub.
+- Still unverified: device-local Chrome/Android import, full offline browser save/restore and user signoff. M1 cannot be honestly marked 100% on the strength of desktop Node PDF parsing and CI alone.

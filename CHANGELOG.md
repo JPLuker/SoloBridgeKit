@@ -1,3 +1,12 @@
+## [0.18.0] - 2026-11-13
+### M1 — Deleted-campaign protection and full-book parser verification
+- Capture a database epoch when creating a campaign. Verify it and its expected revision atomically during every save, including first saves.
+- Reject stale, never-saved campaign creation after a reset or restore in another tab; protect against campaign resurrection.
+- Add Chrome regression for stale new-campaign writes following a second-tab restore.
+- Add privacy-preserving private PDF verification utility, using the same shipped PDF.js preparation code as the offline PWA.
+- Confirmed user-provided 336-page 2026 corebook parses through the shipped PDF.js compiler in a local Node compatibility harness (no licensed data published).
+- Added synthetic PDF verification as part of Chrome CI, without including commercial PDFs.
+
 ## [0.17.9] - 2026-11-13
 - Documentation follow-up: provided reproducible localhost preview and Android USB-debugging acceptance instructions; no gameplay code changed.
 ### M1 — Cross-tab recovery regression fix

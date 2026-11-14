@@ -215,3 +215,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Save stale campaign with source `storageEpoch`, perform restore in another tab, then download and import recovery draft.
 - [ ] New recovered campaign has new ID, revision zero, no old storageEpoch, and retains all player-authored data. Newer original campaign remains unchanged.
 - [ ] Confirm 0.17.9 fixes the full Chrome failure observed in the 0.17.8 workflow.
+
+## v0.18.0 M1 first-write and private source verification
+
+- [ ] In tab A create and stamp a new campaign but do not save. In tab B restore a backup (or reset). Tab A must reject the old campaign's first save instead of recreating it.
+- [ ] Creating a new campaign or importing a recovery draft **after** a restore must succeed with the current epoch.
+- [ ] Run `npm run verify:private-book -- "/path/to/private.pdf"` after build. It must use the distributed PDF.js compiler, print a page summary only, and never generate copyrighted content files.
+- [ ] The browser smoke must run the same verifier on a noncommercial generated 336-page PDF.
+- [ ] Confirm Android and desktop device import/offline/restore with the owner's private 2026 PDF per [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md).

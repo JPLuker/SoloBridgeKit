@@ -1,7 +1,7 @@
 // CI browser smoke: uses synthetic, not copyrighted, PDF book content.
 // GitHub's Ubuntu runner has Google Chrome installed at /usr/bin/google-chrome.
 import puppeteer from 'puppeteer-core';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -72,6 +72,14 @@ try {
   check(input, 'PDF picker missing.');
   const pdfPath = join(process.cwd(), output, 'temporary-synthetic.pdf');
   writeFileSync(pdfPath, syntheticPdf(336));
+  // Verify the actual shipped PDF.js compiler without a browser as a second
+  // independent check. The utility prints a summary, never private book text.
+  const cliReport = JSON.parse(execFileSync(process.execPath,
+    ['scripts/verify-private-corebook.mjs', pdfPath, '--json'],
+    { encoding: 'utf8', timeout: 60000 }).trim());
+  check(cliReport.passed && cliReport.pages === 336 &&
+    cliReport.fingerprintMatches && cliReport.readablePages > 235,
+    'The offline private-book verification utility failed on a synthetic source.');
   await input.uploadFile(pdfPath);
   await page.waitForFunction(() =>
     document.querySelector('#content')?.textContent?.includes('Prepared corebook'), { timeout: 180000 });

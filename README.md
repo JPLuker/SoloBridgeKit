@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.17.9
+## Current build: 0.18.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -175,3 +175,16 @@ After a restore in another tab, a downloaded unsaved-work draft now imports as a
 ### M1 local testing (v0.17.9)
 
 The preview is a static PWA ZIP rather than an APK. See [M1 acceptance instructions](docs/M1-ACCEPTANCE.md) for a localhost desktop server and Android Chrome through `adb reverse` over USB. This method does **not** require publishing your rulebook or opening a public server. M1 stays at 98% until real-device tests and owner signoff.
+
+### v0.18.0 — M1 real-source verification and deleted-campaign safety
+
+- A previously unsaved campaign is now stamped with the current database generation **at creation time**. Saving checks that generation inside the same IndexedDB transaction used for the campaign write. This blocks old tabs from recreating a deleted/never-saved campaign after a restore or reset.
+- A reusable **private corebook verification** command runs the application's actual PDF.js preparation path without publishing or storing extracted book text:
+
+```bash
+npm ci
+npm run build
+npm run verify:private-book -- "/path/to/your/legally-obtained-corebook.pdf"
+```
+
+The verifier displays only the page count and readability summary. Its CLI output contains no PDF text, filenames, or source fingerprints. The build uses the same PDF.js preparation module as the PWA, but this command does not prove Android performance or UI behavior. The private 336-page 2026 edition was successfully processed locally through the exact compiler path; browser device acceptance is still pending.

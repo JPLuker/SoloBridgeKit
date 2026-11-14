@@ -20,6 +20,16 @@ export async function currentDataGeneration() {
   // Persisted token detects a reset/restore performed in ANOTHER browser tab.
   return `${dataGeneration}:${epochValue(await get('settings', EPOCH_KEY))}`;
 }
+export async function stampNewCampaign(campaign) {
+  if (!campaign || typeof campaign.id !== 'string' || !campaign.id)
+    throw new Error('A new campaign needs a valid ID.');
+  if (Number.isSafeInteger(campaign.revision) && campaign.revision > 0)
+    throw new Error('Cannot re-stamp an existing campaign as new.');
+  // Capture the token while this new record is being created. A future restore
+  // cannot silently promote an old draft into the new database generation.
+  campaign.storageEpoch = epochValue(await get('settings', EPOCH_KEY));
+  return campaign;
+}
 function matchesGeneration(expected, record) {
   return expected === `${dataGeneration}:${epochValue(record)}`;
 }
@@ -125,37 +135,47 @@ function campaignRevision(value) {
 }
 
 async function commitCampaignSnapshot(campaign) {
-  // Capture the latest state AFTER any earlier queued save of this campaign finishes.
+  // Capture AFTER any earlier queued save of the same campaign finishes.
   const snapshot = structuredClone(campaign);
   const expected = campaignRevision(snapshot.revision);
   const db = await database();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('campaigns', 'readwrite');
+    // The epoch and campaign must be read in the SAME transaction as the write.
+    // Otherwise a restore in another tab could sneak between validation/write.
+    const tx = db.transaction(['campaigns', 'settings'], 'readwrite');
     let committed;
     tx.oncomplete = () => {
       if (!committed) return reject(new Error('Campaign save did not complete.'));
       campaign.revision = committed.revision;
       campaign.updatedAt = committed.updatedAt;
-      if (committed.storageEpoch) campaign.storageEpoch = committed.storageEpoch;
+      campaign.storageEpoch = committed.storageEpoch;
       resolve(committed);
     };
     tx.onerror = () => reject(tx.error ?? new Error('Campaign save failed.'));
     tx.onabort = () => reject(tx.error ?? new Error('Campaign save was cancelled.'));
-    const store = tx.objectStore('campaigns');
-    const request = store.get(snapshot.id);
-    request.onsuccess = () => {
-      const storedRevision = campaignRevision(request.result?.revision);
-      const storedEpoch = epochValue({ value: request.result?.storageEpoch });
-      const submittedEpoch = epochValue({ value: snapshot.storageEpoch });
-      if (storedRevision !== expected || storedEpoch !== submittedEpoch) {
-        reject(new Error('This campaign was updated or restored in another tab. Your stale edit was not saved. Export your recovery draft before reloading.'));
-        tx.abort();
-        return;
-      }
-      committed = { ...snapshot, revision: expected + 1,
-        ...(request.result?.storageEpoch ? { storageEpoch: request.result.storageEpoch } : {}),
-        updatedAt: new Date().toISOString() };
-      store.put(committed);
+    const epochReq = tx.objectStore('settings').get(EPOCH_KEY);
+    epochReq.onsuccess = () => {
+      const currentEpoch = epochValue(epochReq.result);
+      const store = tx.objectStore('campaigns');
+      const request = store.get(snapshot.id);
+      request.onsuccess = () => {
+        const previous = request.result;
+        const submittedEpoch = epochValue({ value: snapshot.storageEpoch });
+        const previousEpoch = epochValue({ value: previous?.storageEpoch });
+        const staleRevision = previous
+          ? campaignRevision(previous.revision) !== expected
+          : expected !== 0;
+        const staleEpoch = submittedEpoch !== currentEpoch ||
+          (previous && previousEpoch !== submittedEpoch);
+        if (staleRevision || staleEpoch) {
+          reject(new Error('This campaign was updated, deleted, or restored in another tab. Your stale edit was not saved. Download your recovery draft before reloading.'));
+          tx.abort();
+          return;
+        }
+        committed = { ...snapshot, revision: expected + 1,
+          storageEpoch: currentEpoch, updatedAt: new Date().toISOString() };
+        store.put(committed);
+      };
     };
   });
 }

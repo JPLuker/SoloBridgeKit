@@ -1,6 +1,6 @@
 import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
-import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent } from './storage.mjs';
+import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent, stampNewCampaign } from './storage.mjs';
 import { prepareImportBatch, storageMessage, assertNotCancelled, relinkDocument, checkStorageCapacity } from './import-safety.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
@@ -188,7 +188,7 @@ function renderHome() {
   createForm.addEventListener('submit', async event => {
     event.preventDefault();
     try {
-      const campaign = createCampaign(input.value);
+      const campaign = await stampNewCampaign(createCampaign(input.value));
       await saveCampaign(campaign); state.activeId = campaign.id;
       state.activeEpisodeId = null;
       await refresh(); notify('Campaign created.');
@@ -1598,7 +1598,7 @@ function renderSettings() {
     const file = recoveryInput.files?.[0];
     if (!file) return;
     try {
-      const recovered = recoverDraftAsNewCampaign(JSON.parse(await file.text()));
+      const recovered = await stampNewCampaign(recoverDraftAsNewCampaign(JSON.parse(await file.text())));
       await saveCampaign(recovered);
       state.activeId = recovered.id;
       await refresh();
@@ -1610,7 +1610,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.9' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.18.0' })]));
   return root;
 }
 

@@ -226,3 +226,9 @@
 
 - Discard obsolete storage epochs when converting an unsaved recovery draft to a separate campaign, preventing rejected saves after a restore in another tab.
 - The two-tab Chrome regression introduced in 0.17.8 now checks this recovery path end-to-end.
+
+## v0.18.0 — M1 cross-tab campaign creation guard and private PDF.js check
+
+- A newly created campaign is bound to the current database epoch; missing-record saves cannot recreate deleted data after cross-tab reset/restore.
+- Privacy-preserving local verifier uses the application's PDF.js compiler directly, with a synthetic 336-page CI fixture and independent local check of the owner's original 336-page source.
+- M1 still requires device-level acceptance and approval before moving to M2.

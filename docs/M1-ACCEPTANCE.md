@@ -2,7 +2,7 @@
 
 **Status:** Developer work verified by CI; real-device acceptance pending. **Do not mark 100% or begin M2** until the actual purchased source book and device tests pass.
 
-**Test build:** v0.17.9; get the **SoloBridgeKit-0.17.9-UNTESTED** ZIP and screenshots from [GitHub Actions run 43536179137](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43536179137). CI passes 101 unit tests plus Chrome smoke and distribution auditing. This is **not** a fully device-tested release.
+**Test build:** v0.18.0; get the matching **UNTESTED** ZIP from the latest successful GitHub Actions run. Source checks, PDF verification, Chrome smoke and distribution audit must pass. This is **not** a fully device-tested release.
 
 ## What CI has already verified (noncommercial test source)
 
@@ -19,11 +19,11 @@
 
 The GitHub Actions ZIP is a **static website**, not an APK. Do not double-click `index.html` or host your licensed PDFs with it: use a localhost server so IndexedDB, WebCrypto and the offline service worker work properly.
 
-On Linux, after downloading `SoloBridgeKit-0.17.9-UNTESTED.zip`:
+On Linux, after downloading `SoloBridgeKit-0.18.0-UNTESTED.zip`:
 
 ```bash
 mkdir -p ~/SoloBridgeKit-preview
-unzip SoloBridgeKit-0.17.9-UNTESTED.zip -d ~/SoloBridgeKit-preview
+unzip SoloBridgeKit-0.18.0-UNTESTED.zip -d ~/SoloBridgeKit-preview
 python3 -m http.server 4173 --bind 127.0.0.1 --directory ~/SoloBridgeKit-preview
 ```
 
@@ -42,7 +42,7 @@ If your device cannot use USB debugging, the alternative is an HTTPS origin unde
 
 ### Local verification already performed
 
-The supplied purchased 2026 PDF was opened locally and has **336 pages**. Independent extraction found readable text across 326 pages. Its SHA-256 exactly matches the previously generated private 336-page index. This confirms source/index pairing but **does not** replace the app's real-device import and backup tests.
+The supplied purchased 2026 PDF was checked with the **actual distributed PDF.js preparation function** in a local Node-compatible runtime: **336 pages prepared, 327 readable pages**, and SHA-256 matching the private index. The check did not distribute any book text. It is stronger than an independent text extraction but **does not** replace actual-device browser import, persistence and backup tests.
 
 ## Owner acceptance — use privately owned 2026 book
 
