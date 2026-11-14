@@ -21,6 +21,7 @@ import { createMissionThread, setMissionThreadStatus, deleteMissionThread, norma
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
+import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
@@ -222,8 +223,10 @@ function renderHome() {
   });
   if(!state.campaigns.length){
     root.append(card([
+      el('p',{class:'hint',text:'Getting started · Step 2 of 3'}),
       el('h2',{text:'Your first adventure'}),
-      el('p',{text:'Start by naming your campaign. Next, you’ll build a character one decision at a time, set up a starship or station, and begin a mission. You do not need to write an entire story in advance.'}),
+      el('p',{text:'In a tabletop roleplaying game, you imagine what your character tries to do. The story changes based on your choices and sometimes a roll of the dice. Playing solo means you make those choices without needing another player or a game master.'}),
+      el('p',{text:'A campaign is simply the folder for your ongoing adventure, character and missions. Give yours any name you like; you can decide on the story as you play.'}),
       el('p',{class:'hint',text:'Your corebook supplies the official choices and bonuses. SoloBridgeKit explains each step and helps track what you select.'})
     ]));
   }
@@ -1300,6 +1303,7 @@ function renderLog() {
   });
   if(!campaign.episodes.length){
     root.append(card([
+      el('p',{class:'hint',text:'Getting started · Step 3 of 3'}),
       el('h2',{text:MISSION_GUIDANCE.heading}),
       el('p',{text:MISSION_GUIDANCE.introduction}),
       ...MISSION_GUIDANCE.prompts.map((prompt,i)=>el('p',{class:'hint',text:(i+1)+'. '+prompt})),
@@ -1707,7 +1711,8 @@ function renderLibrary() {
       await refresh();
       notify(requestedRole === 'corebook' ? 'Rulebook ready! Start by creating a campaign.' : `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
     } catch (error) {
-      progress.textContent = storageMessage(error);
+      progress.textContent = explainRulebookImportFailure(error,requestedRole);
+      progress.setAttribute('role','alert');
       failure(error);
     } finally {
       fileInput.value = '';
@@ -1722,6 +1727,7 @@ function renderLibrary() {
     root.append(card([
       el('p',{class:'hint',text:'Getting started · Step 1 of 3'}),
       el('h2',{text:'Add your rulebook'}),
+      el('p',{class:'hint',text:BEGINNER_STEPS.map((step,i)=>(i+1)+'. '+step.title).join('   ·   ')}),
       el('p',{text:"Your rulebook is the PDF version of Star Trek Adventures: Captain's Log (2026). It tells the app which character choices, rules and dice results belong to this game."}),
       el('p',{text:"You do not need to understand the rules before importing it. We will explain the next steps as you create your character."}),
       el('h2',{text:'Choose the PDF on this device'}),
