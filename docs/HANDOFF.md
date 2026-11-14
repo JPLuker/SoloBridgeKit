@@ -377,3 +377,7 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `storage.mjs`: imported corebooks atomically demote former primary corebooks to references without losing their local indexes; `activatePreparedCorebook` reselects a verified source in one transaction.
 - Library exposes private source index rebuild and corebook selection/repair. Reference-only index import is explicitly rejected from the corebook import path.
 - Synthetic Chrome flow includes preparing a 3-page supplement, cross-book search, two-book private backup/restore, and edition switch/restore without deleting other documents. Check the latest CI run before closing M6.
+
+## M6 closed — 2026-11-14
+
+- Verified v0.23.0 in [CI #135](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648270644): all unit tests, source and packaged audits, synthetic PDF import/search, private backup/restore, corebook switching and offline Chrome smoke passed. See `docs/M6-DEVELOPMENT-ACCEPTANCE.md`. M1–M6 code development closed. **Next M7 automated accessibility/UX and device acceptance.**
