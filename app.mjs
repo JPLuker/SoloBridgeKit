@@ -1905,7 +1905,7 @@ function renderLibrary() {
         results.replaceChildren(...(hits.length?hits.map(hit=>{
           const source=state.documents.find(doc=>doc.id===hit.documentId);
           return card([
-            el('strong',{text:hit.documentName+' · page '+hit.page}),
+            el('strong',{text:hit.documentName+(hit.edition?' ('+hit.edition+')':'')+' · page '+hit.page}),
             button('Open source page',()=>openPdf(source,hit.page).catch(failure),'secondary'),
             el('p',{class:'muted',text:hit.excerpt})
           ]);
