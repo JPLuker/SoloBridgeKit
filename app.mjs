@@ -350,7 +350,18 @@ function renderCharacter() {
       await persist(); notify('Character saved.');
     } catch (error) { failure(error); }
   });
-  root.append(form, renderCharacterDevelopment(c));
+  root.append(card([
+    el('h2',{text:c.name?.trim()||'Your character'}),
+    el('p',{class:'hint',text:'Your playable character sheet. Use Guided lifepath to make the official choices, and Edit details only when a field needs correction.'}),
+    line('Species',c.species),line('Rank',c.rank),line('Assignment',c.assignment),
+    el('h3',{text:'Attributes'}),
+    el('div',{class:'field-grid ratings'},CHARACTER_ATTRIBUTES.map(name=>line(name,c.attributes?.[name.toLowerCase()]))),
+    el('h3',{text:'Disciplines'}),
+    el('div',{class:'field-grid ratings'},CHARACTER_DISCIPLINES.map(name=>line(name,c.disciplines?.[name.toLowerCase()])))
+  ]));
+  root.append(el('details',{class:'sheet-advanced-editor'},[
+    el('summary',{text:'Edit character details (advanced)'}),form
+  ]),renderCharacterDevelopment(c));
   return root;
 }
 
@@ -830,7 +841,18 @@ function renderStarship() {
       await persist(); notify('Ship saved.');
     } catch (error) { failure(error); }
   });
-  root.append(form, renderShipDevelopment(c));
+  root.append(card([
+    el('h2',{text:c.name?.trim()||'Your ship or station'}),
+    el('p',{class:'hint',text:'Review your vessel during play. Guided ship setup chooses a source-verified class; detailed rating corrections are optional.'}),
+    line('Class',c.className),line('Registry',c.registry),line('Scale',c.scale),
+    el('h3',{text:'Systems'}),
+    el('div',{class:'field-grid ratings'},SHIP_SYSTEMS.map(name=>line(name,c.systems?.[name.toLowerCase()]))),
+    el('h3',{text:'Departments'}),
+    el('div',{class:'field-grid ratings'},SHIP_DEPARTMENTS.map(name=>line(name,c.departments?.[name.toLowerCase()])))
+  ]));
+  root.append(el('details',{class:'sheet-advanced-editor'},[
+    el('summary',{text:'Edit ship details (advanced)'}),form
+  ]),renderShipDevelopment(c));
   return root;
 }
 function renderShipDevelopment(ship) {
