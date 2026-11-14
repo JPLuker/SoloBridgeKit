@@ -58,7 +58,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M3. D&D Beyond-style character creation and progression
 
-**Development completion candidate: 100% (v0.20.2, pending CI).** Guided character creation now has an end-to-end source gate, stage caps, legacy draft support, source-linked milestone/Focus/Value/condition history, backup validation, and source-change protection. [M3 development acceptance](M3-DEVELOPMENT-ACCEPTANCE.md) documents completed scope. Hardware tests remain M7; M4 begins after green CI.
+**Development completion: 100% — VERIFIED (v0.20.2).** All 124 unit tests, full synthetic-book Chrome smoke, source and distribution audits passed in [GitHub Actions run 43600347014](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43600347014). Guided character creation, source-bound stage checks, career events, milestone/Focus/Value/condition history, backup validation and source-change safety are complete for the agreed build scope. [M3 acceptance checklist](M3-DEVELOPMENT-ACCEPTANCE.md) is closed. Device acceptance remains M7. **Next: M4.**
 
 **Build**
 - Drive the seven-step lifepath choices from validated private records, including the two career events, rather than merely offering free-text fields.

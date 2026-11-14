@@ -285,11 +285,13 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 
 ## v0.20.2 M3 final developer checks
 
-- [ ] Full private seven-stage guided lifepath composes a 56/16 character and retains every source record/page; missing/modified record refuses pure helper apply.
-- [ ] Finishing bounds, general stage constraints and legacy manual creation remain compatible.
-- [ ] Changing character sheet ratings/Values/Focuses clears `lifepath.appliedAt`, but not source refs or player drafts.
-- [ ] Focus refresh after Attribute/Discipline milestone is allowed once per completed mission, and refused if already swapped.
-- [ ] Character history/condition buttons open only matching source fingerprint, even if another PDF becomes the designated corebook.
-- [ ] Backup rejects duplicate or corrupt milestone/condition provenance before any destructive restore.
-- [ ] Campaign-only and private inclusive backup/restore retain progression and private choice IDs without licensed source text in default export.
-- [ ] Chrome test exercises post-mission advancement, Focus refresh, Value change, injury recovery, source/backup persistence and 390px width.
+- [x] Full private seven-stage guided lifepath composes a 56/16 character and retains every source record/page; missing/modified record refuses pure helper apply.
+- [x] Finishing bounds, general stage constraints and legacy manual creation remain compatible.
+- [x] Changing character sheet ratings/Values/Focuses clears `lifepath.appliedAt`, but not source refs or player drafts.
+- [x] Focus refresh after Attribute/Discipline milestone is allowed once per completed mission, and refused if already swapped.
+- [x] Character history/condition buttons open only matching source fingerprint, even if another PDF becomes the designated corebook.
+- [x] Backup rejects duplicate or corrupt milestone/condition provenance before any destructive restore.
+- [x] Campaign-only and private inclusive backup/restore retain progression and private choice IDs without licensed source text in default export.
+- [x] Chrome test exercises post-mission advancement, Focus refresh, Value change, injury recovery, source/backup persistence and 390px width.
+
+**Verified:** 2026-11-14 GitHub Actions run 43600347014, 124/124 unit tests and Chrome smoke. Physical device and manual accessibility remain M7.

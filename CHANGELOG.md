@@ -1,5 +1,5 @@
 ## [0.20.2] - 2026-11-14
-### M3 — Guided completion and progression hardening (100% candidate; CI required)
+### M3 — Guided completion and progression hardening (100%, CI verified)
 - Apply a complete guided character through a pure verifier that checks all seven confirmed private source selections independently of UI state.
 - Keep source bonuses and stage records intact while invalidating applied-character status after manual sheet edits.
 - Support the rulebook's once-per-mission optional Focus change separately from a different milestone, but prevent a second Focus swap after a Focus milestone.

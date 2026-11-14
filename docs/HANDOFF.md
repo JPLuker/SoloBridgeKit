@@ -298,3 +298,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `model.validateBundle()` now checks development records and rejects invalid source pages/SHAs or duplicate history IDs before restore.
 - Unit and Chrome smoke test full guided source path, milestone and Focus after mission, manual edits, mobile-width UI, campaign-only and private full backup restore.
 - [M3 acceptance checklist](M3-DEVELOPMENT-ACCEPTANCE.md) describes scope and limitations. **Only close M3 after v0.20.2 CI passes.** Next M4 ship/crew enhancements; device checks stay M7.
+
+## M3 FINAL VERIFIED HANDOFF — v0.20.2
+
+- M3 developer completion is **100%** under the owner-approved build-only definition. [GitHub Actions run 43600347014](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43600347014) passed **124/124 unit tests**, full headless Chrome book/character/mission/backup smoke, source checks and distribution copyright audit.
+- Final source-related limitation: the application enforces confirmed typed bonuses, general stage and finishing constraints; unique per-option restrictions not explicitly encoded in the user's private book data still require manual source review. It never invents restrictions or official content.
+- Character source data and development history remain local/user-owned; normal backups omit all imported book text; source-page history uses exact PDF SHA.
+- No planned M3 development backlog. Correct regressions if found, but proceed directly to M4 ship/station/crew work. Real-device acceptance stays M7.
