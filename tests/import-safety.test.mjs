@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { File } from 'node:buffer';
-import { prepareImportBatch, storageMessage, checkStorageCapacity } from '../import-safety.mjs';
+import { prepareImportBatch, storageMessage, checkStorageCapacity, relinkDocument } from '../import-safety.mjs';
 
 const valid = (name = 'example.pdf') => new File(['%PDF-1.7\nexample'], name, { type: 'application/pdf' });
 const make = () => 'new-private-id';
@@ -47,4 +47,33 @@ test('storage failures produce actionable messages', () => {
   assert.match(storageMessage({ name: 'QuotaExceededError' }), /out of site storage/);
   assert.match(storageMessage({ name: 'SecurityError' }), /Local storage is unavailable/);
   assert.match(storageMessage({ name: 'AbortError' }), /cancelled/);
+});
+
+test('relink with identical book fingerprint preserves private source options and bookmarks', async () => {
+  const sha = 'a'.repeat(64);
+  const old = { id: 'doc1', name: 'old.pdf', blob: valid('old.pdf'), bookPack: { sourceSha256: sha },
+    bookmarks: [{ label: 'My note', page: 3 }], options: [{ label: 'Private user data' }] };
+  const file = valid('restored.pdf');
+  const updated = await relinkDocument(old, file, { fingerprint: async () => sha });
+  assert.equal(updated.id, old.id);
+  assert.equal(updated.blob, file);
+  assert.equal(updated.bookPack, old.bookPack);
+  assert.deepEqual(updated.bookmarks, old.bookmarks);
+  assert.deepEqual(updated.options, old.options);
+  assert.equal(old.blob.name, 'old.pdf');
+});
+test('different edition cannot replace existing private data', async () => {
+  const sha = 'a'.repeat(64);
+  const old = { id: 'doc1', blob: valid('old.pdf'), bookPack: { sourceSha256: sha },
+    bookmarks: [{ label: 'Preserve', page: 10 }] };
+  await assert.rejects(() => relinkDocument(old, valid('different.pdf'), {
+    fingerprint: async () => 'b'.repeat(64)
+  }), /does not match/);
+  assert.equal(old.bookmarks[0].page, 10);
+});
+test('relink a lost blob from its existing private index fingerprint', async () => {
+  const sha = 'a'.repeat(64);
+  const old = { id: 'doc1', name: 'lost.pdf', bookPack: { sourceSha256: sha } };
+  const result = await relinkDocument(old, valid('restored.pdf'), { fingerprint: async () => sha });
+  assert.equal(result.name, 'restored.pdf');
 });

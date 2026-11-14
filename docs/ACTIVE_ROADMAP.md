@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.1 adds real-browser PDF-inclusive backup/restore, corrupt-source rejection and transaction rollback tests to the atomic import and storage-quota work. M1 remains open for reimport/replacement, interrupted import, offline upgrade and physical-device checks.
+**Progress:** v0.17.2 adds SHA-256-verified PDF reattachment and source-replacement protection. M1 remains open for interrupted extraction and offline update recovery, plus physical-device checks.
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

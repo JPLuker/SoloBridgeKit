@@ -162,3 +162,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/browser-smoke.mjs` tests real browser download/restore of a synthetic private PDF+index backup, data-only restore retaining local PDFs, corrupt private-index restore rejection, and true IndexedDB transaction rollback.
 - `import-safety.storageMessage()` retains calculated storage estimate information when a preflight check fails.
 - Remaining M1: explicit source replacement/reimport, interrupted import and offline service-worker upgrade tests, then physical-device acceptance.
+
+## v0.17.2 — M1 source reattachment
+
+- `import-safety.relinkDocument()` verifies a reattached PDF's SHA-256 against the existing prepared book or original PDF blob. A mismatch throws before changing IndexedDB.
+- `app.mjs` exposes **Reattach the same PDF** for each imported document. The in-place write preserves all existing private content and the original document ID.
+- Browser smoke and unit tests cover same-source reattachment and different-source rejection. Next: cancellation during long extraction and offline updates.

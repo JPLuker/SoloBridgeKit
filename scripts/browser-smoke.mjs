@@ -250,6 +250,26 @@ try {
   check(restored.docs === libraryCount && restored.pages === 210 &&
     restored.campaigns.includes('Synthetic test campaign'),
     'A valid private backup failed to restore its campaign and book index.');
+  // Exact-file reattachment preserves source-derived data and refuses a different PDF.
+  await navigate('Library');
+  await heading('Library');
+  const sameFileInput = await page.$('input[aria-label="Reattach PDF file"]');
+  check(sameFileInput, 'The PDF reattachment control was missing.');
+  await sameFileInput.uploadFile(pdfPath);
+  await waitForSave('Matching PDF reattached.');
+  const differentPdfPath = join(process.cwd(), output, 'different-edition.pdf');
+  writeFileSync(differentPdfPath, '%PDF-1.4\nThis is deliberately not the original synthetic book.');
+  await (await page.$('input[aria-label="Reattach PDF file"]')).uploadFile(differentPdfPath);
+  await waitForSave('does not match the original book');
+  const afterRelink = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const docs = await all('documents');
+    return { count: docs.length, pages: docs.find(d => d.role === 'corebook')?.bookPack?.pages?.length };
+  });
+  check(afterRelink.count === libraryCount && afterRelink.pages === 210,
+    'A different edition replaced the original local book or invalidated the index.');
+  rmSync(differentPdfPath, { force: true });
+
 
   await navigate('Home');
   await page.evaluate(() => navigator.serviceWorker.ready);
@@ -270,6 +290,7 @@ try {
   if (browser) await browser.close().catch(() => {});
   rmSync(join(output, 'temporary-synthetic.pdf'), { force: true });
   rmSync(join(output, 'invalid-synthetic.pdf'), { force: true });
+  rmSync(join(output, 'different-edition.pdf'), { force: true });
   for (const name of ['synthetic-private-backup.json', 'synthetic-corrupt-backup.json', 'synthetic-campaign-backup.json'])
     rmSync(join(output, name), { force: true });
   server.kill();

@@ -1,7 +1,7 @@
 import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
 import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically } from './storage.mjs';
-import { prepareImportBatch, storageMessage, assertNotCancelled } from './import-safety.mjs';
+import { prepareImportBatch, storageMessage, assertNotCancelled, relinkDocument, checkStorageCapacity } from './import-safety.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
 import { taskDifficulty, applyTaskOutcome, spendMomentum, spendThreat } from './resources.mjs';
@@ -1055,6 +1055,24 @@ function renderLibrary() {
       }
     }, 'secondary');
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
+    const relinkInput = el('input', { type: 'file', accept: '.pdf,application/pdf',
+      'aria-label': 'Reattach PDF file' });
+    relinkInput.addEventListener('change', async () => {
+      const selected = relinkInput.files?.[0];
+      if (!selected) return;
+      try {
+        const latest = await get('documents', document.id);
+        if (!latest) throw new Error('The imported document no longer exists.');
+        const replacement = await relinkDocument(latest, selected);
+        await checkStorageCapacity([selected]);
+        await put('documents', replacement);
+        state.openDocumentId = document.id;
+        await refresh();
+        notify('Matching PDF reattached. Bookmarks and private choices preserved.');
+      } catch (error) {
+        failure(error);
+      } finally { relinkInput.value = ''; }
+    });
     const prepared = role === 'corebook' && Boolean(document.bookPack);
     const privatePackInput = el('input', { type: 'file', accept: '.json,application/json',
       'aria-label': 'Import locally prepared corebook data' });
@@ -1133,7 +1151,9 @@ function renderLibrary() {
         ])
       ]), ...(role === 'corebook' ? [
         el('label', { class: 'field' }, [el('span', { text: prepared ? 'Replace private rules index' : 'Import private rules index' }), privatePackInput])
-      ] : []), details
+      ] : []),
+      el('label', { class: 'field' }, [el('span', { text: 'Reattach the same PDF (preserves bookmarks and compiled data)' }), relinkInput]),
+      details
     ]));
   }
   root.append(card([el('h2', { text: 'My PDFs' }), list]));
@@ -1540,7 +1560,7 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.2' })]));
   return root;
 }
 

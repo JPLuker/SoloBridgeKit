@@ -151,3 +151,9 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Full private backup restores both campaign state and source PDF/index.
 - [ ] Full private backup with modified source fingerprint rejects before mutating IndexedDB.
 - All automated tests run with generated synthetic PDFs; actual 2026 owner PDF remains an outstanding private acceptance test.
+
+## v0.17.2 source replacement tests
+
+- [ ] Reattach the same source file: the ID and private index remain valid.
+- [ ] Attempt to reattach a different PDF/edition: reject it, leave the current book and campaign intact, allow separately importing the new edition.
+- [ ] Recover a missing blob from a valid existing PDF fingerprint without losing bookmarks.

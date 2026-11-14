@@ -1,3 +1,10 @@
+## [0.17.2] - 2026-11-13
+### M1 — Source-replacement integrity
+- Reattach existing source PDFs only if their SHA-256 fingerprint matches the saved book.
+- Preserve the document ID, bookmarks, private rules index, tables, choices and ship templates.
+- Reject a different PDF/edition without modifying existing data, and instruct the user to import it separately.
+- Add source-relink tests and browser coverage for same-file success and different-file refusal.
+
 ## [0.17.1] - 2026-11-13
 ### M1 — Restore integrity
 - Browser automation now downloads private full backups and restores both data-only and PDF-inclusive backups.

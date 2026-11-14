@@ -83,3 +83,25 @@ export async function prepareImportBatch(files, {
   assertNotCancelled(signal);
   return records; // Caller commits ALL records in one transaction.
 }
+
+export async function relinkDocument(existing, file, { fingerprint } = {}) {
+  if (!existing || typeof existing.id !== 'string' || !existing.id)
+    throw new Error('Choose an existing imported document.');
+  if (!file || typeof file.name !== 'string' || typeof file.slice !== 'function' ||
+      !(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+    throw new Error('Choose a PDF file to reattach.');
+  }
+  const header = new TextDecoder().decode(await file.slice(0, 5).arrayBuffer());
+  if (header !== '%PDF-') throw new Error('The replacement file is not a PDF.');
+  const getSha = fingerprint ?? (await import('./book-data.mjs')).pdfSha256;
+  const expected = existing.bookPack?.sourceSha256 ??
+    (existing.blob && existing.blob.size >= 5 ? await getSha(existing.blob) : null);
+  if (!expected) throw new Error('Cannot verify this document. Import the PDF as a separate book instead.');
+  const actual = await getSha(file);
+  if (actual !== expected) {
+    throw new Error('This PDF does not match the original book. Import it as a separate document; existing rules and bookmarks were not changed.');
+  }
+  // Preserve everything authored/compiled from the original source, including its ID.
+  return { ...existing, blob: file, name: file.name, size: file.size,
+    reattachedAt: new Date().toISOString() };
+}

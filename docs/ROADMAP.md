@@ -183,3 +183,8 @@
 
 - Browser regression for full PDF-inclusive backup/restore, data-only restore preservation, corrupt-source rejection and IndexedDB transaction rollback, all using synthetic noncommercial content.
 - Source reimport/replacement and offline app upgrade remain in M1. See active milestone criteria.
+
+## v0.17.2 — M1 safe source recovery
+
+- Exact-byte reattachment of missing/moved PDF files retains their privately compiled data, bookmarks and campaigns.
+- Different PDFs are rejected instead of overwriting options from another edition; import different books separately.
