@@ -272,3 +272,13 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Manual editing changes source state without removing user notes.
 - [ ] Finishing totals/caps plus all seven verified source selections are required for guided application.
 - [ ] Chrome smoke uses only synthetic confirmed choices; no licensed catalogs in dist.
+
+## v0.20.1 M3 advancement tests
+
+- [ ] Only completed missions permit one optional milestone action; repeated milestone for same mission is refused.
+- [ ] Attribute and Discipline shifts conserve totals, obey 7–12/1–5 ranges and one-at-12/one-at-5 rules.
+- [ ] Focus replacement changes exactly one of six Focuses, preserving all other authored data.
+- [ ] Challenged-value replacement requires explicit confirmation and preserves four Values.
+- [ ] Player-named injury/status is stored with source p.214 without changing mechanical ratings.
+- [ ] Legacy characters gain empty development lists and all changes survive local backup/reload.
+- [ ] Synthetic browser test completes a mission and uses the character-development UI at phone width.

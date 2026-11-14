@@ -287,6 +287,58 @@ try {
     'Campaign journal omitted saved character or mission content.');
   check(!campaignMarkdown.includes('Synthetic sample page lifepath mission'),
     'Campaign journal leaked private indexed book content.');
+
+  // M3: completed-mission character development uses the source-verified
+  // 2026 milestone actions, and injury status stays narrative-only.
+  await navigate("Captain's log");
+  await clickText('Complete mission');
+  await page.evaluate(async () => {
+    const { all, saveCampaign } = await import('./storage.mjs');
+    const campaign=(await all('campaigns'))[0];
+    const char=campaign.character;
+    char.attributes={control:'12',daring:'10',fitness:'9',insight:'9',presence:'8',reason:'8'};
+    char.disciplines={command:'5',conn:'3',security:'2',engineering:'2',science:'2',medicine:'2'};
+    char.values='Value One\nValue Two\nValue Three\nValue Four';
+    char.focuses='Focus One\nFocus Two\nFocus Three\nFocus Four\nFocus Five\nFocus Six';
+    await saveCampaign(campaign);
+  });
+  await page.reload({waitUntil:'networkidle0'});
+  await navigate('Character');
+  await page.select('select[aria-label="Milestone adjustment"]','attribute-shift');
+  await page.select('select[name=from]','control');
+  await page.select('select[name=to]','reason');
+  await clickText('Record milestone');
+  await waitForSave('Character milestone recorded.');
+  await page.type('input[name=newValue]','Value One evolved');
+  await page.$eval('input[name=challenged]',node=>node.click());
+  await clickText('Record changed value');
+  await waitForSave('Challenged value replaced.');
+  await page.type('input[name=label]','Synthetic recurring injury');
+  await clickText('Add condition');
+  await waitForSave('Condition saved.');
+  await clickText('Mark recovering');
+  await waitForSave('Condition updated.');
+  const development = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const char = (await all('campaigns'))[0].character;
+    return { history: char.development?.history?.length, conditions: char.development?.conditions?.length,
+      conditionState: char.development?.conditions?.[0]?.state,
+      attrs: char.attributes, sourcePage: char.development?.history?.[0]?.sourcePage,
+      valueUpdated: char.values.includes('Value One evolved') };
+  });
+  check(development.history === 2 && development.conditions === 1 &&
+    development.conditionState === 'recovering' &&
+    development.attrs.control === '11' && development.attrs.reason === '9' &&
+    development.sourcePage === 142 && development.valueUpdated,
+    'Character development failed to persist source-linked advancement, values, or injury status.');
+  await page.setViewport({width:390,height:844,deviceScaleFactor:1});
+  const characterGeometry = await page.evaluate(() => ({
+    viewport:innerWidth, width:document.documentElement.scrollWidth
+  }));
+  check(characterGeometry.width <= characterGeometry.viewport+4,
+    'M3 character development controls exceed the phone viewport.');
+  await page.screenshot({path:join(output,'phone-character-development.png'),fullPage:true});
+  await page.setViewport({width:1280,height:720,deviceScaleFactor:1});
   await navigate('Settings');
   await heading('Settings');
   await clickText('Export backup');

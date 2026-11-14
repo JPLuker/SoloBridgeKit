@@ -13,7 +13,7 @@ const application = [
   'index.html', 'styles.css', 'app.mjs', 'storage.mjs', 'model.mjs',
   'lifepath.mjs', 'missions.mjs', 'resources.mjs', 'shipbuilder.mjs',
   'bookmarks.mjs', 'rollhistory.mjs', 'content-policy.mjs',
-  'book-data.mjs', 'browser-compiler.mjs', 'private-tables.mjs', 'private-options.mjs', 'private-ships.mjs', 'compiler-data.mjs', 'character-guidance.mjs', 'mission-actions.mjs', 'campaign-export.mjs', 'import-safety.mjs', 'recovery.mjs', 'manifest.webmanifest', 'sw.js'
+  'book-data.mjs', 'browser-compiler.mjs', 'private-tables.mjs', 'private-options.mjs', 'private-ships.mjs', 'compiler-data.mjs', 'character-guidance.mjs', 'character-development.mjs', 'mission-actions.mjs', 'campaign-export.mjs', 'import-safety.mjs', 'recovery.mjs', 'manifest.webmanifest', 'sw.js'
 ];
 for (const name of application) copyFileSync(join(root, name), join(output, name));
 copyFileSync(join(pdfjs, 'build', 'pdf.min.mjs'), join(output, 'vendor', 'pdf.mjs'));

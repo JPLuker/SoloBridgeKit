@@ -1,3 +1,12 @@
+## [0.20.1] - 2026-11-14
+### M3 — Source-grounded character development (70% of development)
+- Add post-mission milestone actions: legal Attribute shift, Discipline shift or Focus swap, limited to one milestone per mission.
+- Require an explicit completed mission and recorded player rationale; enforce rating floors/caps and 56/16 totals.
+- Add challenged-Value replacement with explicit user confirmation and source page 202.
+- Add persistent player-authored injury/condition notes and status progression without fabricated modifiers.
+- Preserve full character development log in data-only backups and refuse malformed/duplicate history records.
+- Add unit and Chrome tests for positive/negative milestones, condition recovery and phone layout.
+
 ## [0.20.0] - 2026-11-14
 ### M3 — Guided source provenance (30% of development)
 - Begin M3 after verified M2 development closure.

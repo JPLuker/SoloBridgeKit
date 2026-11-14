@@ -280,3 +280,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - New characters default to guided mode, legacy characters remain manual. Guided apply requires all seven source stages to match current confirmed records; finishing rules use existing lifepath validation.
 - Edited bonuses or missing source invalidate verified status without deleting notes; browser smoke exercises synthetic source provenance.
 - Next: character milestones, values/focus changes, injury status and progression history. Device tests remain M7.
+
+## v0.20.1 — M3 character milestones, values and conditions
+
+- `character-development.mjs` models source-verified 2026 mechanics: after a completed mission, optional one-of-three milestone adjustment (Attribute/Discipline -1/+1 or Focus exchange, source PDF p.142); challenged Value replacement (p.202); descriptive injury/condition tracking (p.214).
+- `model.createCharacter()` creates empty `development` history/conditions; `normalizeCampaign()` migrates legacy characters without discarding data.
+- `app.renderCharacterDevelopment()` offers completed-mission selection, source-page navigation, progression form, challenge confirmation, and active/recovering/resolved condition records. No invented XP, artificial stat penalties or AI story text.
+- Events carry SHA/page/mission ID, player note and before/after. The existing campaign backups preserve them.
+- Unit tests exercise floor/cap checks, same-mission duplicate refusal, source identity, challenged value consent, and condition updates. Chrome smoke includes progression and mobile layout. Next M3: audit full guided creation source/bonus integrity, stale-source handling, and final build-only acceptance.

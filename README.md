@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.20.0
+## Current build: 0.20.1
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -208,3 +208,7 @@ The private rules compiler is complete for **development scope**. It supports dr
 ### v0.20.0 — M3 guided lifepath provenance
 
 New character lifepath drafts begin in **Verified choices** mode, retaining the exact source PDF fingerprint, page, and confirmed private record ID for each selected stage (including both career events). Invalid source/stage combinations or mechanical bonus distributions are rejected before overwriting the draft. Edits and missing records visibly invalidate provenance. The guided path cannot be applied to the character sheet until all seven source-dependent stages retain confirmed, unchanged bonuses; finishing allocations still use the 2026 rulebook's caps. Existing/manual lifepaths can continue in manual mode and switch modes without deleting drafts. No official option catalogs are shipped.
+
+### v0.20.1 — Character development after missions
+
+Character sheets now provide source-linked, player-triggered progression: after a **completed mission**, an eligible character can record one milestone (transfer one point between Attributes or Disciplines within the 2026 caps, or exchange one Focus). Values challenged during a mission can be replaced with explicit confirmation. Players can also record ongoing injuries/conditions and move them through active, recovering and resolved states without automatic game penalties. Each development event stays in the private campaign history, with a source PDF fingerprint, original page, timestamp and mission ID. Older characters load with an empty development history; nothing is auto-applied or generated.

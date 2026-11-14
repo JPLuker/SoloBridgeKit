@@ -260,3 +260,9 @@
 - New character drafts use a verified mode that tracks original private choice IDs and PDF pages for each of the seven source-dependent steps.
 - Guided mode checks source identity and stage readiness while preserving older manual characters and interrupted drafts.
 - M3 development is underway; character progression remains to build.
+
+## v0.20.1 — M3 post-mission character advancement
+
+- Implemented optional character milestones, challenged Value changes, and narrative injury/condition records linked to source-book pages.
+- Mechanical progression changes enforce the 2026 book's rating limits and only run after a recorded completed mission. All history is saved as player data.
+- M3 remains open for final guided creation audit and backward compatibility tests.

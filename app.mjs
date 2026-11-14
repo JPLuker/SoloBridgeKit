@@ -18,6 +18,7 @@ import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus } from './character-guidance.mjs';
+import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition, updateCharacterCondition, normalizeCharacterDevelopment } from './character-development.mjs';
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
 const PAGES = [
@@ -290,9 +291,158 @@ function renderCharacter() {
       await persist(); notify('Character saved.');
     } catch (error) { failure(error); }
   });
-  root.append(form);
+  root.append(form, renderCharacterDevelopment(c));
   return root;
 }
+
+function renderCharacterDevelopment(character) {
+  const root = el('div', { class: 'form-stack' });
+  const corebook = state.documents.find(doc => doc.role === 'corebook' && doc.bookPack);
+  if (!corebook) return root;
+  const sha = corebook.bookPack.sourceSha256;
+  const completed = state.campaign?.episodes.filter(e => e.status === 'completed') ?? [];
+  const development = normalizeCharacterDevelopment(character.development);
+  const lines = source => String(source ?? '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  const makeSelect = (name, options, label) => {
+    const select = el('select', { name, 'aria-label': label });
+    options.forEach(([value, caption]) => select.append(el('option', { value, text: caption })));
+    return select;
+  };
+  const missionPicker = label => makeSelect('missionId',
+    completed.map(episode => [episode.id, episode.title]), label);
+  const milestone = card([el('h2', { text: 'Character development' }),
+    el('p', { class: 'hint', text: 'At the end of a completed mission, choose a milestone yourself. No automatic rewards or ratings changes.' }),
+    button('Open development rules · PDF page 142', () => openPdf(corebook, 142).catch(failure), 'secondary')]);
+  if (completed.length) {
+    const type = makeSelect('type', [
+      ['attribute-shift','Adjust attributes'], ['discipline-shift','Adjust disciplines'],
+      ['focus-swap','Swap one focus']], 'Milestone adjustment');
+    const from = el('div', { class: 'field' });
+    const to = el('div', { class: 'field' });
+    const form = el('form', { class: 'form-stack' }, [
+      el('label', { class: 'field' }, [el('span', { text: 'Completed mission' }), missionPicker('Milestone mission')]),
+      el('label', { class: 'field' }, [el('span', { text: 'Milestone action' }), type]),
+      el('div', { class: 'field-grid' }, [from, to]),
+      el('label', { class: 'field' }, [el('span', { text: 'Why this milestone occurred' }),
+        makeSelect('reason', [
+          ['value-used','A value influenced the mission'], ['value-challenged','A value was challenged'],
+          ['mission-outcome','The mission outcome was significant']], 'Milestone reason')]),
+      field('Your development note (optional)', 'note', '', { multiline: true }),
+      el('button', { type: 'submit', class: 'button primary', text: 'Record milestone' })
+    ]);
+    const fill = (parent, label, fieldName, entries, isText = false) => {
+      const control = isText ? el('input', { name: fieldName, type: 'text', maxlength: '120' }) :
+        makeSelect(fieldName, entries.map(item => [item, item]), label);
+      parent.replaceChildren(el('span', { text: label }), control);
+    };
+    const adjust = () => {
+      const kind = type.value;
+      const names = kind === 'attribute-shift' ? CHARACTER_ATTRIBUTES.map(n => n.toLowerCase()) :
+        kind === 'discipline-shift' ? CHARACTER_DISCIPLINES.map(n => n.toLowerCase()) :
+        lines(character.focuses);
+      fill(from, kind === 'focus-swap' ? 'Replace focus' : 'Reduce rating', 'from', names);
+      fill(to, kind === 'focus-swap' ? 'New focus' : 'Increase rating', 'to', names, kind === 'focus-swap');
+    };
+    type.addEventListener('change', adjust);
+    adjust();
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        const values = new FormData(form);
+        const missionId = String(values.get('missionId'));
+        const episode = state.campaign.episodes.find(e => e.id === missionId);
+        const next = applyCharacterMilestone(state.campaign.character, {
+          type: String(values.get('type')), from: String(values.get('from')), to: String(values.get('to'))
+        }, { missionId, missionComplete: episode?.status === 'completed',
+          sourcePdfSha256: sha, reason: String(values.get('reason')),
+          note: String(values.get('note') ?? '') });
+        state.campaign.character = next;
+        await persist();
+        notify('Character milestone recorded.');
+      } catch (error) { failure(error); }
+    });
+    milestone.append(form);
+    const values = lines(character.values);
+    if (values.length) {
+      const challenge = el('form', { class: 'form-stack' }, [
+        el('h3', { text: 'Replace a challenged value' }),
+        el('label', { class: 'field' }, [el('span', { text: 'Completed mission' }),
+          missionPicker('Value change mission')]),
+        el('label', { class: 'field' }, [el('span', { text: 'Original value' }),
+          makeSelect('oldValue', values.map(v => [v,v]), 'Value being replaced')]),
+        field('New value', 'newValue', '', { required: true }),
+        el('label', { class: 'field' }, [el('input', { type: 'checkbox', name: 'challenged' }),
+          el('span', { text: 'I challenged this value during the mission.' })]),
+        el('button', { class: 'button secondary', type: 'submit', text: 'Record changed value' }),
+        button('Open value rules · PDF page 202', () => openPdf(corebook, 202).catch(failure), 'secondary')
+      ]);
+      challenge.addEventListener('submit', async event => {
+        event.preventDefault();
+        try {
+          const data = new FormData(challenge);
+          const missionId = String(data.get('missionId'));
+          const episode = state.campaign.episodes.find(e => e.id === missionId);
+          const next = replaceChallengedValue(state.campaign.character, {
+            from: String(data.get('oldValue')), to: String(data.get('newValue'))
+          }, { missionId, missionComplete: episode?.status === 'completed',
+            sourcePdfSha256: sha, challenged: data.has('challenged') });
+          state.campaign.character = next;
+          await persist(); notify('Challenged value replaced.');
+        } catch (error) { failure(error); }
+      });
+      milestone.append(challenge);
+    }
+  } else milestone.append(el('p', { class: 'muted', text: 'Complete a mission to record a character milestone or replace a challenged value.' }));
+  if (development.history.length) {
+    const log = el('div', { class: 'document-list' });
+    for (const entry of [...development.history].reverse()) {
+      log.append(el('div', { class: 'document-item' }, [
+        el('strong', { text: entry.type + ' · ' + (state.campaign.episodes.find(e=>e.id===entry.missionId)?.title || 'Previous mission') }),
+        el('p', { class: 'hint', text: entry.note || 'Player-recorded change' }),
+        button('Open original source · page ' + entry.sourcePage,
+          () => openPdf(corebook, entry.sourcePage).catch(failure), 'secondary')
+      ]));
+    }
+    milestone.append(el('h3', { text: 'Development history' }), log);
+  }
+  root.append(milestone);
+  const conditionCard = card([el('h2', { text: 'Injuries and ongoing conditions' }),
+    el('p', { class: 'hint', text: 'Record your own injury or condition details. No penalties are applied automatically.' }),
+    button('Open injury rules · PDF page 214', () => openPdf(corebook, 214).catch(failure), 'secondary')]);
+  const conditionForm = el('form', { class: 'form-stack' }, [
+    field('Condition', 'label', '', { required: true }),
+    field('Notes', 'notes', '', { multiline: true }),
+    el('button', { type: 'submit', class: 'button secondary', text: 'Add condition' })
+  ]);
+  conditionForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    try {
+      const data = new FormData(conditionForm);
+      state.campaign.character = addCharacterCondition(state.campaign.character, {
+        label: String(data.get('label')), notes: String(data.get('notes') ?? '')
+      }, { sourcePdfSha256: sha });
+      await persist(); notify('Condition saved.');
+    } catch (error) { failure(error); }
+  });
+  conditionCard.append(conditionForm);
+  for (const condition of development.conditions) {
+    const update = condition.state === 'active' ? 'recovering' :
+      condition.state === 'recovering' ? 'resolved' : 'active';
+    conditionCard.append(el('div', { class: 'document-item' }, [
+      el('strong', { text: condition.label + ' · ' + condition.state }),
+      el('p', { class: 'muted', text: condition.notes || 'No notes' }),
+      button(update === 'active' ? 'Reopen' : update === 'recovering' ? 'Mark recovering' : 'Mark resolved', async () => {
+        try {
+          state.campaign.character = updateCharacterCondition(state.campaign.character, condition.id, update);
+          await persist(); notify('Condition updated.');
+        } catch (error) { failure(error); }
+      }, 'secondary')
+    ]));
+  }
+  root.append(conditionCard);
+  return root;
+}
+
 function renderLifepath() {
   const root = el('div', { class: 'page' });
   root.append(title('Character lifepath'));
@@ -1882,7 +2032,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.20.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.20.1' })]));
   return root;
 }
 

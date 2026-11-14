@@ -26,6 +26,7 @@ export function createCharacter() {
     environment: '', earlyOutlook: '', education: '', careerLength: '',
     careerEvents: '', focuses: '', values: '', equipment: '',
     background: '', notes: '', lifepath: null,
+    development: { history: [], conditions: [] },
     attributes: emptyRatings(CHARACTER_ATTRIBUTES),
     disciplines: emptyRatings(CHARACTER_DISCIPLINES)
   };
@@ -47,7 +48,11 @@ export function normalizeCampaign(campaign) {
     ...campaign,
     character: {...createCharacter(), ...character,
       attributes: {...emptyRatings(CHARACTER_ATTRIBUTES), ...character.attributes},
-      disciplines: {...emptyRatings(CHARACTER_DISCIPLINES), ...character.disciplines}
+      disciplines: {...emptyRatings(CHARACTER_DISCIPLINES), ...character.disciplines},
+      development: { history: Array.isArray(character.development?.history)
+        ? character.development.history : [],
+        conditions: Array.isArray(character.development?.conditions)
+          ? character.development.conditions : [] }
     },
     ship: {...createShip(), ...ship,
       systems: {...emptyRatings(SHIP_SYSTEMS), ...ship.systems},
