@@ -263,3 +263,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - Full real-device and owner-book browser acceptance is deferred to M7.
 
 **Verification:** GitHub Actions run 43540777249 passed 111 unit tests, full Chrome synthetic PDF workflow, distribution audit. Physical-device checks remain M7.
+
+## v0.20.0 M3 lifepath provenance
+
+- [ ] New player starts in guided mode, while saved/manual characters remain editable.
+- [ ] Selecting a confirmed species option stores only verified bonuses, record ID, PDF SHA and page.
+- [ ] Source/stage mismatch, impossible bonus pattern or missing record cannot remain verified.
+- [ ] Manual editing changes source state without removing user notes.
+- [ ] Finishing totals/caps plus all seven verified source selections are required for guided application.
+- [ ] Chrome smoke uses only synthetic confirmed choices; no licensed catalogs in dist.

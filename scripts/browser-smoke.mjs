@@ -187,7 +187,7 @@ try {
     const sha = doc.bookPack.sourceSha256, count = doc.bookPack.pageCount;
     const entries = [
       { id:'synthetic-life',kind:'lifepath',label:'Synthetic lifepath choice',
-        payload:{stepId:'species',record:{attributes:{control:1},disciplines:{command:1},
+        payload:{stepId:'species',record:{attributes:{control:1,daring:1,fitness:1},disciplines:{},
           value:'',focuses:'',notes:'Synthetic confirmation'}} },
       { id:'synthetic-ship',kind:'ship-class',label:'Synthetic ship class',
         payload:{kind:'starship',era:'Synthetic testing era',scale:4,
@@ -224,6 +224,21 @@ try {
   await clickText('Create campaign');
   await waitForSave('Campaign created.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic test campaign'));
+  await navigate('Character');
+  await clickText('Guided lifepath');
+  await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Character lifepath'), { timeout: 15000 });
+  check(await page.$eval('#content', node => node.textContent.includes('Verified choices · 0/7')),
+    'New characters should default to verified-guidance mode.');
+  await clickText('Apply saved choice');
+  await waitForSave('Verified source choice applied.');
+  const linkedStage = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const campaign = (await all('campaigns'))[0];
+    return campaign.character.lifepath?.stages?.species;
+  });
+  check(linkedStage?.sourceRef?.recordId === 'synthetic-life' &&
+    linkedStage?.attributes?.control === 1 && linkedStage?.attributes?.daring === 1,
+    'Guided selection did not persist the original source record and its exact verified bonuses.');
   await navigate('Character');
   await heading('Character');
   await page.type('input[name=name]', 'Synthetic Officer');

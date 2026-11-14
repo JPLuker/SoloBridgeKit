@@ -17,6 +17,7 @@ import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateSh
 import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
+import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus } from './character-guidance.mjs';
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
 const PAGES = [
@@ -298,9 +299,34 @@ function renderLifepath() {
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const c = state.campaign.character;
   const path = normalizeLifepath(c.lifepath || createLifepath());
+  // New players start in verified-guidance mode. Existing saved characters
+  // remain manual unless they deliberately choose verified guidance.
+  if (!c.lifepath) path.mode = 'guided';
   const current = LIFEPATH_STEPS[state.lifepathIndex] || LIFEPATH_STEPS[0];
   const saved = path.stages[current.id];
   const review = lifepathReview(path);
+  const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
+  const catalog = corebook ? combinedPrivateCatalog(corebook, 'lifepath', current.id) : [];
+  const allOptions = corebook ? LIFEPATH_STEPS.filter(s => s.id !== 'finishing')
+    .flatMap(s => combinedPrivateCatalog(corebook, 'lifepath', s.id)) : [];
+  const provenance = auditGuidedLifepath(path, allOptions, corebook?.bookPack?.sourceSha256);
+  const modePanel = card([
+    el('h2', { text: 'Creation method' }),
+    el('p', { class: 'muted', text: path.mode === 'guided'
+      ? `Verified choices · ${provenance.count}/${provenance.total} stages sourced from your book`
+      : 'Manual lifepath · existing choices and drafts are preserved.' }),
+    button(path.mode === 'guided' ? 'Use manual lifepath' : 'Use verified choices', async () => {
+      try {
+        const next = readStep();
+        path.stages[current.id] = { ...next, sourceRef: saved.sourceRef };
+        path.mode = path.mode === 'guided' ? 'manual' : 'guided';
+        path.appliedAt = null;
+        c.lifepath = path;
+        await persist();
+        notify('Creation method updated. All entered data was preserved.');
+      } catch (error) { failure(error); }
+    }, 'secondary')
+  ]);
   const nav = el('div', { class: 'step-navigation', 'aria-label': 'Lifepath steps' });
   const form = el('form', { class: 'form-stack' });
   const readStep = () => {
@@ -308,7 +334,8 @@ function renderLifepath() {
     const bonuses = prefix => Object.fromEntries((prefix === 'attribute' ? CHARACTER_ATTRIBUTES : CHARACTER_DISCIPLINES)
       .map(name => [name.toLowerCase(), Number(raw[`${prefix}_${name.toLowerCase()}`] || 0)]));
     return { choice: String(raw.choice || ''), attributes: bonuses('attribute'), disciplines: bonuses('discipline'),
-      value: String(raw.value || ''), focuses: String(raw.focuses || ''), notes: String(raw.notes || '') };
+      value: String(raw.value || ''), focuses: String(raw.focuses || ''), notes: String(raw.notes || ''),
+      sourceRef: saved.sourceRef ?? null };
   };
   const report = el('div', { class: 'lifepath-validation', 'aria-live': 'polite' });
   const validateDraft = () => {
@@ -339,10 +366,9 @@ function renderLifepath() {
     buttonNode.textContent = `${step.title}${errors.length ? '' : ' ✓'}`;
     nav.append(buttonNode);
   }
-  root.append(nav);
-  const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
+  root.append(modePanel, nav);
   if (corebook && current.id !== 'finishing') {
-    const presets = combinedPrivateCatalog(corebook, 'lifepath', current.id);
+    const presets = catalog;
     if (presets.length) {
       const list = el('select', { 'aria-label': 'Saved private lifepath choice' });
       for (const option of presets)
@@ -357,11 +383,11 @@ function renderLifepath() {
               if (!option) throw new Error('Select a saved choice.');
               const existing = readStep();
               if (existing.choice && !confirm('Replace the current lifepath step with this saved choice?')) return;
-              path.stages[current.id] = applyPrivateOption(option, current.id);
-              path.appliedAt = null;
-              c.lifepath = path;
+              const updated = chooseVerifiedLifepathOption(path, current.id, option,
+                corebook.bookPack.sourceSha256, corebook.bookPack.pageCount);
+              c.lifepath = updated;
               await persist();
-              notify('Saved choice applied. Verify the step before continuing.');
+              notify('Verified source choice applied. Add any personalized value or focus before continuing.');
             } catch (error) { failure(error); }
           }),
           button('Open source page', () => {
@@ -373,6 +399,8 @@ function renderLifepath() {
     }
   }
   const selectRef = corebook || state.documents.find(d => /captain.*log.*(2026|solo)/i.test(d.name)) || state.documents[0];
+  const sourceState = current.id === 'finishing' ? 'not applicable' :
+    stageSourceStatus(saved, current.id, catalog, corebook?.bookPack?.sourceSha256);
   const heading = el('div', { class: 'row between' }, [
     el('h2', { text: current.title }),
     selectRef ? button(`Open PDF · page ${current.page}`, () => openPdf(selectRef, current.page).catch(failure), 'secondary') :
@@ -380,6 +408,9 @@ function renderLifepath() {
   ]);
   form.append(card([
     heading,
+    ...(current.id !== 'finishing' ? [el('p', { class: 'hint',
+      text: 'Source verification: ' + sourceState.replaceAll('-', ' ') +
+        (saved.sourceRef ? ' · PDF page ' + saved.sourceRef.page : '') })] : []),
     field(current.id === 'finishing' ? 'Final notes (optional)' : 'Selected option', 'choice', saved.choice),
     el('p', { class: 'hint', text: 'Use your purchased book for the legal option and its specific bonuses. The builder checks totals and final caps, not every species or career-event restriction.' }),
     ...(current.attributes ? [el('h2', { text: `Attribute bonuses · ${current.attributes} points` }),
@@ -450,6 +481,16 @@ function renderLifepath() {
         await saveStep();
         const latest = lifepathReview(c.lifepath);
         if (!latest.ready) throw new Error(latest.errors[0]);
+        if (c.lifepath?.mode === 'guided') {
+          const currentCatalog = corebook ? LIFEPATH_STEPS.filter(s => s.id !== 'finishing')
+            .flatMap(s => combinedPrivateCatalog(corebook, 'lifepath', s.id)) : [];
+          const verified = auditGuidedLifepath(c.lifepath, currentCatalog,
+            corebook?.bookPack?.sourceSha256);
+          if (!verified.ready) {
+            const first = Object.entries(verified.status).find(([, status]) => status !== 'verified');
+            throw new Error('Verify the source selection for ' + first[0] + ' (' + first[1] + ') before applying.');
+          }
+        }
         if (Object.values(c.attributes).some(v => v !== '') || Object.values(c.disciplines).some(v => v !== '')) {
           if (!confirm('Replace the current character ratings, values and focuses with the lifepath results?')) return;
         }
@@ -458,7 +499,7 @@ function renderLifepath() {
       } catch (error) { failure(error); }
     }, review.ready ? 'primary' : 'secondary')
   ]);
-  totals.querySelector('button').disabled = !review.ready;
+  totals.querySelector('button').disabled = !review.ready || (path.mode === 'guided' && !provenance.ready);
   root.append(totals);
   return root;
 }
@@ -1841,7 +1882,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.19.3' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.20.0' })]));
   return root;
 }
 

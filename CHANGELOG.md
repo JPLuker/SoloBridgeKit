@@ -1,3 +1,12 @@
+## [0.20.0] - 2026-11-14
+### M3 — Guided source provenance (30% of development)
+- Begin M3 after verified M2 development closure.
+- Persist confirmed private rulebook choice ID, SHA-256 and PDF page per lifepath stage, including both career events.
+- Reject choices with incompatible source/stage or invalid mechanical allocations.
+- New lifepaths begin guided and require all seven source-based selections before applying to a character.
+- Preserve manual/legacy and incomplete character drafts with explicit mode switching.
+- Show source status and PDF references, and add synthetic provenance unit and browser regressions.
+
 ## [0.19.3] - 2026-11-13
 ### M2 — Developer completion (100%, CI verified)
 - Completed typed private-data compiler workflow: page scanning, editable reviews, explicit confirmation, rejected candidates and original PDF references.

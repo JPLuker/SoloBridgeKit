@@ -58,6 +58,8 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M3. D&D Beyond-style character creation and progression
 
+**Development progress: 30% (v0.20.0, pending CI).** Guided private source selection and provenance for seven source-driven stages, guided-mode enforcement, and legacy draft preservation. Remaining: source-grounded progression, values/focus changes, injury status, and complete guided/regression testing.
+
 **Build**
 - Drive the seven-step lifepath choices from validated private records, including the two career events, rather than merely offering free-text fields.
 - Apply only source-verified bonuses and restrictions, enforce stage/final caps, and show where each value came from.

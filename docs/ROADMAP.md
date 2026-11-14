@@ -254,3 +254,9 @@
 - Versioned private game-data records, source provenance, unverified extraction, typed review and confirmation, talent references, and integrated verified lifepath/ship/table catalogs are implemented.
 - User-corrected data survives compiler revalidation and private PDF backup round trips. Tests cover source mismatch, stale status, ambiguous tables, negative confirmations and mobile layout.
 - M2 is complete for the agreed **build-only** definition once v0.19.3 CI is green. Physical-device acceptance remains assigned to M7.
+
+## v0.20.0 — M3 guided lifepath provenance
+
+- New character drafts use a verified mode that tracks original private choice IDs and PDF pages for each of the seven source-dependent steps.
+- Guided mode checks source identity and stage readiness while preserving older manual characters and interrupted drafts.
+- M3 development is underway; character progression remains to build.

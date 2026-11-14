@@ -272,3 +272,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `docs/M2-DEVELOPMENT-ACCEPTANCE.md` is complete. All real-device checks are explicitly deferred to M7; no planned M2 features remain.
 - Verified compiled records are reusable in lifepath choice selection, ship-class selection and mission table rolling. Talent records are local reference data only, not invented mechanics.
 - Next M3: guided character lifepath and progression driven by the compiled catalog; avoid revisiting M2 feature scope except for regressions/security/data-loss bugs.
+
+## v0.20.0 — M3 source-linked lifepath guidance
+
+- `character-guidance.mjs` verifies private choice stage/source and allocation pattern; `chooseVerifiedLifepathOption()` retains record ID/SHA/page in `lifepath.stages[step].sourceRef`.
+- `lifepath.normalizeLifepath()` preserves provenance and guided/manual mode without dropping legacy drafts.
+- New characters default to guided mode, legacy characters remain manual. Guided apply requires all seven source stages to match current confirmed records; finishing rules use existing lifepath validation.
+- Edited bonuses or missing source invalidate verified status without deleting notes; browser smoke exercises synthetic source provenance.
+- Next: character milestones, values/focus changes, injury status and progression history. Device tests remain M7.

@@ -19,8 +19,8 @@ const summaryNumbers = source => Object.values(source).reduce((s, n) => s + n, 0
 export function createLifepath() {
   return { stages: Object.fromEntries(LIFEPATH_STEPS.map(step => [step.id, {
     choice: '', attributes: keyed(CHARACTER_ATTRIBUTES), disciplines: keyed(CHARACTER_DISCIPLINES),
-    value: '', focuses: '', notes: ''
-  }])), appliedAt: null };
+    value: '', focuses: '', notes: '', sourceRef: null
+  }])), appliedAt: null, mode: 'manual' };
 }
 
 function numberMap(input, keys) {
@@ -45,10 +45,17 @@ export function normalizeLifepath(raw) {
       choice: String(saved.choice ?? ''),
       attributes: numberMap(saved.attributes, CHARACTER_ATTRIBUTES),
       disciplines: numberMap(saved.disciplines, CHARACTER_DISCIPLINES),
-      value: String(saved.value ?? ''), focuses: String(saved.focuses ?? ''), notes: String(saved.notes ?? '')
+      value: String(saved.value ?? ''), focuses: String(saved.focuses ?? ''), notes: String(saved.notes ?? ''),
+      sourceRef: saved.sourceRef && typeof saved.sourceRef === 'object' &&
+        typeof saved.sourceRef.recordId === 'string' &&
+        /^[a-f0-9]{64}$/.test(saved.sourceRef.sourceSha256 ?? '') &&
+        Number.isSafeInteger(saved.sourceRef.page) && saved.sourceRef.page > 0
+        ? { recordId: saved.sourceRef.recordId, sourceSha256: saved.sourceRef.sourceSha256,
+            page: saved.sourceRef.page, label: String(saved.sourceRef.label ?? '') } : null
     };
   }
-  return { ...blank, stages, appliedAt: raw?.appliedAt ?? null };
+  return { ...blank, stages, appliedAt: raw?.appliedAt ?? null,
+    mode: raw?.mode === 'guided' ? 'guided' : 'manual' };
 }
 
 export const focusLines = text => String(text).split(/\r?\n/).map(s => s.trim()).filter(Boolean);

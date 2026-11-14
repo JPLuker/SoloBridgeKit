@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.19.3
+## Current build: 0.20.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -204,3 +204,7 @@ Confirmed private lifepath choices, ship classes and random tables are now avail
 ### M2 build acceptance — v0.19.3
 
 The private rules compiler is complete for **development scope**. It supports draft extraction from the user's book, typed review, explicit confirmation/rejection, source-page references, source/schema revalidation, local persistence, player-verified catalog reuse across existing game screens and opt-in private backup recovery. It ships no extracted publisher content. See [docs/M2-DEVELOPMENT-ACCEPTANCE.md](docs/M2-DEVELOPMENT-ACCEPTANCE.md) for the finished build criteria. Physical Android/desktop testing and manual UX acceptance remain in M7 under the owner's requested separation of build and testing milestones.
+
+### v0.20.0 — M3 guided lifepath provenance
+
+New character lifepath drafts begin in **Verified choices** mode, retaining the exact source PDF fingerprint, page, and confirmed private record ID for each selected stage (including both career events). Invalid source/stage combinations or mechanical bonus distributions are rejected before overwriting the draft. Edits and missing records visibly invalidate provenance. The guided path cannot be applied to the character sheet until all seven source-dependent stages retain confirmed, unchanged bonuses; finishing allocations still use the 2026 rulebook's caps. Existing/manual lifepaths can continue in manual mode and switch modes without deleting drafts. No official option catalogs are shipped.
