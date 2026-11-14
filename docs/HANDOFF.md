@@ -426,3 +426,8 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Respect `docs/NO_LIST.md`: no separate tutorial tab, no invented rules/content, no bundled publisher data. User's longer interactive guided selection issue #3 stays open pending novice device test.
 
 - Beginner language now also reaches task dice and mission scenes: explains what actions require dice, what attributes/disciplines represent, and what scenes/acts mean before the controls. Synthetic Chrome smoke checks that the mission scene explanation is present. No extra tutorial page was added.
+
+## 2026-11-14 D&D Beyond product re-evaluation (review only)
+
+- Reviewed D&D Beyond official builder/Quickbuilder guidance against the current SoloBridgeKit source and authored `docs/DND-BEYOND-PRODUCT-REVIEW.md`. Root problem: first-time PDF preparation produces searchability but not a ready choice catalog; player must use low-level compiler before selection-first character/ship creation. Explanatory copy alone does not close this UX gap.
+- Created [issue #4](https://github.com/JPLuker/SoloBridgeKit/issues/4) for R1–R6: private source readiness, one-decision character flow, ship/playable sheets, contextual first mission, navigation, and novice acceptance. This is a planning handoff only: no product changes or usability signoff made. Issue #3 also stays open.
