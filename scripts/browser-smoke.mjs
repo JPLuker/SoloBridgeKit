@@ -211,10 +211,21 @@ try {
   await clickText('Review candidate');
   await page.type('textarea[name=description]', 'Privately confirmed synthetic talent description.');
   const compilerViewport = await page.evaluate(() => ({
-    viewport: innerWidth, width: document.documentElement.scrollWidth
+    viewport: innerWidth, width: document.documentElement.scrollWidth,
+    offenders: [...document.querySelectorAll('body *')].filter(element=>{
+      const rect=element.getBoundingClientRect();
+      const style=getComputedStyle(element);
+      return style.display!=='none' && style.visibility!=='hidden' &&
+        rect.width>0 && (rect.right>innerWidth+4 || rect.left<-4);
+    }).slice(0,12).map(element=>{
+      const rect=element.getBoundingClientRect();
+      return {tag:element.tagName,klass:String(element.className).slice(0,70),
+        left:Math.round(rect.left),right:Math.round(rect.right),
+        scrollWidth:element.scrollWidth,text:element.textContent?.slice(0,36)};
+    })
   }));
   check(compilerViewport.width <= compilerViewport.viewport + 4,
-    'The private compiler review form overflows the phone viewport.');
+    'The private compiler review form overflows the phone viewport: '+JSON.stringify(compilerViewport));
   await page.screenshot({ path: join(output, 'phone-compiler-review.png'), fullPage: true });
   await clickText('Confirm verified record');
   await waitForSave('Confirm that you checked these values');
