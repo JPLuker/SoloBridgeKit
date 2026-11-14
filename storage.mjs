@@ -183,6 +183,46 @@ async function commitCampaignSnapshot(campaign) {
 
 // Patch the latest stored document without resurrecting a removed source or
 // overwriting unrelated user metadata after long-running PDF preparation.
+
+export async function activatePreparedCorebook(id,pack,expectedGeneration){
+  const generation=expectedGeneration??await currentDataGeneration();
+  if(typeof id!=='string'||!id)throw new Error('Choose an imported corebook.');
+  validatePreparedDocumentPack(pack);
+  if(pack.format!=='solobridgekit-prepared-corebook')
+    throw new Error('A reference-only index cannot activate game rules.');
+  const source=await get('documents',id);
+  if(!source)throw new Error('The original PDF is no longer imported.');
+  await verifyPreparedBook(source.blob,pack);
+  const db=await database();
+  if(destructiveMutation)throw new Error('A backup restore is in progress.');
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(['documents','settings'],'readwrite');
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error??new Error('Corebook selection failed.'));
+    tx.onabort=()=>reject(tx.error??new Error('Corebook selection was rolled back.'));
+    const epoch=tx.objectStore('settings').get(EPOCH_KEY);
+    epoch.onsuccess=()=>{
+      if(!matchesGeneration(generation,epoch.result)||destructiveMutation){
+        reject(new Error('The library changed during corebook preparation. Retry safely.'));
+        tx.abort();return;
+      }
+      const store=tx.objectStore('documents');
+      const list=store.getAll();
+      list.onsuccess=()=>{
+        const chosen=list.result.find(d=>d.id===id);
+        if(!chosen){
+          reject(new Error('The PDF was removed before corebook activation.'));
+          tx.abort();return;
+        }
+        for(const doc of list.result){
+          if(doc.id===id)store.put({...doc,role:'corebook',bookPack:pack});
+          else if(doc.role==='corebook')store.put({...doc,role:'reference'});
+        }
+      };
+    };
+  });
+}
+
 export async function patchDocumentIfCurrent(id, changes, expectedGeneration) {
   if (!id || !changes || typeof changes !== 'object' || Array.isArray(changes))
     throw new Error('Invalid document update.');
