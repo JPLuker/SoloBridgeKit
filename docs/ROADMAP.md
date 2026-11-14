@@ -357,3 +357,7 @@
 - Owner feedback found that technical validation passed but the app did not adequately explain the choices required for play. Character and ship stages now provide questions, definitions and next actions; Home explains the first-adventure route; missing private option catalogs and first mission creation show actionable instructions. A D&D Beyond-comparable browse/select workflow still depends on source-verified private options and further UX acceptance.
 
 - Local previously confirmed character/ship choices now render as source-linked clickable selections; browser flow updated to assert these interactions.
+
+## v0.25.2 — New-player rulebook onboarding (pending CI)
+
+- Beginner-first contextual import: explain what a tabletop RPG and PDF rulebook are, default first file to main corebook, simplify the uploader, show readable progress and error recovery, then direct the player to create a campaign. Advanced supplement/form roles remain available without blocking first setup. Synthetic browser and unit coverage added; owner usability approval pending.
