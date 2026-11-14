@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateReferencePack, validatePreparedDocumentPack, REFERENCE_FORMAT,
   BOOK_FORMAT, BOOK_FORMAT_VERSION, hasPreparedCorebook } from '../book-data.mjs';
-import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary } from '../library-books.mjs';
+import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval } from '../library-books.mjs';
 
 const sha='d'.repeat(64);
 const small=()=>({format:REFERENCE_FORMAT,version:BOOK_FORMAT_VERSION,
@@ -52,4 +52,18 @@ test('library warnings describe absent and multiple prepared corebooks',()=>{
  assert.equal(diagnostic.readyCorebooks,2);
  assert.ok(diagnostic.warnings.some(text=>text.includes('Multiple')));
  assert.ok(diagnostic.warnings.some(text=>text.includes('indexed more than once')));
+});
+
+test('removing one document warns about source-linked campaigns without deleting their data',()=>{
+  const imported={id:'book-a',role:'corebook',bookPack:core()};
+  const other={id:'book-b',role:'supplement',bookPack:small()};
+  const campaigns=[{id:'campaign-a',episodes:[{entries:[{sourceSha256:'e'.repeat(64)}]}]},
+                   {id:'campaign-b',episodes:[{entries:[{text:'No source linked'}]}]}];
+  const result=summarizeDocumentRemoval(imported,[imported,other],campaigns);
+  assert.equal(result.campaignsWithSource,1);
+  assert.equal(result.lastPreparedCorebook,true);
+  assert.ok(result.warning.includes('campaign(s)'));
+  assert.ok(result.warning.includes('not deleted'));
+  assert.equal(campaigns.length,2);
+  assert.equal(summarizeDocumentRemoval(other,[imported,other],campaigns).lastPreparedCorebook,false);
 });
