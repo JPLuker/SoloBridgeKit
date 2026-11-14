@@ -215,6 +215,9 @@ export function validateBundle(bundle) {
     }
     normalizeBookmarks(d.bookmarks);
     normalizeDocumentRole(d.role);
+    if(d.sourceEdition!=null &&
+      (typeof d.sourceEdition!=='string'||d.sourceEdition.length>100))
+      throw new Error('The backup has invalid document edition metadata.');
     if (d.bookPack) {
       validatePreparedDocumentPack(d.bookPack);
       normalizePrivateTables(d.tables, d.bookPack.sourceSha256);
