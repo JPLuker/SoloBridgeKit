@@ -381,3 +381,8 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 ## M6 closed — 2026-11-14
 
 - Verified v0.23.0 in [CI #135](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648270644): all unit tests, source and packaged audits, synthetic PDF import/search, private backup/restore, corebook switching and offline Chrome smoke passed. See `docs/M6-DEVELOPMENT-ACCEPTANCE.md`. M1–M6 code development closed. **Next M7 automated accessibility/UX and device acceptance.**
+
+## M7 v0.24.0 accessibility and responsive check (pending CI)
+
+- Added `scripts/browser-accessibility.mjs`, run in CI after packaged Chrome smoke; tests 360/390/640/768/1280 CSS widths, keyboard focus, navigation with Enter, named buttons/inputs, mobile tap targets and landmarks. No game PDF or creative content in harness. 640px desktop CSS viewport approximates available space at 200% zoom, not real browser zoom acceptance.
+- Actual screen-reader behavior, mobile virtual keyboard/safe areas and the owner's full copyrighted PDF remain M7 device tasks. M6 verified in CI #135.
