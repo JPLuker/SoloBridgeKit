@@ -388,3 +388,8 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Actual screen-reader behavior, mobile virtual keyboard/safe areas and the owner's full copyrighted PDF remain M7 device tasks. M6 verified in CI #135.
 
 - M7 follow-up: check computed WCAG text contrast for light/dark surfaces and reduced-motion preference; verify standalone manifest, registered service-worker controller and offline shell reload. Newly added checks pending CI. Original keyboard/layout/a11y baseline passed CI #150.
+
+## M7 automated portion verified — 2026-11-14
+
+- CI #158 passed all source/unit/build/public audit, synthetic browser smoke and new a11y/contrast/offline/zoom-width gates. See `docs/M7-AUTOMATED-ACCEPTANCE.md`.
+- Physical M7 acceptance is OPEN, only owner with actual 336-page purchased book and devices can sign off. Keep GitHub issue #1 open. No 1.0/maintenance claim. Continue M8 code preparation.
