@@ -53,7 +53,7 @@ test('recompilation does not delete or silently trust old source records',()=>{
   const stale=revalidateCompiledRecords([confirmed],'b'.repeat(64),210);
   assert.equal(stale[0].status,'needs-review');
   assert.equal(stale[0].payload.description,'Verified');
-  assert.throws(()=>compiledCatalog(stale,'b'.repeat(64),210,'talent'),/missing or changed/);
+  assert.equal(compiledCatalog(stale,'b'.repeat(64),210,'talent').length,0);
 });
 test('upsert, rejection, duplicate detection, and removal retain source truth',()=>{
   const d=make(), r=reviewCompiledRecord(d,{status:'rejected'},sha,210);
