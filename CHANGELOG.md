@@ -1,4 +1,7 @@
-\n## v0.22.2 — M5 scene corrections (pending CI)\n\n- Preserve up to ten previous player-authored scene edits per mission and allow undo from the scene editor.\n- Keep dice history, story threads and private source material outside scene writing snapshots.\n- Add automated coverage for repeated corrections and restoration.\n## [0.22.1] - 2026-11-14
+\n## v0.22.2 — M5 scene corrections and linked-history protection (pending CI)
+
+- Prevent act scene-count reductions that would orphan task-roll, journal-entry or undo references.
+- Reject corrupted scene undo history during campaign restore; correct CI artifact version labels.\n\n- Preserve up to ten previous player-authored scene edits per mission and allow undo from the scene editor.\n- Keep dice history, story threads and private source material outside scene writing snapshots.\n- Add automated coverage for repeated corrections and restoration.\n## [0.22.1] - 2026-11-14
 ### M5 — Scene workspaces, player Values and story threads (65% development)
 - Add source-free, player-authored story-thread records with introduced/resolved scene IDs, notes, status changes, deletion and strict duplicate/scene validation.
 - Add per-scene Values used/challenged without overwriting the episode's act log.
