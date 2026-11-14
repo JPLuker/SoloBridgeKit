@@ -82,7 +82,7 @@ try {
     'The offline private-book verification utility failed on a synthetic source.');
   await input.uploadFile(pdfPath);
   await page.waitForFunction(() =>
-    document.querySelector('#content')?.textContent?.includes('Prepared corebook'), { timeout: 180000 });
+    document.querySelector('#content')?.textContent?.includes('corebook · prepared'), { timeout: 180000 });
   await page.screenshot({ path: join(output, 'phone-library.png'), fullPage: true });
   // A malformed second file must abort the WHOLE batch, preserving the prepared corebook.
   const libraryCount = await page.evaluate(async () => {
