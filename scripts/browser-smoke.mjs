@@ -242,6 +242,7 @@ try {
     node.textContent.includes('Review lifepath') &&
     node.textContent.includes('I verified these values against my own PDF') &&
     !!node.querySelector('.source-review-workspace form') &&
+    !!node.querySelector('.source-review-workspace .local-source-context') &&
     node.querySelector('details.source-preparation-tools')?.open===false),
     'R1 source confirmation must be visible without opening the technical compiler.');
   check(await page.$eval('#content',node=>
