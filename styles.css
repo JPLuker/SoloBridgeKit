@@ -58,3 +58,7 @@
 .page{grid-template-columns:minmax(0,1fr);min-width:0;width:100%}
 .page>.card,.page>.page-heading{min-width:0;max-width:100%}
 .source-preparation .document-item{min-width:0;overflow-wrap:anywhere}
+
+/* Private source headings may be unusually long; their controls must wrap. */
+.source-preparation .button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.source-preparation .document-item{max-width:100%;min-width:0}
