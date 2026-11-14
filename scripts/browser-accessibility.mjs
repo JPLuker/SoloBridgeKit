@@ -119,8 +119,8 @@ try{
     'The PWA manifest or offline service worker is not ready.');
   await page.setOfflineMode(true);
   await page.reload({waitUntil:'domcontentloaded',timeout:15000});
-  check(await page.evaluate(()=>!!document.querySelector('#content h1')),
-    'The packaged PWA failed to load its shell offline.');
+  await page.waitForFunction(()=>!!document.querySelector('#content h1'),{timeout:15000})
+    .catch(()=>{throw new Error('The packaged PWA failed to render its shell offline.');});
   await page.setOfflineMode(false);
   console.log('M7 packaged accessibility/layout/offline smoke passed: 360, 390, 640, 768, 1280px; focus, labels, contrast and navigation.');
 }finally{await browser?.close();server.kill();}
