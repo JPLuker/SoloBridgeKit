@@ -26,20 +26,35 @@ export function libraryBookStatus(document){
   }
 }
 
-export function libraryDiagnostics(documents){
+export function libraryDiagnostics(documents,campaigns=[]){
   const books=Array.isArray(documents)?documents:[];
   const statuses=books.map(document=>({id:document?.id,name:document?.name,
     ...libraryBookStatus(document)}));
   const corebooks=statuses.filter(book=>book.gameplay);
+  const availableShas=new Set(statuses.filter(book=>book.searchable).map(book=>book.sourceSha256));
+  const referenced=new Set();
+  const seen=new WeakSet();
+  function collect(node,depth=0){
+    if(!node||typeof node!=='object'||seen.has(node)||depth>12)return;
+    seen.add(node);
+    for(const key of ['sourceSha256','sourcePdfSha256']){
+      if(typeof node[key]==='string'&&/^[a-f0-9]{64}$/.test(node[key]))
+        referenced.add(node[key]);
+    }
+    for(const value of Object.values(node))collect(value,depth+1);
+  }
+  for(const campaign of campaigns??[])collect(campaign);
+  const missingSources=[...referenced].filter(sha=>!availableShas.has(sha));
   const duplicateSources=new Map();
   for(const book of statuses.filter(book=>book.searchable)){
     const key=book.sourceSha256;duplicateSources.set(key,(duplicateSources.get(key)??0)+1);
   }
-  return {books:statuses,readyCorebooks:corebooks.length,
+  return {books:statuses,readyCorebooks:corebooks.length,missingSources,
     warnings:[
       ...(corebooks.length===0?['No prepared corebook; game-dependent screens stay locked.']:[]),
       ...(corebooks.length>1?['Multiple prepared corebooks are present. Confirm which edition to use for source-dependent rules.']:[]),
-      ...([...duplicateSources.values()].some(count=>count>1)?['The same PDF has been indexed more than once.']:[])
+      ...([...duplicateSources.values()].some(count=>count>1)?['The same PDF has been indexed more than once.']:[]),
+      ...(missingSources.length?[`${missingSources.length} source fingerprint(s) referenced by your saved campaigns are missing from the prepared library. Reimport the corresponding PDF; campaign data is preserved.`]:[])
     ]};
 }
 
