@@ -235,6 +235,34 @@ try {
     node.textContent.includes('attributes: 1 of 3 points assigned') &&
     node.querySelector('input[name=attr_control]')?.value==='1'),
     'Plus button did not update the numeric field and live review totals.');
+  await page.$eval('input[aria-label="I verified the values against my own PDF"]',input=>input.click());
+  await clickText('Confirm verified record');
+  await waitForSave('This stage expects 3 points');
+  const noUnderallocatedRule=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    return (await all('documents')).find(x=>x.role==='corebook')?.compiledRecords?.length??0;
+  });
+  check(noUnderallocatedRule===0,'An underallocated source choice became confirmed.');
+  await clickText('Save draft');
+  await waitForSave('Private draft saved.');
+  check(await page.$eval('#content',node=>node.textContent.includes('Continue reviewing')),
+    'Saved source choice was not offered for future review.');
+  await page.reload({waitUntil:'networkidle0'});
+  await navigate('Library');
+  check(await page.$eval('#content',node=>node.textContent.includes('Continue reviewing')),
+    'Private source draft did not survive a browser restart.');
+  // Remove only the synthetic draft so pre-existing compiler counts and checks
+  // remain meaningful; the production feature never deletes it automatically.
+  await page.evaluate(async()=>{
+    const {all,mutateCompiledRecords,currentDataGeneration}=await import('./storage.mjs');
+    const doc=(await all('documents')).find(x=>x.role==='corebook');
+    const drafts=doc?.compiledRecords?.filter(x=>x.status==='draft'&&x.kind==='lifepath')??[];
+    for(const draft of drafts){
+      await mutateCompiledRecords(doc.id,{type:'remove',id:draft.id},await currentDataGeneration());
+    }
+  });
+  await navigate('Home');
+  await navigate('Library');
   await page.$eval('details.source-preparation-tools',element=>element.open=true);
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
   // usable after the player edits the fields and explicitly confirms the PDF.
