@@ -1,3 +1,10 @@
+## v0.26.1 — R1 draft recovery and beginner bonus review (pending CI)
+
+- Preserve and surface saved, unconfirmed source choices in their character/ship sections, with direct **Continue reviewing** actions.
+- Add clear +/− controls for lifepath attribute/discipline bonuses with live totals against the locally implemented stage point budget. Review still requires checking the private book; no bonuses are inferred or invented.
+- Keep the original numeric fields and guarded confirmation flow available. Add source-safe draft recovery/total tests and new synthetic Chrome interactions.
+- No publisher book text, options or derived data enters the public distribution.
+
 ## v0.26.0 — R1 private source readiness, first build (CI #283 verified)
 
 - Separate searchable PDF preparation from private, verified options needed for character and ship selection.
