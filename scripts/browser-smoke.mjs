@@ -757,7 +757,7 @@ try {
   // Multiple imported PDFs have identical reattachment control labels.
   // Always choose the corebook's picker, not the first PDF in the library.
   const corebookReattachInput = async () => {
-    for (const input of await page.$('input[aria-label="Reattach PDF file"]')) {
+    for (const input of await page.$$('input[aria-label="Reattach PDF file"]')) {
       const isCorebook = await input.evaluate(element =>
         element.closest('.document-item')?.querySelector('.list-row strong')?.textContent?.trim()
           === 'temporary-synthetic.pdf');
