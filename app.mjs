@@ -246,11 +246,19 @@ function renderHome() {
   }
   root.append(card([el('h2', { text: 'Campaigns' }), ...(state.campaigns.length ? [select] : [el('p', { class: 'muted', text: 'No campaigns yet.' })]), createForm]));
   if (state.campaign) {
+    const draftPath=normalizeLifepath(state.campaign.character.lifepath||createLifepath());
+    const nextCharacterStep=nextIncompleteCreationStep(draftPath,LIFEPATH_STEPS);
+    const characterApplied=Boolean(draftPath.appliedAt);
     root.append(card([
-      el('h2',{text:'Continue setting up'}),
-      el('p',{text:'Choose what to work on next. Each guided builder explains the decision before asking for information from your book.'}),
+      el('h2',{text:characterApplied?'Continue your adventure':'Continue creating your character'}),
+      el('p',{text:characterApplied
+        ? 'Your character is ready. You can set up your ship or continue your latest mission.'
+        : 'Your character draft is saved on this device. Pick up at the next unfinished decision. You do not have to restart.'}),
+      ...(!characterApplied?[el('p',{class:'hint',text:'Next character step: '+LIFEPATH_STEPS[nextCharacterStep].title})]:[]),
       el('div',{class:'actions'},[
-        button('Create character',()=>{state.lifepathIndex=0;go('lifepath');}),
+        button(characterApplied?'Review character':'Continue character',()=>{
+          state.lifepathIndex=characterApplied?0:nextCharacterStep;go('lifepath');
+        }),
         button('Set up ship',()=>{state.shipStep=0;go('shipbuilder');},'secondary'),
         button('Begin a mission',()=>go('log'),'secondary')
       ])
