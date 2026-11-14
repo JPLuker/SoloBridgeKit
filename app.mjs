@@ -23,7 +23,7 @@ import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
-import { verifiedChoicePreview, verifiedShipPreview, nextIncompleteCreationStep } from './guided-choice-preview.mjs';
+import { verifiedChoicePreview, verifiedShipPreview, nextIncompleteCreationStep, nextIncompleteShipStep } from './guided-choice-preview.mjs';
 import { soloPlayPrompt } from './solo-play-guidance.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
 import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
@@ -250,6 +250,9 @@ function renderHome() {
     const draftPath=normalizeLifepath(state.campaign.character.lifepath||createLifepath());
     const nextCharacterStep=nextIncompleteCreationStep(draftPath,LIFEPATH_STEPS);
     const characterApplied=Boolean(draftPath.appliedAt);
+    const shipDraft=normalizeShipBuilder(state.campaign.ship.builder||createShipBuilder());
+    const shipApplied=Boolean(shipDraft.appliedAt);
+    const nextShipStep=nextIncompleteShipStep(shipDraft);
     root.append(card([
       el('h2',{text:characterApplied?'Continue your adventure':'Continue creating your character'}),
       el('p',{text:characterApplied
@@ -260,7 +263,9 @@ function renderHome() {
         button(characterApplied?'Review character':'Continue character',()=>{
           state.lifepathIndex=characterApplied?0:nextCharacterStep;go('lifepath');
         }),
-        button('Set up ship',()=>{state.shipStep=0;go('shipbuilder');},'secondary'),
+        button(shipApplied?'Review ship':'Continue ship',()=>{
+          state.shipStep=shipApplied?0:nextShipStep;go('shipbuilder');
+        },'secondary'),
         button('Begin a mission',()=>go('log'),'secondary')
       ])
     ]));
