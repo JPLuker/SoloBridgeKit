@@ -186,6 +186,14 @@ try {
   const preparedLibraryCount=libraryCount+1;
   rmSync(shortPath,{force:true});
 
+  // R1: Source preparation must teach that indexed PDFs alone are not
+  // source-confirmed character choices, and shortcut to the selected page.
+  check(await page.$eval('#content', node=>node.textContent.includes('Prepare choices for your adventure')
+    && node.textContent.includes('0 of 8 sections have at least one confirmed choice')),
+    'R1 source preparation readiness was missing after importing an unreviewed PDF.');
+  const prepareAction=await page.$('#content button');
+  check(!!prepareAction,'Guided source actions were not rendered.');
+  await page.$eval('details.source-preparation-tools',element=>element.open=true);
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
   // usable after the player edits the fields and explicitly confirms the PDF.
   await page.select('select[aria-label="Compiler record type"]', 'talent');
@@ -226,8 +234,10 @@ try {
   check(confirmedCompiler.records === 1 && confirmedCompiler.status === 'confirmed' &&
     confirmedCompiler.source === confirmedCompiler.packSource,
     'The private compiler failed to save a validated source-bound record.');
+  await page.$eval('details.source-preparation-tools',element=>element.open=true);
   await clickText('Revalidate saved records');
   await waitForSave('Private records revalidated.');
+  await page.$eval('details.source-preparation-tools',element=>element.open=true);
   await page.select('select[aria-label="Compiler record type"]', 'talent');
   await clickText('Find candidates');
   await clickText('Review candidate');
