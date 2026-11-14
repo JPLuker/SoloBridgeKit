@@ -1885,7 +1885,7 @@ function renderLibrary() {
     ]));
   }
   root.append(card([el('h2', { text: 'My PDFs' }), list]));
-  const diagnostics=libraryDiagnostics(state.documents);
+  const diagnostics=libraryDiagnostics(state.documents,state.campaigns);
   if(diagnostics.warnings.length){
     root.append(el('p',{class:'hint',text:diagnostics.warnings.join(' ')}));
   }
