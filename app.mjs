@@ -1072,6 +1072,7 @@ function renderShipBuilder() {
     ]));
   }else form.append(shipEditor);
   const shipActions = el('div',{class:'actions'},[
+    button('Save step',()=>save().then(()=>notify('Ship setup saved.')).catch(failure),'secondary'),
     button('Save and exit',async()=>{
       try{await save();notify('Ship setup draft saved.');go('home');}catch(error){failure(error);}
     },'secondary'),
