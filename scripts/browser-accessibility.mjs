@@ -90,7 +90,8 @@ try{
         motion:matchMedia('(prefers-reduced-motion: reduce)').matches};
     });
     const luminance=value=>{
-      const hex=value.trim().replace('#','');
+      const raw=value.trim().replace('#','');
+      const hex=/^[0-9a-f]{3}$/i.test(raw)?raw.split('').map(char=>char+char).join(''):raw;
       if(!/^[0-9a-f]{6}$/i.test(hex))throw new Error('Invalid theme color token: '+value);
       const channels=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)/255)
         .map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);
