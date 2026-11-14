@@ -10,7 +10,7 @@ import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from 
 import { rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
 import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
-import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval } from './library-books.mjs';
+import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval, normalizeSourceEdition } from './library-books.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption, categoryForStep } from './private-options.mjs';
@@ -1751,6 +1751,19 @@ function renderLibrary() {
       }catch(error){failure(error);rebuildCorebook.disabled=false;rebuildCorebook.textContent=originalText;}
       finally{preparationController=null;cancelPreparation.hidden=true;}
     },'secondary');
+    const editionForm=el('form',{class:'inline-form book-edition'},[
+      field('Edition / version','sourceEdition',document.sourceEdition??'',{maxlength:100}),
+      el('button',{type:'submit',class:'button secondary',text:'Save edition'})
+    ]);
+    editionForm.addEventListener('submit',async event=>{
+      event.preventDefault();
+      try{
+        const edition=normalizeSourceEdition(String(new FormData(editionForm).get('sourceEdition')??''));
+        const generation=await currentDataGeneration();
+        await patchDocumentIfCurrent(document.id,{sourceEdition:edition},generation);
+        await refresh();notify('Book edition saved.');
+      }catch(error){failure(error);}
+    });
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
     const relinkInput = el('input', { type: 'file', accept: '.pdf,application/pdf',
       'aria-label': 'Reattach PDF file' });
@@ -1860,6 +1873,7 @@ function renderLibrary() {
         el('label', { class: 'field' }, [el('span', { text: prepared ? 'Replace private rules index' : 'Import private rules index' }), privatePackInput])
       ] : []),
       el('label', { class: 'field' }, [el('span', { text: 'Reattach the same PDF (preserves bookmarks and compiled data)' }), relinkInput]),
+      editionForm,
       details
     ]));
   }
