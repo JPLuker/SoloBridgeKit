@@ -525,6 +525,13 @@ try {
   await clickText('Start mission');
   await waitForSave('Mission started.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Scene actions'), { timeout: 10000 });
+  check(await page.$eval('#content',node=>
+    node.textContent.includes('Begin your first scene') &&
+    node.textContent.includes('Try something uncertain (roll dice)')),
+    'R4 first-mission view failed to guide the new player into writing or rolling.');
+  await clickText('Record your opening');
+  check(await page.$eval('#content',node=>document.activeElement?.getAttribute('aria-label')==='New log entry'),
+    'The first scene action did not focus the player-authored journal.');
   check(await page.$eval('#content',node=>node.textContent.includes('A scene is one moment in your adventure')),
     'Mission scenes do not explain their purpose to a first-time RPG player.');
   await page.click('button[aria-label="Act 2 scene 3, pending"]');
