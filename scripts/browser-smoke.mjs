@@ -63,7 +63,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   await page.goto(origin, { waitUntil: 'networkidle0', timeout: 30000 });
-  check((await page.$eval('#content', node => node.textContent)).includes('Prepare your corebook'),
+  check((await page.$eval('#content', node => node.textContent)).includes('First, add the game rulebook'),
     'The empty-profile setup gate did not appear.');
   await navigate('Library');
   await heading('Library');
