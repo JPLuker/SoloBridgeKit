@@ -30,3 +30,18 @@ export function nextIncompleteCreationStep(path,steps){
   }
   return Math.max(0,steps.length-1);
 }
+
+export function verifiedShipPreview(selection){
+  if(!selection||typeof selection!=='object')return [];
+  const result=[];
+  if(['starship','station'].includes(selection.kind))result.push(selection.kind==='station'?'Station':'Starship');
+  if(Number.isFinite(Number(selection.scale))&&Number(selection.scale)>0)
+    result.push('Scale '+selection.scale);
+  for(const [label,key] of [['Systems','systems'],['Departments','departments']]){
+    const ratings=selection[key];
+    if(!ratings||typeof ratings!=='object')continue;
+    const entries=Object.entries(ratings).filter(([,value])=>String(value).trim()!=='');
+    if(entries.length)result.push(label+' ratings: '+entries.length+' recorded');
+  }
+  return result;
+}
