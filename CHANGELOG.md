@@ -5,6 +5,7 @@
 - Import progress and common invalid/short/unreadable file errors are understandable to new players.
 - Successful preparation gives a direct next step into their first campaign; supplemental import controls remain available for experienced users.
 - Added browser and unit regression tests without bundling licensed game content.
+- Added contextual descriptions for task rolls and mission scenes/acts so a new player can use the game screens without prior tabletop RPG terminology.
 
 ## v0.25.1 — Guided first-session explanation (pending CI)
 
