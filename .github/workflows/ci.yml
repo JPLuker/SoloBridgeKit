@@ -32,6 +32,8 @@ jobs:
         run: npm run browser:smoke
       - name: Audit M8 release provenance
         run: npm run audit:release
+      - name: Verify M8 build checksum manifest
+        run: node scripts/verify-release-provenance.mjs test-output/SoloBridgeKit-0.25.0-UNTESTED-provenance.json dist
       - name: M7 keyboard and layout checks
         env:
           CHROME_BIN: /usr/bin/google-chrome
