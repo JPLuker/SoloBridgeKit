@@ -186,3 +186,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## R1 v0.26.2 — book search fallback checkpoint (CI #322 verified)
 
 **R1 coding progress: ~75% automated checkpoint verified; actual book/novice acceptance OPEN.** The player can import a private book, inspect verified-choice coverage, find suggestions by stage or whole-book search, review bonuses with live totals, save/reopen drafts, and keep their source data private. Remaining: reduce misleading candidate headings, improve source review/validation UX and complete first-time user acceptance with a real legally obtained PDF. R2–R6 remain unstarted.
+
+## v0.28.0 R1–R5 implementation checkpoint (pending CI)
+
+Current scope-only provisional progress: **R1 80%, R2 45%, R3 35%, R4 40%, R5 60%, R6 0% human acceptance**. These represent built UX features, NOT passed player acceptance. First-time player can now open guided source review without technical compiler, see source-backed character/ship previews, resume drafts, inspect clear sheets, enter missions with contextual prompts, and find advanced utilities under More. Continue polishing extraction quality, source-confirmed option data, guided on-sheet actions, responsive play path and actual owner acceptance. No 1.0 milestone or public release approval.
