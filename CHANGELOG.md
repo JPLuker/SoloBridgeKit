@@ -1,6 +1,7 @@
 ## v0.25.1 — Guided first-session explanation (pending CI)
 
 - Character lifepath and ship setup now explain each decision before presenting input fields, including unfamiliar terms and next actions.
+- Private, user-confirmed lifepath and ship classes now appear as directly selectable source-linked choices instead of bare dropdowns.
 - Empty private option catalogs display source-page and Library preparation actions instead of an unexplained form.
 - New campaigns have an explicit first-adventure explanation and quick routes into guided character, ship and mission setup.
 - First mission prompts explain where to begin without generating a story or bundling publisher text.
