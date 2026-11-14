@@ -375,3 +375,7 @@
 ## v0.26.2 — First-run source search fallback (pending CI)
 
 - Source review now supports searching the entire locally imported PDF by word/phrase, selecting a matching source page and discovering choices nearby. Players need not know the page number of their edition. Search stays local and never auto-confirms candidate mechanics.
+
+## v0.28.0 — First adventure slice across R1–R5 (pending CI)
+
+- Source candidate confirmation is now player-facing; character and ship choice previews, local resume, collapsed editors, mobile-safe sheets, and next-scene prompt join the existing verified mechanics. Simplified navigation exposes advanced utilities under More. No source text/art or AI-written stories shipped. R1–R5 are still incomplete until real newcomer end-to-end acceptance.
