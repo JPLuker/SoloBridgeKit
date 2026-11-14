@@ -371,3 +371,7 @@
 ## R1 v0.26.1 — Source review without losing work (pending CI)
 
 - Saved private option drafts are discoverable and resumable in their originating section. Character-stage review now has source-safe stepper controls and a visible running point budget. Further work remains on automated candidate structure assistance, review guidance, and the full first-time user acceptance route.
+
+## v0.26.2 — First-run source search fallback (pending CI)
+
+- Source review now supports searching the entire locally imported PDF by word/phrase, selecting a matching source page and discovering choices nearby. Players need not know the page number of their edition. Search stays local and never auto-confirms candidate mechanics.
