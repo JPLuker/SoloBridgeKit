@@ -1731,6 +1731,26 @@ function renderLibrary() {
         } catch(error) {failure(error);prepareReference.textContent=originalText;prepareReference.disabled=false;}
         finally {preparationController=null;cancelPreparation.hidden=true;}
       },'secondary');
+    const rebuildCorebook=button('Rebuild corebook index',async()=>{
+      if(!confirm('Rebuild the private corebook index from your existing PDF? The current index stays intact if preparation fails.'))return;
+      const originalText=rebuildCorebook.textContent;
+      try{
+        if(preparationController)throw new Error('Another PDF preparation is running.');
+        const generation=await currentDataGeneration();
+        const latest=await get('documents',document.id);
+        if(!latest)throw new Error('The imported corebook was not found.');
+        preparationController=new AbortController();
+        rebuildCorebook.disabled=true;cancelPreparation.hidden=false;
+        const pack=await preparePdfInBrowser(latest.blob,{
+          kind:'corebook',signal:preparationController.signal,
+          onProgress:({page,total})=>{rebuildCorebook.textContent=`Page ${page}/${total}`;}
+        });
+        assertNotCancelled(preparationController.signal);
+        await patchDocumentIfCurrent(document.id,{bookPack:pack},generation);
+        await refresh();notify('Corebook index rebuilt without replacing the original PDF.');
+      }catch(error){failure(error);rebuildCorebook.disabled=false;rebuildCorebook.textContent=originalText;}
+      finally{preparationController=null;cancelPreparation.hidden=true;}
+    },'secondary');
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
     const relinkInput = el('input', { type: 'file', accept: '.pdf,application/pdf',
       'aria-label': 'Reattach PDF file' });
@@ -1827,7 +1847,7 @@ function renderLibrary() {
           el('p', { class: 'muted', text: `${role} · ${libraryStatus.status} · ${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
         el('div', { class: 'actions' }, [
           changeRole,
-          ...(role==='corebook'?[]:[prepareReference]),
+          ...(role==='corebook'?[rebuildCorebook]:[prepareReference]),
           button('Read', () => openPdf(document).catch(failure), 'secondary'),
           button('Remove', async () => {
             const summary=summarizeDocumentRemoval(document,state.documents,state.campaigns??[]);
