@@ -3,6 +3,9 @@
 - Added separate local reference indexes for short supplemental PDFs, with fingerprint and pagination checks.
 - Added library preparation, cross-book search provenance and source conflict warnings.
 - Maintains corebook-only gameplay gate and source-free public distributions.
+- Added edition labels, missing-source diagnostics, reversible index rebuild and removal impact warnings.
+- Added atomic selection of one active corebook while preserving previously prepared editions.
+- Expanded browser regressions for supplements, cross-book search, private backups and corebook switching.
 
 \n## v0.22.2 — M5 scene corrections and linked-history protection (verified CI #76)
 
