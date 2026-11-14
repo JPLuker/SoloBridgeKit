@@ -1,8 +1,9 @@
 // Local-only PDF preparation. No game-book text exists in the distributed module.
 // pdfjs-dist is copied into the offline app at build time.
-import { BOOK_FORMAT, BOOK_FORMAT_VERSION, validateBookPack } from './book-data.mjs';
+import { BOOK_FORMAT, BOOK_FORMAT_VERSION, REFERENCE_FORMAT, validateBookPack, validateReferencePack } from './book-data.mjs';
 
-export async function preparePdfInBrowser(blob, { onProgress = () => {}, signal } = {}) {
+export async function preparePdfInBrowser(blob, { onProgress = () => {}, signal, kind = 'corebook' } = {}) {
+  if(!['corebook','reference'].includes(kind))throw new Error('Unsupported PDF preparation mode.');
   if (!blob || typeof blob.arrayBuffer !== 'function') throw new Error('Select a PDF.');
   if (signal?.aborted) throw new Error('Preparation cancelled.');
   if (blob.size > 300 * 1024 * 1024) throw new Error('PDF exceeds 300 MB. Import a smaller edition.');
@@ -48,13 +49,14 @@ export async function preparePdfInBrowser(blob, { onProgress = () => {}, signal 
       onProgress({ page: pageNumber, total: document.numPages });
       if (pageNumber % 8 === 0) await new Promise(resolve => setTimeout(resolve, 0));
     }
-    return validateBookPack({
-      format: BOOK_FORMAT,
+    const index = {
+      format: kind==='corebook'?BOOK_FORMAT:REFERENCE_FORMAT,
       version: BOOK_FORMAT_VERSION,
       sourceSha256: fingerprint,
       pageCount: pages.length,
       pages
-    });
+    };
+    return kind==='corebook'?validateBookPack(index):validateReferencePack(index);
   } finally {
     if (document) await document.destroy().catch(() => {});
     else if (task) await task.destroy().catch(() => {});
