@@ -16,11 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install pinned PDF parser
-        run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Export resolved dependency lock for one-time pinning
-        run: |
-          node -e "const fs=require('node:fs');if(!fs.existsSync('package-lock.json'))throw Error('npm lockfile not generated');console.log('SOLOBRIDGE_LOCK_START');console.log(fs.readFileSync('package-lock.json','utf8'));console.log('SOLOBRIDGE_LOCK_END');"
+      - name: Install pinned dependencies from lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Check source and syntax
         run: npm run check
       - name: Run tests
@@ -33,6 +30,8 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run browser:smoke
+      - name: Audit M8 release provenance
+        run: npm run audit:release
       - name: M7 keyboard and layout checks
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -41,15 +40,23 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SoloBridgeKit-0.24.0-BROWSER-CAPTURES
+          name: SoloBridgeKit-0.25.0-BROWSER-CAPTURES
           path: test-output/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload UNTESTED build provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoloBridgeKit-0.25.0-UNTESTED-PROVENANCE
+          path: test-output/*-UNTESTED-provenance.json
           if-no-files-found: warn
           retention-days: 14
       - name: Upload UNTESTED preview
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: SoloBridgeKit-0.24.0-UNTESTED
+          name: SoloBridgeKit-0.25.0-UNTESTED
           path: dist/
           if-no-files-found: error
           retention-days: 14
