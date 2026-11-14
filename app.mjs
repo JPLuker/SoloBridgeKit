@@ -2057,6 +2057,29 @@ function renderSourcePreparation(book) {
   advanced.append(compiler);
   for(const step of status.steps){
     const drafts=savedStageDrafts(book,step.id);
+    const showCandidates=(startPage=null)=>{
+      const suggestions=row.querySelector('.source-suggestions');
+      try{
+        const candidates=discoverStageCandidates(book.bookPack,step.id,
+          startPage===null?{}:{startPage});
+        suggestions.replaceChildren(...(candidates.length?candidates.map(candidate=>
+          el('div',{class:'document-item'},[
+            el('strong',{text:candidate.label}),
+            el('p',{class:'hint',text:'Possible heading from your PDF · page '+candidate.page+' · not yet verified'}),
+            el('div',{class:'actions'},[
+              button('Review this choice',()=>{
+                if(typeof compiler.openGuidedCandidate!=='function'){
+                  notify('The private review form needs repair.',true);return;
+                }
+                advanced.open=true;
+                compiler.openGuidedCandidate(candidate);
+                advanced.scrollIntoView({behavior:'smooth',block:'start'});
+              }),
+              button('Read page',()=>openPdf(book,candidate.page).catch(failure),'secondary')
+            ])
+          ])):[el('p',{class:'hint',text:'No likely headings found near this page. You can search the PDF for a different phrase, or use advanced review to add an option manually.'})]));
+      }catch(error){failure(error);}
+    };
     const row=el('div',{class:'document-item'},[
       el('div',{},[
         el('strong',{text:step.title}),
@@ -2066,34 +2089,39 @@ function renderSourcePreparation(book) {
         el('p',{class:'hint',text:step.explanation})
       ]),
       el('div',{class:'actions'},[
-        button(step.hasChoice?'Look for another choice':'Find possible choices',()=>{
-          const suggestions=row.querySelector('.source-suggestions');
-          try{
-            const candidates=discoverStageCandidates(book.bookPack,step.id);
-            suggestions.replaceChildren(...(candidates.length?candidates.map(candidate=>
-              el('div',{class:'document-item'},[
-                el('strong',{text:candidate.label}),
-                el('p',{class:'hint',text:'Possible heading from your PDF · page '+candidate.page+' · not yet verified'}),
-                el('div',{class:'actions'},[
-                  button('Review this choice',()=>{
-                    if(typeof compiler.openGuidedCandidate!=='function'){
-                      notify('The private review form needs repair.',true);return;
-                    }
-                    advanced.open=true;
-                    compiler.openGuidedCandidate(candidate);
-                    advanced.scrollIntoView({behavior:'smooth',block:'start'});
-                  }),
-                  button('Read page',()=>openPdf(book,candidate.page).catch(failure),'secondary')
-                ])
-              ])): [
-              el('p',{class:'hint',text:'No likely choice headings were found in these pages. Open the PDF to check the section. You can use advanced preparation to create a source-linked choice manually.'})
-            ]));
-          }catch(error){failure(error);}
-        }),
+        button(step.hasChoice?'Look for another choice':'Find possible choices',()=>showCandidates()),
         button('Read rulebook page',()=>openPdf(book,step.page).catch(failure),'secondary')
       ]),
       el('div',{class:'source-suggestions','aria-live':'polite'})
     ]);
+    const search=el('form',{class:'inline-form source-section-search'},[
+      el('input',{name:'query',type:'search',minlength:'2',maxlength:'80',
+        required:'','aria-label':'Search this PDF for '+step.title,
+        placeholder:'Search the PDF for this section'}),
+      el('button',{type:'submit',class:'button secondary',text:'Search my PDF'})
+    ]);
+    const searchResults=el('div',{class:'source-search-results','aria-live':'polite'});
+    search.addEventListener('submit',event=>{
+      event.preventDefault();
+      try{
+        const term=String(new FormData(search).get('query')||'').trim();
+        if(term.length<2)throw new Error('Enter at least two characters to search.');
+        const matches=searchBookPack(book.bookPack,term,8);
+        searchResults.replaceChildren(...(matches.length?matches.map(hit=>
+          el('div',{class:'document-item'},[
+            el('p',{class:'hint',text:'Your PDF · page '+hit.page+' · '+hit.excerpt}),
+            el('div',{class:'actions'},[
+              button('Find choices here',()=>showCandidates(hit.page)),
+              button('Read page',()=>openPdf(book,hit.page).catch(failure),'secondary')
+            ])
+          ])):[el('p',{class:'hint',text:'No matching text found in this PDF. Try a shorter word or open the book.'})]));
+      }catch(error){failure(error);}
+    });
+    row.append(el('details',{class:'source-section-search-details'},[
+      el('summary',{text:'Can’t find the right choices? Search my book'}),
+      el('p',{class:'hint',text:'Search for a section name or a word you see in the PDF. Choose a matching page to look for options nearby; you never need to know PDF page numbers.'}),
+      search,searchResults
+    ]));
     if(drafts.length){
       row.append(el('p',{class:'hint',text:`You have ${drafts.length} unfinished choice${drafts.length===1?'':'s'} saved in this section.`}));
       for(const draft of drafts){
