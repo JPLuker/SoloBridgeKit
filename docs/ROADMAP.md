@@ -329,3 +329,7 @@
 ## M6 development accepted — v0.23.0
 
 - [CI run #135](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648270644) passed all automated checks including synthetic multi-book Chrome smoke and private PDF-inclusive backup/restore. M6 development is closed; actual devices belong to M7.
+
+## v0.24.0 — M7 automated UX verification foundation (pending CI)
+
+- Added packaged Chrome keyboard-focus and semantic-label checks plus overflow gates at 360, 390, 640, 768 and 1280 pixels. No real-device acceptance or visual theme changes asserted.
