@@ -12,3 +12,5 @@
 - 2026-11-12 (implementation): First pass uses Poppler on the user's computer to generate a private, SHA-256-bound search index. A native in-browser preparation flow is planned before the full mobile release.
 
 - 2026-11-12 (implementation): Bundle open-source PDF.js at build time, not a remote CDN. Prepare user-supplied PDF content locally in the PWA and retain the desktop Poppler preparation as fallback. No publisher content in build/release outputs.
+
+- 2026-11-14 (user): SoloBridgeKit must work for someone who has **never played D&D or any tabletop RPG**. This includes the rulebook upload and every first-run decision. Explain the concept and the immediate next action at the point of use; never expect players to know terms like campaign, lifepath, document role or compiler. Keep source checks intact and never ship licensed publisher content.
