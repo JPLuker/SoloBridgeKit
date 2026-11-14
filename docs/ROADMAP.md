@@ -361,3 +361,7 @@
 ## v0.25.2 — New-player rulebook onboarding (pending CI)
 
 - Beginner-first contextual import: explain what a tabletop RPG and PDF rulebook are, default first file to main corebook, simplify the uploader, show readable progress and error recovery, then direct the player to create a campaign. Advanced supplement/form roles remain available without blocking first setup. Synthetic browser and unit coverage added; owner usability approval pending.
+
+## v0.26.0 — R1 private source preparation foundation (pending CI)
+
+- Implemented a first guided source readiness screen: PDF indexed does not imply verified character and ship choices. Per-section progress, local PDF page access and a one-click candidate scan now sit above technical tools, which remain accessible in an advanced disclosure. No imported/copyrighted book content ships. R1 is **not complete** until choice review itself is approachable to brand-new players.
