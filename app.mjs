@@ -10,7 +10,7 @@ import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from 
 import { rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
 import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
-import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary } from './library-books.mjs';
+import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval } from './library-books.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption, categoryForStep } from './private-options.mjs';
@@ -1830,8 +1830,10 @@ function renderLibrary() {
           ...(role==='corebook'?[]:[prepareReference]),
           button('Read', () => openPdf(document).catch(failure), 'secondary'),
           button('Remove', async () => {
-            if (!confirm(`Remove ${document.name} from this browser?`)) return;
-            try { await remove('documents', document.id); await refresh(); } catch (error) { failure(error); }
+            const summary=summarizeDocumentRemoval(document,state.documents,state.campaigns??[]);
+            if (!confirm(`Remove ${document.name}?\n\n${summary.warning}`)) return;
+            try { await remove('documents', document.id); await refresh(); }
+            catch (error) { failure(error); }
           }, 'danger subtle')
         ])
       ]), ...(role === 'corebook' ? [
