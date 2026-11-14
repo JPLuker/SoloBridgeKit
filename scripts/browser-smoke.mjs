@@ -119,6 +119,32 @@ try {
     'Failed import changed previously prepared documents or partially committed a batch.');
   rmSync(badPath, { force: true });
 
+  // M6: a short supplement is independently indexed, searchable and never
+  // treated as the prepared corebook needed for gameplay.
+  const shortPath=join(process.cwd(),output,'temporary-supplement.pdf');
+  writeFileSync(shortPath,syntheticPdf(3));
+  await page.select('select[aria-label="Document type"]','supplement');
+  await (await page.$('input[aria-label="Choose PDF files"]')).uploadFile(shortPath);
+  await waitForSave('PDF imported.');
+  await clickText('Prepare for search');
+  await waitForSave('Private reference index ready.');
+  const supplemental=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const docs=await all('documents');
+    const ref=docs.find(doc=>doc.name==='temporary-supplement.pdf');
+    return {role:ref?.role,format:ref?.bookPack?.format,pages:ref?.bookPack?.pageCount,
+      gameReady:docs.some(doc=>doc.role==='corebook' && doc.bookPack?.format==='solobridgekit-prepared-corebook')};
+  });
+  check(supplemental.role==='supplement' &&
+    supplemental.format==='solobridgekit-prepared-reference' &&
+    supplemental.pages===3 && supplemental.gameReady,
+    'M6 supplemental preparation changed corebook status or failed to index a short PDF.');
+  await page.type('input[name=query]','Synthetic sample page');
+  await clickText('Search');
+  check((await page.$eval('#content',element=>element.textContent)).includes('temporary-supplement.pdf · page 1'),
+    'M6 cross-book search hid the prepared supplement behind the long corebook.');
+  rmSync(shortPath,{force:true});
+
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
   // usable after the player edits the fields and explicitly confirms the PDF.
   await page.select('select[aria-label="Compiler record type"]', 'talent');
