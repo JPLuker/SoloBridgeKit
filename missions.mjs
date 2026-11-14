@@ -46,7 +46,7 @@ export function updateScenePlan(mission, newPlan) {
     if (scene.number > plan[scene.act - 1] &&
       (scene.completed || scene.title.trim() || scene.notes.trim() ||
        scene.valuesUsed.trim() || referenced || rollLinked || journalLinked || undoLinked)) {
-      throw new Error(`Act ${scene.act} scene ${scene.number} has progress or linked history. Move or clear its references before reducing scene count.`);
+      throw new Error(`Act ${scene.act} scene ${scene.number} has progress, notes or linked threads/history. Clear or move the references before reducing scene count.`);
     }
   }
   return normalizeMissionScenes({ ...mission, ...current, scenePlan: plan });
