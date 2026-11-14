@@ -281,8 +281,6 @@ try {
   check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
     'Private backup lost its compiled source book.');
   check(privateBundle.documents.some(d => d.compiledRecords?.length === 4),
-    'Private backup lost the user's confirmed and source-bound private records.');
-  check(privateBundle.documents.some(d => d.compiledRecords?.length === 4),
     'Private PDF-inclusive backup lost reviewed compiler records.');
   const privatePath = join(process.cwd(), output, 'synthetic-private-backup.json');
   const corruptPath = join(process.cwd(), output, 'synthetic-corrupt-backup.json');
