@@ -35,8 +35,8 @@ import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition,
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
 const PAGES = [
-  ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
-  ['log', "Captain's log"], ['library', 'Library'], ['dice', 'Dice'], ['settings', 'Settings']
+  ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'],
+  ['log', "Captain's log"], ['library', 'Library'], ['more', 'More']
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
@@ -2827,7 +2827,8 @@ function showRoll(container, roll) {
 
 function renderMore() {
   return el('div', { class: 'page' }, [title('More'), card([
-    button('Starship / station', () => go('starship'), 'secondary'),
+    el('h2',{text:'Additional tools'}),
+    el('p',{class:'hint',text:'Your primary adventure tools are in Home, Character, Starship, Captain’s log, and Library. These options are useful later; you do not need them to begin.'}),
     button('Crew', () => go('crew'), 'secondary'),
     button('Dice', () => go('dice'), 'secondary'),
     button('Settings', () => go('settings'), 'secondary')
