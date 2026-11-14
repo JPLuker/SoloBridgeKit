@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.25.0 (M8 release-safety development; UNTESTED preview)
+## Current build: 0.25.0 (automated M1–M8 development verified; UNTESTED preview, not an approved release)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -249,4 +249,4 @@ Use **Prepare for search** on a supplement, form or reference PDF to build a sho
 
 ## Release provenance
 
-For each development build, `npm run audit:release` validates exact dependency versions/licensing and writes a complete SHA-256 file manifest under `test-output/`. CI attaches this as an **UNTESTED** provenance artifact alongside its source-free PWA preview. See [release readiness gates](docs/RELEASE-READINESS.md). Real-device validation, the public code license and official release approval are still pending; CI success does not make this an approved public 1.0 release.
+For each development build, `npm run audit:release` validates exact dependency versions/licensing and writes a complete SHA-256 file manifest under `test-output/`. CI attaches this as an **UNTESTED** provenance artifact alongside its source-free PWA preview. See [release readiness gates](docs/RELEASE-READINESS.md), [M8 automated acceptance](docs/M8-AUTOMATED-ACCEPTANCE.md) and the [private device test checklist](docs/M7-DEVICE-ACCEPTANCE.md). Real-device validation, the public code license and official release approval are still pending; CI success does not make this an approved public 1.0 release.
