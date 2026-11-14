@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCampaign,createEpisode} from '../model.mjs';
+import {createCampaign,createEpisode,normalizeEpisode} from '../model.mjs';
 import {resolveActiveEpisodeId,selectActiveEpisode,resolveActiveSceneId,selectActiveScene,
   sceneTag,makePrivateTableReference,appendSceneTableReference,saveSceneCorrection,undoSceneCorrection,normalizeSceneCorrections} from '../mission-workspace.mjs';
 const sha='c'.repeat(64);
