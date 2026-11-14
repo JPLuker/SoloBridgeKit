@@ -424,3 +424,5 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Home gate defines roleplaying, rulebook and PDF; Library describes local preparation, readable progress and next step; successful import reveals a clear Create campaign action. Import-specific error messages now distinguish short books/forms, unreadable or locked PDFs, invalid file formats and cancellation without claiming a false unlock.
 - Added `onboarding.mjs`, `tests/onboarding.test.mjs`, and synthetic Chrome assertions for default role, single-file import, beginner copy and success guidance. Update offline cache, allowed distribution and v0.25.2 CI labels.
 - Respect `docs/NO_LIST.md`: no separate tutorial tab, no invented rules/content, no bundled publisher data. User's longer interactive guided selection issue #3 stays open pending novice device test.
+
+- Beginner language now also reaches task dice and mission scenes: explains what actions require dice, what attributes/disciplines represent, and what scenes/acts mean before the controls. Synthetic Chrome smoke checks that the mission scene explanation is present. No extra tutorial page was added.
