@@ -28,7 +28,7 @@ walk(root);
 const index = readFileSync(join(root, 'index.html'), 'utf8');
 // The PWA must never load scripts, styles, icons or other assets from an
 // unrelated origin. User-imported PDFs are deliberately local Blob URLs.
-if(/<(?:script|link|iframe|img)\\b[^>]*(?:src|href)\\s*=\\s*["']https?:\\/\\//i.test(index))
+if(/<(?:script|link|iframe|img)\b[^>]*(?:src|href)\s*=\s*["']https?:[/][/]/i.test(index))
   errors.push('Remote runtime asset referenced by index.html.');
 const applicationSources = [
   'app.mjs','model.mjs','storage.mjs','browser-compiler.mjs','book-data.mjs',
@@ -36,8 +36,8 @@ const applicationSources = [
 ];
 for(const file of applicationSources){
   const source=readFileSync(join(root,file),'utf8');
-  if(/\\bfetch\\(\\s*["'`]https?:\\/\\//i.test(source) ||
-    /\\bimport\\(\\s*["'`]https?:\\/\\//i.test(source))
+  if(/\bfetch\(\s*['"]https?:[/][/]/i.test(source) ||
+    /\bimport\(\s*['"]https?:[/][/]/i.test(source))
     errors.push('Hardcoded external runtime request in '+file+'.');
 }
 const sw = readFileSync(join(root, 'sw.js'), 'utf8');
