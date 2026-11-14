@@ -45,3 +45,16 @@ export function verifiedShipPreview(selection){
   }
   return result;
 }
+
+export function nextIncompleteShipStep(ship){
+  if(!ship||!String(ship.era??'').trim())return 0;
+  if(!String(ship.scale??'').trim()||
+     (ship.kind!=='station'&&!String(ship.className??'').trim())||
+     (ship.mode==='guided'&&!ship.sourceRef))return 1;
+  if(!String(ship.polityTrait??'').trim())return 2;
+  // Additional traits are optional. Talents are deliberately not inferred.
+  if(!String(ship.talents??'').trim())return 4;
+  if(!String(ship.name??'').trim()||
+     (ship.kind!=='station'&&!String(ship.registry??'').trim()))return 5;
+  return 5;
+}
