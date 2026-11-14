@@ -18,6 +18,7 @@ import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
+import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition, updateCharacterCondition, swapEndOfMissionFocus, normalizeCharacterDevelopment } from './character-development.mjs';
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
@@ -732,10 +733,20 @@ function renderStarship() {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(form));
     try {
-      state.campaign.ship = { ...c, ...flatValues(values,
+      const proposed = { ...c, ...flatValues(values,
         ['name', 'registry', 'className', 'scale', 'traits', 'talents', 'notes']),
         systems: saveRatings(values, SHIP_SYSTEMS, 'system'),
         departments: saveRatings(values, SHIP_DEPARTMENTS, 'department') };
+      const classChanged = proposed.className !== c.className || proposed.scale !== c.scale ||
+        JSON.stringify(proposed.systems) !== JSON.stringify(c.systems) ||
+        JSON.stringify(proposed.departments) !== JSON.stringify(c.departments);
+      if (classChanged && c.builder) {
+        proposed.builder = { ...normalizeShipBuilder(c.builder),
+          className: proposed.className, scale: proposed.scale,
+          systems: { ...proposed.systems }, departments: { ...proposed.departments },
+          appliedAt: null };
+      }
+      state.campaign.ship = proposed;
       await persist(); notify('Ship saved.');
     } catch (error) { failure(error); }
   });
@@ -750,6 +761,7 @@ function renderShipBuilder() {
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const ship = state.campaign.ship;
   const builder = normalizeShipBuilder(ship.builder || createShipBuilder());
+  if (!ship.builder) builder.mode = 'guided';
   const idx = state.shipStep;
   const form = el('form', { class: 'form-stack' });
   const read = () => {
@@ -773,6 +785,24 @@ function renderShipBuilder() {
     return next;
   };
   const save = async () => {ship.builder=read();await persist();};
+  const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
+  const classes = corebook ? combinedPrivateCatalog(corebook,'ship-class') : [];
+  const sourceStatus = shipSourceStatus(builder,classes,corebook?.bookPack?.sourceSha256);
+  root.append(card([
+    el('h2',{text:'Creation method'}),
+    el('p',{class:'muted',text:builder.mode==='guided' ?
+      'Verified class · '+sourceStatus.replaceAll('-',' ') :
+      'Manual class · existing draft preserved.'}),
+    button(builder.mode==='guided'?'Use manual class':'Use verified class',async()=>{
+      try {
+        const changed = read();
+        changed.mode = changed.mode==='guided'?'manual':'guided';
+        ship.builder = changed;
+        await persist();
+        notify('Ship creation method updated.');
+      }catch(error){failure(error);}
+    },'secondary')
+  ]));
   const nav=el('div',{class:'step-navigation'});
   SHIP_STEPS.forEach(([label],i) => {
     const control=button(`${i+1}. ${label}`,async()=>{
@@ -782,9 +812,8 @@ function renderShipBuilder() {
     nav.append(control);
   });
   root.append(nav);
-  const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
   if (idx === 1 && corebook) {
-    const savedClasses = combinedPrivateCatalog(corebook, 'ship-class');
+    const savedClasses = classes;
     if (savedClasses.length) {
       const choose = el('select', { 'aria-label': 'Saved private starship or station class' });
       savedClasses.forEach(x => choose.append(el('option', { value: x.id, text: `${x.className} (${x.kind})` })));
@@ -796,9 +825,10 @@ function renderShipBuilder() {
               const selection = savedClasses.find(x => x.id === choose.value);
               if (!selection) throw new Error('Select a saved class.');
               if (builder.className && !confirm('Replace your current class ratings with this saved template?')) return;
-              ship.builder = applyPrivateShip(builder, selection);
+              ship.builder = selectVerifiedShipClass(builder, selection,
+                corebook.bookPack.sourceSha256, corebook.bookPack.pageCount);
               await persist();
-              notify('Class loaded. Review its ratings before continuing.');
+              notify('Source-verified class loaded. Identity and customizations preserved.');
             } catch (error) { failure(error); }
           }),
           button('Open source page', () => {
@@ -806,6 +836,11 @@ function renderShipBuilder() {
             if (selection) openPdf(corebook, selection.page).catch(failure);
           }, 'secondary')
         ])
+      ]));
+    } else if (builder.mode==='guided') {
+      root.append(card([
+        el('p',{class:'hint',text:'No private, confirmed class record is available. Review a class in Library first.'}),
+        button('Open private rules compiler',()=>go('library'),'secondary')
       ]));
     }
   }
@@ -880,12 +915,15 @@ function renderShipBuilder() {
         if(ship.name||ship.className||ship.registry){
           if(!confirm('Replace the current ship sheet with these selections?'))return;
         }
-        state.campaign.ship=applyShipBuilder(ship,draft);
+        state.campaign.ship=draft.mode==='guided'
+          ? applyGuidedShipBuilder(ship,draft,classes,corebook?.bookPack?.sourceSha256)
+          : applyShipBuilder(ship,draft);
         await persist();go('starship');notify('Ship setup applied.');
       }catch(error){failure(error);}
     },review.ready?'primary':'secondary')
   ]);
-  summary.querySelector('button').disabled=!review.ready;
+  summary.querySelector('button').disabled=!review.ready ||
+    (builder.mode==='guided' && sourceStatus!=='verified');
   root.append(summary);
   return root;
 }
@@ -2086,7 +2124,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.20.2' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.21.0' })]));
   return root;
 }
 

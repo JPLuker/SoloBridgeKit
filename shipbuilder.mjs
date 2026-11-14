@@ -7,7 +7,8 @@ const blankRatings = names => Object.fromEntries(names.map(n => [n.toLowerCase()
 export function createShipBuilder() {
   return { kind: 'starship', era: '', className: '', scale: '', polityTrait: '', uniqueTrait: '',
     name: '', registry: '', talents: '', notes: '',
-    systems: blankRatings(SHIP_SYSTEMS), departments: blankRatings(SHIP_DEPARTMENTS), appliedAt: null };
+    systems: blankRatings(SHIP_SYSTEMS), departments: blankRatings(SHIP_DEPARTMENTS),
+    mode: 'manual', sourceRef: null, appliedAt: null };
 }
 
 export const shipTalentLimit = (kind, scale) => kind === 'station' ? Math.floor(scale / 2) : scale;
@@ -16,6 +17,14 @@ export const shipTalents = raw => String(raw || '').split(/\r?\n/).map(v => v.tr
 export function normalizeShipBuilder(raw) {
   const blank = createShipBuilder();
   return {...blank, ...raw,
+    mode: raw?.mode === 'guided' ? 'guided' : 'manual',
+    sourceRef: raw?.sourceRef && typeof raw.sourceRef === 'object' &&
+      typeof raw.sourceRef.recordId === 'string' &&
+      /^[a-f0-9]{64}$/.test(raw.sourceRef.sourceSha256 ?? '') &&
+      Number.isSafeInteger(raw.sourceRef.page) && raw.sourceRef.page > 0
+        ? { recordId: raw.sourceRef.recordId, sourceSha256: raw.sourceRef.sourceSha256,
+            page: raw.sourceRef.page, className: String(raw.sourceRef.className ?? '') }
+        : null,
     systems: {...blank.systems, ...raw?.systems}, departments: {...blank.departments, ...raw?.departments}};
 }
 

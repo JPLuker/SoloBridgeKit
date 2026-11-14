@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.20.2
+## Current build: 0.21.0
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -216,3 +216,7 @@ Character sheets now provide source-linked, player-triggered progression: after 
 ### v0.20.2 — M3 development completion candidate
 
 The final M3 build adds a pure source-verified **complete guided character** gate (all seven stages and finishing totals), protects source references if the user's book changes, and distinguishes a normal milestone from the separate once-per-mission Focus refresh allowed by the rulebook. Manually editing sheet mechanics clears the last-applied lifepath status but retains the draft and source references. Development-history PDF links look up the original imported fingerprint rather than opening an unrelated replacement book. Data-only and full-private backups retain authored progression and source references; damaged or duplicate development records are rejected. See [M3 development acceptance](docs/M3-DEVELOPMENT-ACCEPTANCE.md). Real-device verification remains in M7, as agreed.
+
+### v0.21.0 — M4 source-linked ship/station class guidance
+
+New ship-builder drafts start in **Verified class** mode and use player-confirmed, privately compiled class records. Applying one copies only the selected class type, era, scale and systems/departments; it retains your ship's name, registry, custom traits, talents and notes. A class record carries its original source PDF fingerprint, record ID and page reference. If the source or class ratings change, the verified status is invalidated. Manual ship drafts and legacy saves can continue in manual mode. The existing ship/station talent limits are enforced at final application. No official vessel statistics are included in the public app.

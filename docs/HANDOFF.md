@@ -305,3 +305,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Final source-related limitation: the application enforces confirmed typed bonuses, general stage and finishing constraints; unique per-option restrictions not explicitly encoded in the user's private book data still require manual source review. It never invents restrictions or official content.
 - Character source data and development history remain local/user-owned; normal backups omit all imported book text; source-page history uses exact PDF SHA.
 - No planned M3 development backlog. Correct regressions if found, but proceed directly to M4 ship/station/crew work. Real-device acceptance stays M7.
+
+## v0.21.0 — M4 source-verified ship templates
+
+- M3 is 100% complete for developer build scope; actual hardware verification remains M7.
+- `ship-guidance.mjs` adds `selectVerifiedShipClass()`, `shipSourceStatus()` and `applyGuidedShipBuilder()`, using only privately confirmed class data; no official class listing is bundled.
+- `shipbuilder.mjs` now persists `mode` and `sourceRef` in the saved plan without breaking legacy drafts. New ship setups default to guided mode while existing manual builders stay manual.
+- Applying a class changes only type/era/class/scale/systems/departments, preserving all ship identity, custom traits, talents and notes. Manual class edits invalidate `builder.appliedAt` and source status rather than rewriting history.
+- Chrome smoke tests selecting the verified synthetic class after setting a unique ship name/registry, verifying identity and source ratings survive.
+- Next M4: useful crew member stat sheets, assignments and relationships; source-linked crew/ship progression where supported; integrated build acceptance.

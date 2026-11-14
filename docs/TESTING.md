@@ -295,3 +295,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [x] Chrome test exercises post-mission advancement, Focus refresh, Value change, injury recovery, source/backup persistence and 390px width.
 
 **Verified:** 2026-11-14 GitHub Actions run 43600347014, 124/124 unit tests and Chrome smoke. Physical device and manual accessibility remain M7.
+
+## v0.21.0 M4 verified ship and station classes
+
+- [ ] Selecting a privately confirmed class fills exact source ratings and scale while preserving owner name, registry, traits, talents and notes.
+- [ ] Class source ID/SHA/PDF page persists in builder and backup; changing source or ratings invalidates verified status.
+- [ ] Only source-confirmed class data can complete a guided ship plan; manual/legacy setup remains available.
+- [ ] Starship/station talents and minimum/maximum ratings still obey existing 2026 source-verified checks.
+- [ ] Browser synthetic fixture proves saved identity survives switching to a compiled class; distribution remains free of official class stats.

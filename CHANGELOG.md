@@ -1,3 +1,13 @@
+## [0.21.0] - 2026-11-14
+### M4 — Source-linked ship class and identity separation (30% development)
+- Begin M4 after verified completion of M3 developer scope.
+- Save private class source ID/SHA/page when applying a confirmed starship/station class.
+- Apply verified systems, departments, scale, era and class without resetting player name, registry, traits, talent choices or notes.
+- Default new builders to verified class selection; legacy/manual builders remain editable.
+- Block source-incompatible or manually modified class stats from being treated as verified on final application.
+- Invalidate ship class applied status when class ratings are manually edited on the ship sheet.
+- Add synthetic unit and Chrome tests for source class, identity preservation and wrong-source/modified-rating rejection.
+
 ## [0.20.2] - 2026-11-14
 ### M3 — Guided completion and progression hardening (100%, CI verified)
 - Apply a complete guided character through a pure verifier that checks all seven confirmed private source selections independently of UI state.

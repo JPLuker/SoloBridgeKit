@@ -272,3 +272,9 @@
 - Added a pure guided-character verification gate for all seven confirmed stages and the final 56/16 distribution, preserving manual/legacy flows.
 - Hardened milestone history, independent optional Focus changes, Value evolution, injury recovery, safe source references and backup integrity.
 - M3 is a development-completion candidate; full CI must pass before closure. Actual devices and the private source book remain M7 acceptance.
+
+## v0.21.0 — M4 verified ship class selection
+
+- Source-confirmed ship/station class application now saves PDF provenance and preserves custom identity/notes, with a pure final-apply verifier.
+- Editing class ratings or switching source invalidates verification instead of silently claiming an official class.
+- Crew and vessel progression remain M4 development work; testing stays build-only until M7.

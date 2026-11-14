@@ -73,6 +73,8 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M4. Starship, station and crew management
 
+**Development progress: 30% (v0.21.0, pending CI).** Confirmed private class selections now bind the source ID/SHA/page to a ship draft, preserving player identity and customizations. Remaining: crew statistics/assignments/relationships and source-grounded vessel/crew advancement, final regression and module acceptance.
+
 **Build**
 - Drive class and talent selection from the confirmed private source catalog, with source-validated ratings/limits.
 - Keep ship identity and player customizations separate from class-template data.

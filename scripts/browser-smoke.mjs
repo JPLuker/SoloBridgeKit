@@ -239,6 +239,26 @@ try {
   check(linkedStage?.sourceRef?.recordId === 'synthetic-life' &&
     linkedStage?.attributes?.control === 1 && linkedStage?.attributes?.daring === 1,
     'Guided selection did not persist the original source record and its exact verified bonuses.');
+  // M4: retain a ship's name and registry while applying a private confirmed class.
+  await navigate('Starship');
+  await clickText('Guided ship setup');
+  await clickText('6. Identity');
+  await page.type('input[name=name]','Player-owned survey ship');
+  await page.type('input[name=registry]','OWN-001');
+  await clickText('Save step');
+  await waitForSave('Ship setup saved.');
+  await clickText('2. Class and ratings');
+  await clickText('Apply saved class');
+  await waitForSave('Source-verified class loaded.');
+  const savedClass = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const ship=(await all('campaigns'))[0].ship.builder;
+    return {ref:ship?.sourceRef?.recordId,name:ship?.name,registry:ship?.registry,
+      engines:ship?.systems?.engines};
+  });
+  check(savedClass.ref==='synthetic-ship' && savedClass.name==='Player-owned survey ship' &&
+    savedClass.registry==='OWN-001' && savedClass.engines==='6',
+    'The source-verified ship class did not preserve identity or use saved source ratings.');
   await navigate('Character');
   await heading('Character');
   await page.type('input[name=name]', 'Synthetic Officer');
