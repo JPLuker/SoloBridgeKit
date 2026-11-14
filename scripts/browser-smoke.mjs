@@ -397,6 +397,8 @@ try {
   await waitForSave('Campaign created.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic test campaign'));
   await navigate('Character');
+  check(await page.$eval('#content',node=>node.querySelector('details.sheet-advanced-editor')?.open===false),
+    'R5 character screen must prioritize the readable sheet over raw edit fields.');
   await clickText('Guided lifepath');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Character lifepath'), { timeout: 15000 });
   check(await page.$eval('#content', node => node.textContent.includes('Verified choices · 0/7')),
@@ -515,6 +517,7 @@ try {
   check(crewWidth.width<=crewWidth.viewport+4,'Crew editor overflows the phone layout.');
   await navigate('Character');
   await heading('Character');
+  await page.$eval('details.sheet-advanced-editor',node=>{node.open=true;});
   await page.type('input[name=name]', 'Synthetic Officer');
   await page.type('input[name=attribute_control]', '10');
   await page.type('input[name=discipline_command]', '3');
@@ -1095,6 +1098,7 @@ try {
   // Force a UI save conflict and prove the unsaved player edits can be recovered.
   await navigate('Character');
   await heading('Character');
+  await page.$eval('details.sheet-advanced-editor',node=>{node.open=true;});
   await page.evaluate(async () => {
     const { all, saveCampaign } = await import('./storage.mjs');
     const fresh = (await all('campaigns'))[0];
