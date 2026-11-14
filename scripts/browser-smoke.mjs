@@ -21,8 +21,16 @@ const errors = [];
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 async function navigate(label) {
   await page.evaluate(text => {
-    const button = [...document.querySelectorAll('#mobile-nav button, #desktop-nav button')]
+    let button = [...document.querySelectorAll('#mobile-nav button, #desktop-nav button')]
       .find(node => node.textContent.trim() === text);
+    if(!button){
+      const more=[...document.querySelectorAll('#mobile-nav button, #desktop-nav button')]
+        .find(node=>node.textContent.trim()==='More');
+      if(!more)throw new Error('Missing navigation: '+text);
+      more.click();
+      button=[...document.querySelectorAll('#content button')]
+        .find(node=>node.textContent.trim()===text);
+    }
     if (!button) throw new Error('Missing navigation: ' + text);
     button.click();
   }, label);
