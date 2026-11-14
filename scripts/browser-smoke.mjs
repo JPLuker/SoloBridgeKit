@@ -126,6 +126,7 @@ try {
   await page.select('select[aria-label="Document type"]','supplement');
   await (await page.$('input[aria-label="Choose PDF files"]')).uploadFile(shortPath);
   await waitForSave('PDF imported.');
+  page.once('dialog',dialog=>dialog.accept());
   await clickText('Prepare for search');
   await waitForSave('Private reference index ready.');
   const supplemental=await page.evaluate(async()=>{
