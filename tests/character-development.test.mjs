@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createCharacter } from '../model.mjs';
 import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition,
-  updateCharacterCondition, normalizeCharacterDevelopment } from '../character-development.mjs';
+  updateCharacterCondition, swapEndOfMissionFocus, normalizeCharacterDevelopment } from '../character-development.mjs';
 const sha='b'.repeat(64);
 const completed={missionId:'fictional-episode',missionComplete:true,sourcePdfSha256:sha,reason:'value-used'};
 function complete(){
@@ -62,4 +62,16 @@ test('ongoing injuries are descriptive, persistent and do not change ratings',()
   assert.equal(recovered.development.history.length,0);
   assert.throws(()=>updateCharacterCondition(recovered,'missing','active'),/no longer exists/);
   assert.equal(normalizeCharacterDevelopment(recovered.development).conditions.length,1);
+});
+
+test('one mission-end Focus refresh is allowed alongside a different milestone',()=>{
+  const c=complete();
+  const advanced=applyCharacterMilestone(c,{type:'attribute-shift',from:'control',to:'reason'},completed);
+  const refreshed=swapEndOfMissionFocus(advanced,{from:'Focus A',to:'Focus G'},completed);
+  assert.equal(refreshed.development.history.length,2);
+  assert.equal(refreshed.development.history[1].sourcePage,203);
+  assert.ok(refreshed.focuses.includes('Focus G'));
+  assert.throws(()=>swapEndOfMissionFocus(refreshed,{from:'Focus B',to:'Focus H'},completed),/already been changed/);
+  const focusMilestone=applyCharacterMilestone(c,{type:'focus-swap',from:'Focus A',to:'Focus G'},completed);
+  assert.throws(()=>swapEndOfMissionFocus(focusMilestone,{from:'Focus B',to:'Focus H'},completed),/already been changed/);
 });

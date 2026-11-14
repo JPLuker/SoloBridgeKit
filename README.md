@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.20.1
+## Current build: 0.20.2
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -212,3 +212,7 @@ New character lifepath drafts begin in **Verified choices** mode, retaining the 
 ### v0.20.1 — Character development after missions
 
 Character sheets now provide source-linked, player-triggered progression: after a **completed mission**, an eligible character can record one milestone (transfer one point between Attributes or Disciplines within the 2026 caps, or exchange one Focus). Values challenged during a mission can be replaced with explicit confirmation. Players can also record ongoing injuries/conditions and move them through active, recovering and resolved states without automatic game penalties. Each development event stays in the private campaign history, with a source PDF fingerprint, original page, timestamp and mission ID. Older characters load with an empty development history; nothing is auto-applied or generated.
+
+### v0.20.2 — M3 development completion candidate
+
+The final M3 build adds a pure source-verified **complete guided character** gate (all seven stages and finishing totals), protects source references if the user's book changes, and distinguishes a normal milestone from the separate once-per-mission Focus refresh allowed by the rulebook. Manually editing sheet mechanics clears the last-applied lifepath status but retains the draft and source references. Development-history PDF links look up the original imported fingerprint rather than opening an unrelated replacement book. Data-only and full-private backups retain authored progression and source references; damaged or duplicate development records are rejected. See [M3 development acceptance](docs/M3-DEVELOPMENT-ACCEPTANCE.md). Real-device verification remains in M7, as agreed.

@@ -117,3 +117,16 @@ test('mission resource flags survive normalization of current saves', () => {
   assert.equal(saved.momentum,true);
   assert.equal(saved.threat,true);
 });
+test('private backups validate milestone and condition provenance without rejecting legacy characters',()=>{
+  const c=createCampaign('Development history');
+  const data={format:'solobridgekit',version:DATA_VERSION,campaigns:[c],documents:[]};
+  c.character.development.history.push({id:'milestone-1',type:'attribute-shift',sourcePdfSha256:'a'.repeat(64),sourcePage:142});
+  assert.equal(validateBundle(data),data);
+  c.character.development.conditions.push({id:'milestone-1',state:'active',sourcePdfSha256:'a'.repeat(64),sourcePage:214});
+  assert.throws(()=>validateBundle(data),/duplicate character development/);
+  c.character.development.conditions[0].id='condition-1';
+  c.character.development.conditions[0].sourcePdfSha256='invalid';
+  assert.throws(()=>validateBundle(data),/damaged/);
+  delete c.character.development;
+  assert.equal(validateBundle(data),data);
+});

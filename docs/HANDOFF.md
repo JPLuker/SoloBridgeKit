@@ -288,3 +288,13 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.renderCharacterDevelopment()` offers completed-mission selection, source-page navigation, progression form, challenge confirmation, and active/recovering/resolved condition records. No invented XP, artificial stat penalties or AI story text.
 - Events carry SHA/page/mission ID, player note and before/after. The existing campaign backups preserve them.
 - Unit tests exercise floor/cap checks, same-mission duplicate refusal, source identity, challenged value consent, and condition updates. Chrome smoke includes progression and mobile layout. Next M3: audit full guided creation source/bonus integrity, stale-source handling, and final build-only acceptance.
+
+## v0.20.2 — M3 completion candidate
+
+- `character-guidance.applyGuidedLifepathToCharacter()` verifies every source-bound stage and final lifepath totals without depending on disabled UI controls. A complete synthetic seven-stage character and missing/stale source cases are unit-tested.
+- `character-development.swapEndOfMissionFocus()` implements an optional once-per-mission Focus refresh from PDF p.203 independent of a different milestone, while refusing repeat swaps after an existing focus milestone.
+- The character sheet clears `lifepath.appliedAt` when ratings, Focuses or Values are edited manually, but does not delete the original choices or references.
+- Development history/condition source-page buttons target only a document matching the stored SHA, or display a missing-source message; they cannot silently open another edition.
+- `model.validateBundle()` now checks development records and rejects invalid source pages/SHAs or duplicate history IDs before restore.
+- Unit and Chrome smoke test full guided source path, milestone and Focus after mission, manual edits, mobile-width UI, campaign-only and private full backup restore.
+- [M3 acceptance checklist](M3-DEVELOPMENT-ACCEPTANCE.md) describes scope and limitations. **Only close M3 after v0.20.2 CI passes.** Next M4 ship/crew enhancements; device checks stay M7.

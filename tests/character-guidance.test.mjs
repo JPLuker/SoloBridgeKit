@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createLifepath, normalizeLifepath } from '../lifepath.mjs';
+import { createLifepath, normalizeLifepath, lifepathReview, LIFEPATH_STEPS } from '../lifepath.mjs';
+import { createCharacter } from '../model.mjs';
 import { makePrivateOption } from '../private-options.mjs';
-import { chooseVerifiedLifepathOption, stageSourceStatus, auditGuidedLifepath } from '../character-guidance.mjs';
+import { chooseVerifiedLifepathOption, stageSourceStatus, auditGuidedLifepath, applyGuidedLifepathToCharacter } from '../character-guidance.mjs';
 
 const sha='a'.repeat(64);
 function fixture(stepId='species') {
@@ -45,4 +46,41 @@ test('legacy incomplete lifepath drafts remain manually editable',()=>{
   const legacy=createLifepath();
   legacy.stages.species.choice='Player-written';
   assert.equal(stageSourceStatus(normalizeLifepath(legacy).stages.species,'species',[],sha),'manual');
+});
+
+test('full guided creation uses seven confirmed private source records and finishing caps',()=>{
+  const example=createLifepath();
+  const at=example.stages;
+  const set=(stage,kind,...keys)=>keys.forEach(key=>stage[kind][key]++);
+  set(at.species,'attributes','control','fitness','reason');
+  set(at.environment,'attributes','insight');set(at.environment,'disciplines','science');at.environment.value='First value';
+  set(at.outlook,'attributes','daring','daring','presence');set(at.outlook,'disciplines','security');at.outlook.focuses='First focus';
+  set(at.education,'attributes','control','control','reason');
+  set(at.education,'disciplines','science','science','engineering','command');
+  at.education.value='Second value';at.education.focuses='Second focus\nThird focus\nFourth focus';
+  at.career.value='Third value';
+  set(at.event1,'attributes','fitness');set(at.event1,'disciplines','medicine');at.event1.focuses='Fifth focus';
+  set(at.event2,'attributes','insight');set(at.event2,'disciplines','conn');at.event2.focuses='Sixth focus';
+  set(at.finishing,'attributes','presence','reason');set(at.finishing,'disciplines','command','engineering');
+  at.finishing.value='Fourth value';
+  const verified=[];
+  let path={...createLifepath(),mode:'guided'};
+  for(const [i,step] of LIFEPATH_STEPS.filter(s=>s.id!=='finishing').entries()){
+    const option=makePrivateOption({id:'synthetic-source-'+i,stepId:step.id,
+      label:'Fictional '+step.id,sourceSha256:sha,page:97+i,record:at[step.id]});
+    verified.push(option);
+    path=chooseVerifiedLifepathOption(path,step.id,option,sha,336);
+  }
+  path.stages.finishing=at.finishing;
+  assert.equal(lifepathReview(path).ready,true);
+  assert.equal(auditGuidedLifepath(path,verified,sha).count,7);
+  const character=applyGuidedLifepathToCharacter(createCharacter(),path,verified,sha);
+  assert.equal(character.attributes.reason,'10');
+  assert.equal(character.values.split('\n').length,4);
+  assert.ok(character.lifepath.appliedAt);
+  assert.equal(character.lifepath.stages.event2.sourceRef.page,103);
+  assert.throws(()=>applyGuidedLifepathToCharacter(createCharacter(),path,verified.slice(1),sha),/not verified/);
+  const edited=structuredClone(path);
+  edited.stages.species.attributes.control=2;
+  assert.throws(()=>applyGuidedLifepathToCharacter(createCharacter(),edited,verified,sha),/not verified/);
 });

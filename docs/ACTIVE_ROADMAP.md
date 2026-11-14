@@ -58,7 +58,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M3. D&D Beyond-style character creation and progression
 
-**Development progress: 70% (v0.20.1, pending CI).** Guided source-selected lifepath, preservation of manual drafts, source-page progression milestones, Value changes and conditions are implemented. Remaining: full guided completion/legacy/source replacement regression and final build acceptance.
+**Development completion candidate: 100% (v0.20.2, pending CI).** Guided character creation now has an end-to-end source gate, stage caps, legacy draft support, source-linked milestone/Focus/Value/condition history, backup validation, and source-change protection. [M3 development acceptance](M3-DEVELOPMENT-ACCEPTANCE.md) documents completed scope. Hardware tests remain M7; M4 begins after green CI.
 
 **Build**
 - Drive the seven-step lifepath choices from validated private records, including the two career events, rather than merely offering free-text fields.

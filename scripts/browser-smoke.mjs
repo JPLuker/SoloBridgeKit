@@ -300,6 +300,7 @@ try {
     char.disciplines={command:'5',conn:'3',security:'2',engineering:'2',science:'2',medicine:'2'};
     char.values='Value One\nValue Two\nValue Three\nValue Four';
     char.focuses='Focus One\nFocus Two\nFocus Three\nFocus Four\nFocus Five\nFocus Six';
+    if (char.lifepath) char.lifepath.appliedAt = new Date().toISOString();
     await saveCampaign(campaign);
   });
   await page.reload({waitUntil:'networkidle0'});
@@ -313,6 +314,12 @@ try {
   await page.$eval('input[name=challenged]',node=>node.click());
   await clickText('Record changed value');
   await waitForSave('Challenged value replaced.');
+  await page.type('input[name=newFocus]','Focus Seven');
+  await clickText('Change one Focus');
+  await waitForSave('Focus change recorded.');
+  await page.type('input[name=newFocus]','Focus Eight');
+  await clickText('Change one Focus');
+  await waitForSave('One focus has already been changed');
   await page.type('input[name=label]','Synthetic recurring injury');
   await clickText('Add condition');
   await waitForSave('Condition saved.');
@@ -326,11 +333,25 @@ try {
       attrs: char.attributes, sourcePage: char.development?.history?.[0]?.sourcePage,
       valueUpdated: char.values.includes('Value One evolved') };
   });
-  check(development.history === 2 && development.conditions === 1 &&
+  check(development.history === 3 && development.conditions === 1 &&
     development.conditionState === 'recovering' &&
     development.attrs.control === '11' && development.attrs.reason === '9' &&
     development.sourcePage === 142 && development.valueUpdated,
-    'Character development failed to persist source-linked advancement, values, or injury status.');
+    'Character development failed to persist source-linked advancement, values, Focus or injury status.');
+  await page.$eval('textarea[name=values]', node => {
+    node.value = node.value.replace('Value One evolved', 'Value One evolved further');
+  });
+  await clickText('Save character');
+  await waitForSave('Character saved.');
+  const originalSourceStillSafe=await page.evaluate(async () => {
+    const { all }=await import('./storage.mjs');
+    const char=(await all('campaigns'))[0].character;
+    return {appliedAt:char.lifepath?.appliedAt??null,
+      source:char.lifepath?.stages?.species?.sourceRef?.recordId};
+  });
+  check(originalSourceStillSafe.appliedAt===null &&
+      originalSourceStillSafe.source==='synthetic-life',
+    'Manual character-sheet changes failed to invalidate applied ratings or erased original source history.');
   await page.setViewport({width:390,height:844,deviceScaleFactor:1});
   const characterGeometry = await page.evaluate(() => ({
     viewport:innerWidth, width:document.documentElement.scrollWidth
@@ -348,6 +369,11 @@ try {
     'Default campaign backup must exclude imported books and private compiled data.');
   check(backup.campaigns.some(c => c.title === 'Synthetic test campaign'),
     'Backup did not contain the campaign.');
+  check(backup.campaigns.some(c =>
+    c.character?.development?.history?.length === 3 &&
+    c.character?.development?.conditions?.[0]?.state === 'recovering' &&
+    c.character?.lifepath?.stages?.species?.sourceRef?.recordId === 'synthetic-life'),
+    'Data-only backup omitted progression history or player-owned source references.');
   // Verify a mid-batch IndexedDB add error rolls back the entire transaction.
   const rollback = await page.evaluate(async () => {
     const storage = await import('./storage.mjs');
@@ -424,15 +450,20 @@ try {
     const { all } = await import('./storage.mjs');
     const docs = await all('documents'), campaigns = await all('campaigns');
     const book = docs.find(d => d.role === 'corebook');
+    const character = campaigns.find(c => c.title === 'Synthetic test campaign')?.character;
     return { docs: docs.length, campaigns: campaigns.map(c => c.title),
       pages: book?.bookPack?.pages?.length, compiled: book?.compiledRecords?.length,
       confirmed: book?.compiledRecords?.filter(r => r.status === 'confirmed').length,
-      rejected: book?.compiledRecords?.filter(r => r.status === 'rejected').length };
+      rejected: book?.compiledRecords?.filter(r => r.status === 'rejected').length,
+      history: character?.development?.history?.length,
+      conditions: character?.development?.conditions?.length,
+      originalStage: character?.lifepath?.stages?.species?.sourceRef?.recordId };
   });
   check(restored.docs === libraryCount && restored.pages === 336 &&
     restored.compiled === 5 && restored.confirmed === 4 && restored.rejected === 1 &&
+    restored.history === 3 && restored.conditions === 1 && restored.originalStage === 'synthetic-life' &&
     restored.campaigns.includes('Synthetic test campaign'),
-    'A valid private backup failed to restore its campaign, book index, or private compiler catalog.');
+    'Private backup failed to restore character provenance, progression, or source-bound catalog.');
   // Exact-file reattachment preserves source-derived data and refuses a different PDF.
   await navigate('Library');
   await heading('Library');

@@ -1,3 +1,12 @@
+## [0.20.2] - 2026-11-14
+### M3 — Guided completion and progression hardening (100% candidate; CI required)
+- Apply a complete guided character through a pure verifier that checks all seven confirmed private source selections independently of UI state.
+- Keep source bonuses and stage records intact while invalidating applied-character status after manual sheet edits.
+- Support the rulebook's once-per-mission optional Focus change separately from a different milestone, but prevent a second Focus swap after a Focus milestone.
+- Source-linked history and condition references open only the matching imported PDF, not an unrelated replacement book.
+- Validate backed-up milestone/condition provenance and reject duplicate/corrupted history before restore.
+- Add full synthetic guided-character unit tests and browser progression/backup regressions. No commercial content included.
+
 ## [0.20.1] - 2026-11-14
 ### M3 — Source-grounded character development (70% of development)
 - Add post-mission milestone actions: legal Attribute shift, Discipline shift or Focus swap, limited to one milestone per mission.

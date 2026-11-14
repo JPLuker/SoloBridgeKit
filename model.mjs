@@ -164,6 +164,22 @@ export function validateBundle(bundle) {
         !Array.isArray(c.episodes) || !c.character || !c.ship || ids.has(c.id)) {
       throw new Error('The backup contains an invalid campaign.');
     }
+    const history = c.character?.development;
+    if (history != null) {
+      if (!history || typeof history !== 'object' || Array.isArray(history) ||
+          !Array.isArray(history.history) || !Array.isArray(history.conditions) ||
+          history.history.length > 1000 || history.conditions.length > 200)
+        throw new Error('Backup contains an invalid character development history.');
+      const records = [...history.history, ...history.conditions];
+      const developmentIds = new Set();
+      for (const record of records) {
+        if (!record || typeof record.id !== 'string' || !record.id ||
+            developmentIds.has(record.id) || !/^[a-f0-9]{64}$/.test(record.sourcePdfSha256 ?? '') ||
+            !Number.isSafeInteger(record.sourcePage) || record.sourcePage < 1 || record.sourcePage > 2000)
+          throw new Error('Backup contains a damaged or duplicate character development record.');
+        developmentIds.add(record.id);
+      }
+    }
     ids.add(c.id);
   }
   const docIds = new Set();

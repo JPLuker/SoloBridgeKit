@@ -17,8 +17,8 @@ import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateSh
 import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
-import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus } from './character-guidance.mjs';
-import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition, updateCharacterCondition, normalizeCharacterDevelopment } from './character-development.mjs';
+import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
+import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition, updateCharacterCondition, swapEndOfMissionFocus, normalizeCharacterDevelopment } from './character-development.mjs';
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
 const PAGES = [
@@ -285,9 +285,16 @@ function renderCharacter() {
     const flat = ['name', 'pronouns', 'species', 'traits', 'rank', 'assignment', 'environment',
       'earlyOutlook', 'education', 'careerLength', 'careerEvents', 'focuses', 'values', 'equipment', 'background', 'notes'];
     try {
-      state.campaign.character = { ...c, ...flatValues(values, flat),
+      const proposed = { ...c, ...flatValues(values, flat),
         attributes: saveRatings(values, CHARACTER_ATTRIBUTES, 'attribute'),
         disciplines: saveRatings(values, CHARACTER_DISCIPLINES, 'discipline') };
+      const changed = JSON.stringify(proposed.attributes) !== JSON.stringify(c.attributes) ||
+        JSON.stringify(proposed.disciplines) !== JSON.stringify(c.disciplines) ||
+        proposed.values !== c.values || proposed.focuses !== c.focuses;
+      if (changed && c.lifepath) {
+        proposed.lifepath = { ...c.lifepath, appliedAt: null };
+      }
+      state.campaign.character = proposed;
       await persist(); notify('Character saved.');
     } catch (error) { failure(error); }
   });
@@ -392,6 +399,33 @@ function renderCharacterDevelopment(character) {
       });
       milestone.append(challenge);
     }
+    const availableFocuses = lines(character.focuses);
+    if (availableFocuses.length === 6) {
+      const focusForm = el('form', { class: 'form-stack' }, [
+        el('h3', { text: 'Optional end-of-mission Focus change' }),
+        el('label', { class: 'field' }, [el('span', { text: 'Completed mission' }),
+          missionPicker('Focus refresh mission')]),
+        el('label', { class: 'field' }, [el('span', { text: 'Original Focus' }),
+          makeSelect('oldFocus', availableFocuses.map(v => [v,v]), 'Focus to replace')]),
+        field('New Focus', 'newFocus', '', { required: true }),
+        el('button', { class: 'button secondary', type: 'submit', text: 'Change one Focus' }),
+        button('Open Focus rules · PDF page 203', () => openPdf(corebook, 203).catch(failure), 'secondary')
+      ]);
+      focusForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        try {
+          const data = new FormData(focusForm);
+          const missionId = String(data.get('missionId'));
+          const episode = state.campaign.episodes.find(e => e.id === missionId);
+          const next = swapEndOfMissionFocus(state.campaign.character, {
+            from: String(data.get('oldFocus')), to: String(data.get('newFocus'))
+          }, {missionId,missionComplete:episode?.status === 'completed',sourcePdfSha256:sha});
+          state.campaign.character = next;
+          await persist(); notify('Focus change recorded.');
+        } catch (error) { failure(error); }
+      });
+      milestone.append(focusForm);
+    }
   } else milestone.append(el('p', { class: 'muted', text: 'Complete a mission to record a character milestone or replace a challenged value.' }));
   if (development.history.length) {
     const log = el('div', { class: 'document-list' });
@@ -399,8 +433,12 @@ function renderCharacterDevelopment(character) {
       log.append(el('div', { class: 'document-item' }, [
         el('strong', { text: entry.type + ' · ' + (state.campaign.episodes.find(e=>e.id===entry.missionId)?.title || 'Previous mission') }),
         el('p', { class: 'hint', text: entry.note || 'Player-recorded change' }),
-        button('Open original source · page ' + entry.sourcePage,
-          () => openPdf(corebook, entry.sourcePage).catch(failure), 'secondary')
+        (() => {
+          const source = state.documents.find(doc => doc.bookPack?.sourceSha256 === entry.sourcePdfSha256);
+          return source ? button('Open original source · page ' + entry.sourcePage,
+            () => openPdf(source, entry.sourcePage).catch(failure), 'secondary') :
+            el('p', { class: 'hint', text: 'Original source no longer imported; history preserved.' });
+        })()
       ]));
     }
     milestone.append(el('h3', { text: 'Development history' }), log);
@@ -431,6 +469,12 @@ function renderCharacterDevelopment(character) {
     conditionCard.append(el('div', { class: 'document-item' }, [
       el('strong', { text: condition.label + ' · ' + condition.state }),
       el('p', { class: 'muted', text: condition.notes || 'No notes' }),
+      (() => {
+        const source = state.documents.find(doc => doc.bookPack?.sourceSha256 === condition.sourcePdfSha256);
+        return source ? button('Open original source · page ' + condition.sourcePage,
+          () => openPdf(source, condition.sourcePage).catch(failure), 'secondary') :
+          el('p', { class: 'hint', text: 'Original source no longer imported.' });
+      })(),
       button(update === 'active' ? 'Reopen' : update === 'recovering' ? 'Mark recovering' : 'Mark resolved', async () => {
         try {
           state.campaign.character = updateCharacterCondition(state.campaign.character, condition.id, update);
@@ -546,6 +590,11 @@ function renderLifepath() {
           }, 'secondary')
         ])
       ]));
+    } else if (path.mode === 'guided') {
+      root.append(card([
+        el('p', { class: 'hint', text: 'No confirmed source choices for this stage. Review an entry in Library first.' }),
+        button('Open private rules compiler', () => go('library'), 'secondary')
+      ]));
     }
   }
   const selectRef = corebook || state.documents.find(d => /captain.*log.*(2026|solo)/i.test(d.name)) || state.documents[0];
@@ -644,7 +693,12 @@ function renderLifepath() {
         if (Object.values(c.attributes).some(v => v !== '') || Object.values(c.disciplines).some(v => v !== '')) {
           if (!confirm('Replace the current character ratings, values and focuses with the lifepath results?')) return;
         }
-        state.campaign.character = applyLifepathToCharacter(c, c.lifepath);
+        state.campaign.character = c.lifepath?.mode === 'guided'
+          ? applyGuidedLifepathToCharacter(c, c.lifepath,
+            corebook ? LIFEPATH_STEPS.filter(s => s.id !== 'finishing')
+              .flatMap(s => combinedPrivateCatalog(corebook, 'lifepath', s.id)) : [],
+            corebook?.bookPack?.sourceSha256)
+          : applyLifepathToCharacter(c, c.lifepath);
         await persist(); notify('Lifepath applied to character.'); go('character');
       } catch (error) { failure(error); }
     }, review.ready ? 'primary' : 'secondary')
@@ -2032,7 +2086,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.20.1' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.20.2' })]));
   return root;
 }
 

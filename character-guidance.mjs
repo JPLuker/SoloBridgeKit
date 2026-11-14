@@ -1,5 +1,5 @@
 // Source-verified lifepath selection and provenance, with no publisher data bundled.
-import { LIFEPATH_STEPS, normalizeLifepath, validateLifepathStep } from './lifepath.mjs';
+import { LIFEPATH_STEPS, normalizeLifepath, validateLifepathStep, applyLifepathToCharacter, lifepathReview } from './lifepath.mjs';
 import { applyPrivateOption, categoryForStep } from './private-options.mjs';
 
 const HASH = /^[a-f0-9]{64}$/;
@@ -59,4 +59,15 @@ export function auditGuidedLifepath(rawPath, options, sourceSha256) {
   return { status, ready: Object.values(status).every(s=>s==='verified'),
     count: Object.values(status).filter(s=>s==='verified').length,
     total: Object.keys(status).length };
+}
+
+export function applyGuidedLifepathToCharacter(character, rawPath, confirmedOptions, sourceSha256) {
+  const checked=auditGuidedLifepath(rawPath,confirmedOptions,sourceSha256);
+  if(!checked.ready){
+    const failing=Object.entries(checked.status).find(([,status])=>status!=='verified');
+    throw new Error('Lifepath '+failing[0]+' is not verified ('+failing[1]+').');
+  }
+  const review=lifepathReview(rawPath);
+  if(!review.ready)throw new Error(review.errors[0]);
+  return applyLifepathToCharacter(character,rawPath);
 }

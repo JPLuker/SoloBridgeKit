@@ -266,3 +266,9 @@
 - Implemented optional character milestones, challenged Value changes, and narrative injury/condition records linked to source-book pages.
 - Mechanical progression changes enforce the 2026 book's rating limits and only run after a recorded completed mission. All history is saved as player data.
 - M3 remains open for final guided creation audit and backward compatibility tests.
+
+## v0.20.2 — M3 final guided and progression completion
+
+- Added a pure guided-character verification gate for all seven confirmed stages and the final 56/16 distribution, preserving manual/legacy flows.
+- Hardened milestone history, independent optional Focus changes, Value evolution, injury recovery, safe source references and backup integrity.
+- M3 is a development-completion candidate; full CI must pass before closure. Actual devices and the private source book remain M7 acceptance.

@@ -282,3 +282,14 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Player-named injury/status is stored with source p.214 without changing mechanical ratings.
 - [ ] Legacy characters gain empty development lists and all changes survive local backup/reload.
 - [ ] Synthetic browser test completes a mission and uses the character-development UI at phone width.
+
+## v0.20.2 M3 final developer checks
+
+- [ ] Full private seven-stage guided lifepath composes a 56/16 character and retains every source record/page; missing/modified record refuses pure helper apply.
+- [ ] Finishing bounds, general stage constraints and legacy manual creation remain compatible.
+- [ ] Changing character sheet ratings/Values/Focuses clears `lifepath.appliedAt`, but not source refs or player drafts.
+- [ ] Focus refresh after Attribute/Discipline milestone is allowed once per completed mission, and refused if already swapped.
+- [ ] Character history/condition buttons open only matching source fingerprint, even if another PDF becomes the designated corebook.
+- [ ] Backup rejects duplicate or corrupt milestone/condition provenance before any destructive restore.
+- [ ] Campaign-only and private inclusive backup/restore retain progression and private choice IDs without licensed source text in default export.
+- [ ] Chrome test exercises post-mission advancement, Focus refresh, Value change, injury recovery, source/backup persistence and 390px width.

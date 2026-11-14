@@ -108,6 +108,23 @@ export function applyCharacterMilestone(character,action,options={}) {
   next.development={...dev,history:[...dev.history,entry]};
   return next;
 }
+// Captain's Log PDF p.203 also permits ONE optional Focus refresh at mission end,
+// independent of a different milestone action. Never allow two Focus swaps.
+export function swapEndOfMissionFocus(character, change, options={}) {
+  const source=context(options,203);
+  const dev=normalizeCharacterDevelopment(character?.development);
+  if(dev.history.some(e=>e.missionId===source.missionId &&
+    (e.type==='focus-swap'||e.type==='focus-refresh')))
+    throw new Error('One focus has already been changed for this mission.');
+  const ready=readyCharacter(character);
+  const after=swapLine(ready.focuses,change?.from,change?.to,'focus');
+  const event={id:makeId(),category:'focus-change',type:'focus-refresh',...source,
+    at:new Date().toISOString(),before:change.from,after:change.to,
+    note:String(options.note??'').slice(0,1000)};
+  return {...character,focuses:after,
+    development:{...dev,history:[...dev.history,event]}};
+}
+
 export function replaceChallengedValue(character,change,options={}) {
   const source=context(options,202);
   if(options.challenged!==true)throw new Error('Confirm that this value was challenged during the mission.');
