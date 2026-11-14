@@ -10,6 +10,7 @@ import { createBookmark, normalizeBookmarks, addBookmark, removeBookmark } from 
 import { rerollTaskRecord, deleteTaskRecord } from './rollhistory.mjs';
 import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestore } from './content-policy.mjs';
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
+import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary } from './library-books.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
 import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption, categoryForStep } from './private-options.mjs';
@@ -1670,6 +1671,7 @@ function renderLibrary() {
   const list = el('div', { class: 'document-list' });
   for (const document of state.documents) {
     const role = normalizeDocumentRole(document.role);
+    const libraryStatus = libraryBookStatus(document);
     const changeRole = button(role === 'corebook' ? 'Unmark corebook' : 'Prepare as corebook', async () => {
       const previousText = changeRole.textContent;
       try {
@@ -1707,6 +1709,28 @@ function renderLibrary() {
         cancelPreparation.hidden = true;
       }
     }, 'secondary');
+    const prepareReference = button(
+      libraryStatus.searchable ? 'Rebuild search index' : 'Prepare for search', async () => {
+        if (!confirm('Prepare this PDF for private local search? Existing bookmarks and saved campaigns will be preserved.')) return;
+        const originalText=prepareReference.textContent;
+        try {
+          if(preparationController)throw new Error('Another PDF preparation is running.');
+          const generation=await currentDataGeneration();
+          const latest=await get('documents',document.id);
+          if(!latest)throw new Error('The document is no longer in this library.');
+          preparationController=new AbortController();
+          prepareReference.disabled=true;
+          cancelPreparation.hidden=false;
+          const pack=await preparePdfInBrowser(latest.blob,{
+            kind:'reference',signal:preparationController.signal,
+            onProgress:({page,total})=>{prepareReference.textContent=`Page ${page}/${total}`;}
+          });
+          assertNotCancelled(preparationController.signal);
+          await patchDocumentIfCurrent(document.id,{bookPack:pack},generation);
+          await refresh();notify('Private reference index ready.');
+        } catch(error) {failure(error);prepareReference.textContent=originalText;prepareReference.disabled=false;}
+        finally {preparationController=null;cancelPreparation.hidden=true;}
+      },'secondary');
     const savedBookmarks = normalizeBookmarks(document.bookmarks);
     const relinkInput = el('input', { type: 'file', accept: '.pdf,application/pdf',
       'aria-label': 'Reattach PDF file' });
@@ -1800,9 +1824,10 @@ function renderLibrary() {
     list.append(el('div', { class: 'document-item' }, [
       el('div', { class: 'list-row' }, [
         el('div', {}, [el('strong', { text: document.name }),
-          el('p', { class: 'muted', text: `${role === 'corebook' ? (prepared ? 'Prepared corebook' : 'Corebook not prepared') : role === 'reference' ? 'Other reference' : role} · ${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
+          el('p', { class: 'muted', text: `${role} · ${libraryStatus.status} · ${(document.size / 1048576).toFixed(1)} MB · ${isoDate(document.importedAt)}` })]),
         el('div', { class: 'actions' }, [
           changeRole,
+          ...(role==='corebook'?[]:[prepareReference]),
           button('Read', () => openPdf(document).catch(failure), 'secondary'),
           button('Remove', async () => {
             if (!confirm(`Remove ${document.name} from this browser?`)) return;
@@ -1817,28 +1842,39 @@ function renderLibrary() {
     ]));
   }
   root.append(card([el('h2', { text: 'My PDFs' }), list]));
-  const readyBook = state.documents.find(doc => doc.role === 'corebook' && doc.bookPack);
-  if (readyBook) {
-    const searchCard = card([el('h2', { text: 'Search your prepared corebook' })]);
-    const form = el('form', { class: 'inline-form' }, [
-      field('Search', 'query', '', { required: true, maxlength: 120 }),
-      el('button', { class: 'button primary', type: 'submit', text: 'Search' })
+  const diagnostics=libraryDiagnostics(state.documents);
+  if(diagnostics.warnings.length){
+    root.append(el('p',{class:'hint',text:diagnostics.warnings.join(' ')}));
+  }
+  if(diagnostics.books.some(book=>book.searchable)){
+    const searchCard=card([el('h2',{text:'Search my PDFs'})]);
+    const form=el('form',{class:'inline-form'},[
+      field('Search','query','',{required:true,maxlength:120}),
+      el('button',{class:'button primary',type:'submit',text:'Search'})
     ]);
-    const results = el('div', { class: 'document-list', 'aria-live': 'polite' });
-    form.addEventListener('submit', event => {
+    const results=el('div',{class:'document-list','aria-live':'polite'});
+    form.addEventListener('submit',event=>{
       event.preventDefault();
-      try {
-        const term = String(new FormData(form).get('query') || '').trim();
-        if (term.length < 2) throw new Error('Enter at least two characters.');
-        const hits = searchBookPack(readyBook.bookPack, term);
-        results.replaceChildren(...(hits.length ? hits.map(hit => card([
-          button(`PDF page ${hit.page}`, () => openPdf(readyBook, hit.page).catch(failure), 'secondary'),
-          el('p', { class: 'muted', text: hit.excerpt })
-        ])) : [el('p', { class: 'muted', text: 'No matches found.' })]));
-      } catch (error) { failure(error); }
+      try{
+        const term=String(new FormData(form).get('query')??'').trim();
+        if(term.length<2)throw new Error('Enter at least two characters.');
+        const hits=searchPreparedLibrary(state.documents,term);
+        results.replaceChildren(...(hits.length?hits.map(hit=>{
+          const source=state.documents.find(doc=>doc.id===hit.documentId);
+          return card([
+            el('strong',{text:hit.documentName+' · page '+hit.page}),
+            button('Open source page',()=>openPdf(source,hit.page).catch(failure),'secondary'),
+            el('p',{class:'muted',text:hit.excerpt})
+          ]);
+        }):[el('p',{class:'muted',text:'No matches found.'})]));
+      }catch(error){failure(error);}
     });
-    searchCard.append(form, results);
-    root.append(searchCard, renderPrivateCompiler(readyBook), renderPrivateTables(readyBook), renderPrivateOptions(readyBook), renderPrivateShips(readyBook));
+    searchCard.append(form,results);root.append(searchCard);
+  }
+  const readyBook = state.documents.find(doc => libraryBookStatus(doc).gameplay);
+  if (readyBook) {
+    root.append(renderPrivateCompiler(readyBook), renderPrivateTables(readyBook),
+      renderPrivateOptions(readyBook), renderPrivateShips(readyBook));
   }
   return root;
 }
