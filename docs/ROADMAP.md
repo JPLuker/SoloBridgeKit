@@ -221,3 +221,8 @@
 - Database epoch stored in IndexedDB and checked atomically with imports and document patches.
 - Reset/restore in another tab invalidates older jobs; restored campaigns reject stale versions even when their numeric revision is identical.
 - Two-tab headless Chrome regression added. Source PDF and private index remain unbundled.
+
+## v0.17.9 — M1 recovery identity correction
+
+- Discard obsolete storage epochs when converting an unsaved recovery draft to a separate campaign, preventing rejected saves after a restore in another tab.
+- The two-tab Chrome regression introduced in 0.17.8 now checks this recovery path end-to-end.

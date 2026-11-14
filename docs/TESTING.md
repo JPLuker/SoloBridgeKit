@@ -209,3 +209,9 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] A campaign with the same numeric revision before and after restore must refuse the old tab's write using the new storage epoch.
 - [ ] Verify old-form backup restores still work: the epoch marker is an internal field and does not change the JSON backup version.
 - [ ] Real Android and desktop tests with the purchased PDF remain part of [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md).
+
+## v0.17.9 recovered draft after external restore
+
+- [ ] Save stale campaign with source `storageEpoch`, perform restore in another tab, then download and import recovery draft.
+- [ ] New recovered campaign has new ID, revision zero, no old storageEpoch, and retains all player-authored data. Newer original campaign remains unchanged.
+- [ ] Confirm 0.17.9 fixes the full Chrome failure observed in the 0.17.8 workflow.

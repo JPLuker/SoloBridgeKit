@@ -1,3 +1,9 @@
+## [0.17.9] - 2026-11-13
+### M1 — Cross-tab recovery regression fix
+- Fix recovery drafts failing to import after an external restore by stripping the original campaign's stale storage epoch when creating a new recovered campaign.
+- Add a dedicated recovery unit test; retain the two-tab Chrome restore and import regression.
+- v0.17.8 passed source/unit/distribution checks but its expanded Chrome smoke test caught this bug; v0.17.9 must pass all checks before acceptance.
+
 ## [0.17.8] - 2026-11-13
 ### M1 — Cross-tab restore and import integrity
 - Persist a database generation token in IndexedDB across tabs; importing a PDF and verifying the token occurs atomically in the same transaction.

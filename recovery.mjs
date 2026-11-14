@@ -28,5 +28,9 @@ export function recoverDraftAsNewCampaign(input, idFactory = makeId) {
   const suffix = ' (recovered)';
   const title = String(old.title).slice(0, 100 - suffix.length) + suffix;
   const now = new Date().toISOString();
-  return { ...old, id, title, createdAt: now, updatedAt: now, revision: 0 };
+  // A recovery import is a new independent campaign. Never carry the old
+  // storage epoch into a new record: restores intentionally invalidate it.
+  const recovered = { ...old, id, title, createdAt: now, updatedAt: now, revision: 0 };
+  delete recovered.storageEpoch;
+  return recovered;
 }

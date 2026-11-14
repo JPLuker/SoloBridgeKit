@@ -212,3 +212,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `resetData()` and `restoreBackup()` generate a new persistent token in the destructive transaction. Restored campaign records receive an epoch marker, so old tabs cannot overwrite a restored campaign with the same revision number.
 - `app.mjs` now awaits each generation capture/check. New Chrome smoke scenario performs a restore in a second browser tab and verifies both stale document writes and a stale campaign save are rejected.
 - Private owner book baseline has been independently inspected locally (336 pages; SHA-256 matches user-generated private search index). Cannot verify Chrome's browser-local extraction here because local Chromium is blocked/hanging. Android acceptance remains user-only; **M1 stays at 98%**.
+
+## v0.17.9 — Two-tab test defect fixed
+
+- The 0.17.8 Chrome run failed on importing a recovery draft after the other-tab restore (timeout waiting for 'Recovery draft imported'). Root cause: the recovered campaign retained the original storageEpoch and correctly triggered stale-save protection.
+- `recovery.recoverDraftAsNewCampaign()` now strips storageEpoch from a fresh imported campaign, preserving intended conflict protection while allowing recovery as a new independent campaign.
+- The unit test and two-tab Chrome smoke must pass together. M1 physical Android acceptance remains open.

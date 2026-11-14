@@ -33,3 +33,13 @@ test('recovery refuses damaged drafts and source campaigns', () => {
   assert.throws(() => recoverDraftAsNewCampaign(createRecoveryDraft(campaign), () => campaign.id),
     /ID was invalid/);
 });
+
+test('a restored stale campaign draft imports with a fresh storage identity', () => {
+  const campaign = createCampaign('Before restore');
+  campaign.storageEpoch = 'old-database-epoch';
+  campaign.revision = 4;
+  const recovered = recoverDraftAsNewCampaign(createRecoveryDraft(campaign), () => 'fresh-recovery-id');
+  assert.equal(Object.hasOwn(recovered, 'storageEpoch'), false);
+  assert.equal(recovered.revision, 0);
+  assert.equal(recovered.id, 'fresh-recovery-id');
+});

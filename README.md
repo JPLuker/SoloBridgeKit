@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.17.8
+## Current build: 0.17.9
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -167,3 +167,7 @@ M1 developer-side protections are implemented and tested in CI. Before declaring
 ### v0.17.8 cross-tab database integrity
 
 The PDF import and source reattachment safeguards now use a durable generation marker in IndexedDB, checked together with document writes inside **one transaction**. This stops an import started in one tab from silently recreating documents after another tab resets or restores the database. Restored campaigns receive a fresh generation marker: older tabs cannot overwrite them even when their numeric revision is unchanged. Headless Chrome tests use two real tabs to verify cross-tab recovery.
+
+### v0.17.9 recovery after cross-tab restore
+
+After a restore in another tab, a downloaded unsaved-work draft now imports as a new campaign with a fresh storage identity. The original newer campaign remains protected. Regression tests cover a recovered draft carrying an obsolete database epoch and the complete Chrome recovery workflow.
