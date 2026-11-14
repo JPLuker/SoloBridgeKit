@@ -67,3 +67,21 @@ test('removing one document warns about source-linked campaigns without deleting
   assert.equal(campaigns.length,2);
   assert.equal(summarizeDocumentRemoval(other,[imported,other],campaigns).lastPreparedCorebook,false);
 });
+
+test('large corebook cannot starve another prepared source from the first search page',()=>{
+ const docs=[
+  {id:'long',name:'Long.pdf',role:'corebook',bookPack:core()},
+  {id:'short',name:'Short.pdf',role:'supplement',bookPack:small()}
+ ];
+ const results=searchPreparedLibrary(docs,'private',2);
+ // The core has no private results; the short source is still available.
+ assert.equal(results[0].documentId,'short');
+ const term='page';
+ const mixed={
+  ...small(),pages:[{page:1,text:'Private page in supplement'},
+                    {page:2,text:'Another private page'}]
+ };
+ const both=searchPreparedLibrary([docs[0],{...docs[1],bookPack:mixed}],term,4);
+ assert.equal(both[0].documentId,'long');
+ assert.equal(both[1].documentId,'short');
+});
