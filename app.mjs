@@ -19,6 +19,7 @@ import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
+import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
 import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition, updateCharacterCondition, swapEndOfMissionFocus, normalizeCharacterDevelopment } from './character-development.mjs';
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
@@ -929,58 +930,188 @@ function renderShipBuilder() {
 }
 
 function renderCrew() {
-  const root = el('div',{class:'page'},[title('Crew')]);
+  const root=el('div',{class:'page'},[title('Crew')]);
   if(!state.campaign){root.append(campaignRequired());return root;}
-  const crew=state.campaign.crew;
+  const crew=normalizeCrewRoster(state.campaign.crew);
+  const groups=crewAssignments(crew);
   const createForm=el('form',{class:'inline-form'},[
     el('input',{name:'name',required:'',maxlength:'120',placeholder:'Crew member name','aria-label':'Crew member name'}),
     el('button',{class:'button primary',type:'submit',text:'Add crew member'})
   ]);
-  createForm.addEventListener('submit',async e=>{
-    e.preventDefault();try{
-      const created=createCrewMember(new FormData(createForm).get('name'));
-      crew.push(created);state.activeCrewId=created.id;
+  createForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    try{
+      const member=createCrewMember(new FormData(createForm).get('name'));
+      state.campaign.crew=[...crew,member];state.activeCrewId=member.id;
       await persist();notify('Crew member added.');
     }catch(error){failure(error);}
   });
-  root.append(card([el('h2',{text:'Roster'}),createForm]));
+  root.append(card([el('h2',{text:'Crew roster'}),createForm,
+    el('p',{class:'hint',text:'On board: '+groups.onboard.length+' · Away team: '+
+      groups['away-team'].length+' · Unassigned: '+groups.unassigned.length})]));
   if(!crew.length)return root;
-  const roster=el('div',{class:'list'});
+  const roster=el('div',{class:'document-list'});
   for(const member of crew){
     roster.append(el('div',{class:'list-row'},[
-      el('div',{},[el('strong',{text:member.name}),el('p',{class:'muted',text:[member.rank,member.role].filter(Boolean).join(' · ')||'Details not set'})]),
+      el('div',{},[el('strong',{text:member.name}),
+        el('p',{class:'muted',text:[member.rank,member.role,member.assignment].filter(Boolean).join(' · ')})]),
       el('div',{class:'actions'},[
         button('Edit',()=>{state.activeCrewId=member.id;render();},'secondary'),
         button('Remove',async()=>{
-          if(!confirm(`Remove ${member.name} from this crew?`))return;
-          state.campaign.crew=crew.filter(c=>c.id!==member.id);
-          if(state.activeCrewId===member.id)state.activeCrewId=null;
-          try{await persist();}catch(error){failure(error);}
+          if(!confirm('Remove '+member.name+' from this crew? Relationship notes on other crew members will be preserved.'))return;
+          try{
+            state.campaign.crew=crew.filter(c=>c.id!==member.id);
+            if(state.activeCrewId===member.id)state.activeCrewId=null;
+            await persist();
+          }catch(error){failure(error);}
         },'danger subtle')
       ])
     ]));
   }
   root.append(card([el('h2',{text:'Members'}),roster]));
   const active=crew.find(m=>m.id===state.activeCrewId)||crew[0];
-  const editor=el('form',{class:'form-stack'},[
+  const selectField=(name,label,options,selected)=>{
+    const menu=el('select',{name,'aria-label':label});
+    for(const [value,caption] of options) menu.append(el('option',{value,text:caption}));
+    menu.value=selected;
+    return el('label',{class:'field'},[el('span',{text:label}),menu]);
+  };
+  const profile=el('form',{class:'form-stack'},[
     el('h2',{text:active.name}),
     el('div',{class:'field-grid'},[
-      field('Name','name',active.name,{required:true}),field('Rank','rank',active.rank),
-      field('Role','role',active.role),field('Department','department',active.department)
+      field('Name','name',active.name,{required:true}),
+      field('Rank','rank',active.rank),
+      field('Role','role',active.role),
+      field('Department','department',active.department)
     ]),
-    field('Relationship','relationship',active.relationship,{multiline:true}),
+    el('div',{class:'field-grid'},[
+      selectField('assignment','Assignment',[
+        ['unassigned','Unassigned'],['onboard','On board'],['away-team','Away team']
+      ],active.assignment),
+      selectField('status','Narrative availability',[
+        ['available','Available'],['busy','Busy'],['unavailable','Unavailable']
+      ],active.status)
+    ]),
+    field('Current duty / assignment note','duty',active.duty),
+    field('Relationship notes','relationship',active.relationship,{multiline:true}),
     field('Notes','notes',active.notes,{multiline:true}),
-    el('button',{type:'submit',class:'button primary',text:'Save crew member'})
+    selectField('sheetMode','NPC representation',[
+      ['lightweight','Ship Department represents NPC'],['full','Personal NPC sheet']
+    ],active.sheetMode)
   ]);
-  editor.addEventListener('submit',async e=>{
-    e.preventDefault();const values=Object.fromEntries(new FormData(editor));
+  const npc=el('div',{class:'form-stack'},[
+    el('p',{class:'hint',text:'Optional full NPC sheet: enter personally selected Attributes, Disciplines and Focuses. No ratings are generated.'}),
+    el('h3',{text:'NPC Attributes'}),
+    ratingFields(CHARACTER_ATTRIBUTES,active.attributes,'attribute'),
+    el('h3',{text:'NPC Disciplines'}),
+    ratingFields(CHARACTER_DISCIPLINES,active.disciplines,'discipline'),
+    field('NPC Focuses · one per line','focuses',active.focuses,{multiline:true})
+  ]);
+  for(const input of npc.querySelectorAll('input[name^="attribute_"]')){
+    input.min='7';input.max='12';
+  }
+  for(const input of npc.querySelectorAll('input[name^="discipline_"]')){
+    input.min='1';input.max='5';
+  }
+  const displayNpc=()=>{npc.hidden=profile.querySelector('select[name=sheetMode]').value!=='full';};
+  profile.querySelector('select[name=sheetMode]').addEventListener('change',displayNpc);
+  displayNpc();
+  profile.append(npc,el('button',{type:'submit',class:'button primary',text:'Save crew member'}));
+  profile.addEventListener('submit',async event=>{
+    event.preventDefault();
     try{
-      if(!String(values.name).trim())throw new Error('Enter a crew member name.');
-      Object.assign(active,flatValues(values,['name','rank','role','department','relationship','notes']));
+      const values=Object.fromEntries(new FormData(profile));
+      const next=normalizeCrewMember({...active,...flatValues(values,[
+        'name','rank','role','department','assignment','status','duty','relationship','notes',
+        'sheetMode','focuses']),
+        attributes:saveRatings(values,CHARACTER_ATTRIBUTES,'attribute'),
+        disciplines:saveRatings(values,CHARACTER_DISCIPLINES,'discipline')});
+      if(!next.name)throw new Error('Enter a crew member name.');
+      const review=crewSheetReview(next);
+      if(!review.ready)throw new Error(review.errors[0]);
+      state.campaign.crew=crew.map(c=>c.id===active.id?next:c);
       await persist();notify('Crew member saved.');
     }catch(error){failure(error);}
   });
-  root.append(card([editor]));return root;
+  const source=state.documents.find(d=>d.role==='corebook'&&d.bookPack);
+  if(source) profile.append(button('Open NPC crew rules · PDF page 207',
+    ()=>openPdf(source,207).catch(failure),'secondary'));
+  root.append(card([profile]));
+  const links=card([el('h2',{text:'Crew relationships'})]);
+  const others=crew.filter(c=>c.id!==active.id);
+  if(others.length){
+    const add=el('form',{class:'form-stack'},[
+      selectField('target','Crew member',others.map(member=>[member.id,member.name]),others[0].id),
+      field('Your relationship description','description','',{required:true}),
+      el('button',{type:'submit',class:'button secondary',text:'Add relationship'})
+    ]);
+    add.addEventListener('submit',async event=>{
+      event.preventDefault();
+      try{
+        const fields=new FormData(add);
+        const changed=addCrewConnection(active,String(fields.get('target')),String(fields.get('description')));
+        state.campaign.crew=crew.map(c=>c.id===active.id?changed:c);
+        await persist();notify('Crew relationship saved.');
+      }catch(error){failure(error);}
+    });
+    links.append(add);
+  }
+  for(const link of active.connections){
+    const target=crew.find(c=>c.id===link.crewId);
+    links.append(el('div',{class:'document-item'},[
+      el('strong',{text:target?.name??'Former crew member'}),
+      el('p',{class:'muted',text:link.description}),
+      button('Remove relationship',async()=>{
+        try{
+          const changed=removeCrewConnection(active,link.crewId);
+          state.campaign.crew=crew.map(c=>c.id===active.id?changed:c);
+          await persist();notify('Crew relationship removed.');
+        }catch(error){failure(error);}
+      },'secondary')
+    ]));
+  }
+  root.append(links);
+  if(source){
+    const task=card([el('h2',{text:'Crew task target'}),
+      el('p',{class:'hint',text:'Use an NPC sheet or ship System + Department. This shows only the numeric target; it does not roll or narrate.'})]);
+    const sourceType=selectField('representation','Use ratings from',[
+      ['ship','Ship System + Department'],['npc','This NPC sheet']
+    ],active.sheetMode==='full'?'npc':'ship');
+    const fields=el('form',{class:'form-stack'},[sourceType]);
+    const first=el('label',{class:'field'}),second=el('label',{class:'field'});
+    const result=el('div',{'aria-live':'polite',class:'results'});
+    const fill=()=>{
+      const isNpc=fields.querySelector('select[name=representation]').value==='npc';
+      const makeMenu=(name,keys)=>{
+        const menu=el('select',{name,'aria-label':name});
+        keys.forEach(k=>menu.append(el('option',{value:k.toLowerCase(),text:k})));
+        return menu;
+      };
+      first.replaceChildren(el('span',{text:isNpc?'Attribute':'Ship System'}),
+        makeMenu('primary',isNpc?CHARACTER_ATTRIBUTES:SHIP_SYSTEMS));
+      second.replaceChildren(el('span',{text:isNpc?'Discipline':'Ship Department'}),
+        makeMenu('secondary',isNpc?CHARACTER_DISCIPLINES:SHIP_DEPARTMENTS));
+      result.replaceChildren();
+    };
+    sourceType.querySelector('select').addEventListener('change',fill);
+    fields.append(el('div',{class:'field-grid'},[first,second]),
+      el('button',{class:'button secondary',type:'submit',text:'Calculate crew target'}),result);
+    fill();
+    fields.addEventListener('submit',event=>{
+      event.preventDefault();
+      try{
+        const values=new FormData(fields);
+        const target=String(values.get('representation'))==='npc'
+          ?crewTaskTarget(active,String(values.get('primary')),String(values.get('secondary')))
+          :shipCrewTaskTarget(state.campaign.ship,String(values.get('primary')),String(values.get('secondary')));
+        result.replaceChildren(line('2d20 target',String(target.target)),
+          button('Open source page '+target.sourcePage,
+            ()=>openPdf(source,target.sourcePage).catch(failure),'secondary'));
+      }catch(error){failure(error);}
+    });
+    task.append(fields);root.append(task);
+  }
+  return root;
 }
 
 function renderLog() {
@@ -2124,7 +2255,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.21.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.21.1' })]));
   return root;
 }
 

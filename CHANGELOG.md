@@ -1,3 +1,12 @@
+## [0.21.1] - 2026-11-14
+### M4 — Optional NPC stat sheets and assignments (70% development)
+- Preserve legacy roster members while adding optional six-Attribute/six-Discipline/Focus NPC sheets and lightweight ship-department representation.
+- Reject invalid user-entered NPC ratings; never generate fictional values or bonus effects.
+- Add player-selected onboard/away/unassigned duty, narrative availability and relationship links between crew members.
+- Show a source-grounded task target using NPC Attribute+Discipline or ship System+Department, with original source-page reference.
+- Preserve orphaned relationship notes after another crew member is removed; no automatic narrative or status penalties.
+- Add synthetic unit and browser tests for legacy migration, full NPC sheet, task target and crew relationships.
+
 ## [0.21.0] - 2026-11-14
 ### M4 — Source-linked ship class and identity separation (30% development)
 - Begin M4 after verified completion of M3 developer scope.

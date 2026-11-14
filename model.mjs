@@ -7,6 +7,7 @@ import { normalizePrivateTables } from './private-tables.mjs';
 import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
 import { normalizeCompiledRecords } from './compiler-data.mjs';
+import { normalizeCrewRoster } from './crew-management.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -58,7 +59,7 @@ export function normalizeCampaign(campaign) {
       systems: {...emptyRatings(SHIP_SYSTEMS), ...ship.systems},
       departments: {...emptyRatings(SHIP_DEPARTMENTS), ...ship.departments}
     },
-    crew: Array.isArray(campaign.crew) ? campaign.crew : [],
+    crew: normalizeCrewRoster(campaign.crew),
     episodes: episodes.map(normalizeEpisode)
   };
 }
@@ -101,7 +102,11 @@ export function createEpisode(title) {
 export function createCrewMember(name) {
   const value = String(name ?? '').trim();
   if (!value || value.length > 120) throw new Error('Crew name must be 1–120 characters.');
-  return { id: makeId(), name: value, role: '', rank: '', department: '', relationship: '', notes: '' };
+  return { id: makeId(), name: value, role: '', rank: '', department: '',
+    relationship: '', notes: '', assignment: 'unassigned', duty: '', status: 'available',
+    sheetMode: 'lightweight', focuses: '',
+    attributes: emptyRatings(CHARACTER_ATTRIBUTES),
+    disciplines: emptyRatings(CHARACTER_DISCIPLINES), connections: [] };
 }
 
 export function createEntry(text) {
@@ -164,6 +169,7 @@ export function validateBundle(bundle) {
         !Array.isArray(c.episodes) || !c.character || !c.ship || ids.has(c.id)) {
       throw new Error('The backup contains an invalid campaign.');
     }
+    normalizeCrewRoster(c.crew);
     const history = c.character?.development;
     if (history != null) {
       if (!history || typeof history !== 'object' || Array.isArray(history) ||

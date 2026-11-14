@@ -278,3 +278,9 @@
 - Source-confirmed ship/station class application now saves PDF provenance and preserves custom identity/notes, with a pure final-apply verifier.
 - Editing class ratings or switching source invalidates verification instead of silently claiming an official class.
 - Crew and vessel progression remain M4 development work; testing stays build-only until M7.
+
+## v0.21.1 — M4 crew roster and NPC sheets
+
+- Expanded crew into source-compatible lightweight or full stat representations, privately entered ratings/Focuses, assignment and relationship management.
+- Added user-initiated crew task target calculation using source-backed ship or NPC scores, with no invented mechanics.
+- Crew/ship milestone advancement and final M4 acceptance remain to build.

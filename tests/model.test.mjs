@@ -130,3 +130,18 @@ test('private backups validate milestone and condition provenance without reject
   delete c.character.development;
   assert.equal(validateBundle(data),data);
 });
+
+test('legacy crew data normalizes with optional private NPC fields without losing notes',()=>{
+  const campaign=createCampaign('Crew compatibility');
+  campaign.crew=[{id:'legacy-officer',name:'Private crew name',
+    notes:'Player-authored prior campaign notes',relationship:'Trusted colleague'}];
+  const rebuilt=normalizeCampaign(campaign);
+  assert.equal(rebuilt.crew[0].notes,campaign.crew[0].notes);
+  assert.equal(rebuilt.crew[0].relationship,'Trusted colleague');
+  assert.equal(rebuilt.crew[0].attributes.reason,'');
+  assert.equal(rebuilt.crew[0].assignment,'unassigned');
+  const backup={format:'solobridgekit',version:DATA_VERSION,campaigns:[rebuilt],documents:[]};
+  assert.equal(validateBundle(backup),backup);
+  backup.campaigns[0].crew.push({...rebuilt.crew[0]});
+  assert.throws(()=>validateBundle(backup),/duplicate/);
+});

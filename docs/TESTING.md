@@ -303,3 +303,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Only source-confirmed class data can complete a guided ship plan; manual/legacy setup remains available.
 - [ ] Starship/station talents and minimum/maximum ratings still obey existing 2026 source-verified checks.
 - [ ] Browser synthetic fixture proves saved identity survives switching to a compiled class; distribution remains free of official class stats.
+
+## v0.21.1 M4 crew management
+
+- [ ] Legacy crew with name/rank/role/relationship/notes normalize and survive backup without losing authored text.
+- [ ] Full NPC sheets require six source-entered Attributes/Disciplines and at least one Focus; partial drafts can remain lightweight.
+- [ ] Crew target calculator uses NPC Attribute + Discipline or ship System + Department from the player's source-entered data; refuses blanks.
+- [ ] On-board, away-team and unassigned duty flags remain narrative-only and persist across reload.
+- [ ] Cross-crew relationship links retain player wording; removed crew leave a former-member reference instead of erasing notes.
+- [ ] Browser smoke creates, edits and links two synthetic crew officers and checks 390px layout.

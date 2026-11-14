@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.21.0
+## Current build: 0.21.1
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -220,3 +220,7 @@ The final M3 build adds a pure source-verified **complete guided character** gat
 ### v0.21.0 — M4 source-linked ship/station class guidance
 
 New ship-builder drafts start in **Verified class** mode and use player-confirmed, privately compiled class records. Applying one copies only the selected class type, era, scale and systems/departments; it retains your ship's name, registry, custom traits, talents and notes. A class record carries its original source PDF fingerprint, record ID and page reference. If the source or class ratings change, the verified status is invalidated. Manual ship drafts and legacy saves can continue in manual mode. The existing ship/station talent limits are enforced at final application. No official vessel statistics are included in the public app.
+
+### v0.21.1 — Crew officer sheets, assignments and relationships
+
+Crew members now support optional **private NPC character sheets** with user-entered Attributes, Disciplines and Focuses, alongside a lightweight mode using the existing ship's Systems + Departments. The app computes a task target from the selected ratings only; it never invents official NPC scores or generates narration. Crew can be marked on-board, away-team or unassigned, with player-selected duty/availability and links describing relationships with other saved officers. Old roster names, roles and notes migrate without data loss. Removing an officer leaves other officers' relationship notes intact and marks the missing person as former crew. All of this is private campaign data, not published source material.

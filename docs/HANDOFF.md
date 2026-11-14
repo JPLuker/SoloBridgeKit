@@ -314,3 +314,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Applying a class changes only type/era/class/scale/systems/departments, preserving all ship identity, custom traits, talents and notes. Manual class edits invalidate `builder.appliedAt` and source status rather than rewriting history.
 - Chrome smoke tests selecting the verified synthetic class after setting a unique ship name/registry, verifying identity and source ratings survive.
 - Next M4: useful crew member stat sheets, assignments and relationships; source-linked crew/ship progression where supported; integrated build acceptance.
+
+## v0.21.1 — M4 optional NPC sheets and crew management
+
+- `crew-management.mjs`: source-grounded optional full NPC sheets (Attributes, Disciplines, Focuses) per PDF p.207; lightweight ship Department representation and System+Department targets per pp.207–208; assignments and authored crew relationships are narrative/status metadata only.
+- `model.createCrewMember()` creates blank ratings and player-editable assignments. `normalizeCampaign()` safely fills missing fields in old crew members; backup validator refuses duplicate/corrupt roster data.
+- `app.renderCrew()` now has editable NPC sheets, assignment/duty/availability, relationship links and a source-linked task target calculator. No invented NPC stats, unknown bonuses or automatic success/narration.
+- When an officer is removed, relationship descriptions on other officers are retained and displayed as 'Former crew member'.
+- CI browser checks two synthetic NPC crew, full ratings, assignment, relationship, task target and phone width.
+- Next M4: player-triggered ship/station milestones using the book's PDF p.181 caps and source history, final regression and build-only acceptance. Physical device testing is deferred to M7.

@@ -262,6 +262,45 @@ try {
   check(savedClass.ref==='synthetic-ship' && savedClass.name==='Player-owned survey ship' &&
     savedClass.registry==='OWN-001' && savedClass.engines==='6',
     'The source-verified ship class did not preserve identity or use saved source ratings.');
+  // M4: optional fully entered NPC sheets, assignments and relationships.
+  await navigate('Crew');
+  await heading('Crew');
+  await page.type('input[aria-label="Crew member name"]','Synthetic navigator');
+  await clickText('Add crew member');
+  await waitForSave('Crew member added.');
+  await page.select('select[name=sheetMode]','full');
+  await page.select('select[name=assignment]','away-team');
+  await page.evaluate(() => {
+    for (const input of document.querySelectorAll('#content input[name^="attribute_"]')) input.value='8';
+    for (const input of document.querySelectorAll('#content input[name^="discipline_"]')) input.value='2';
+  });
+  await page.type('textarea[name=focuses]','Owner-entered navigational skill');
+  await clickText('Save crew member');
+  await waitForSave('Crew member saved.');
+  await page.select('select[name=representation]','npc');
+  await clickText('Calculate crew target');
+  await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20 target'), {timeout:12000});
+  await page.type('input[aria-label="Crew member name"]','Synthetic science officer');
+  await clickText('Add crew member');
+  await waitForSave('Crew member added.');
+  await clickText('Edit');
+  await page.type('input[name=description]','Player-written trusted colleague');
+  await clickText('Add relationship');
+  await waitForSave('Crew relationship saved.');
+  const crewResult=await page.evaluate(async () => {
+    const { all }=await import('./storage.mjs');
+    const roster=(await all('campaigns'))[0].crew;
+    return {count:roster.length,assignment:roster[0]?.assignment,
+      npcMode:roster[0]?.sheetMode,attribute:roster[0]?.attributes?.reason,
+      link:roster[0]?.connections?.[0]?.crewId, otherId:roster[1]?.id};
+  });
+  check(crewResult.count===2 && crewResult.assignment==='away-team' &&
+    crewResult.npcMode==='full' && crewResult.attribute==='8' &&
+    crewResult.link===crewResult.otherId,
+    'NPC stats, assignments or player-authored relationship were lost during save.');
+  await page.screenshot({path:join(output,'phone-crew.png'),fullPage:true});
+  const crewWidth=await page.evaluate(()=>({viewport:innerWidth,width:document.documentElement.scrollWidth}));
+  check(crewWidth.width<=crewWidth.viewport+4,'Crew editor overflows the phone layout.');
   await navigate('Character');
   await heading('Character');
   await page.type('input[name=name]', 'Synthetic Officer');
