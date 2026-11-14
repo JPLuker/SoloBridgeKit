@@ -9,7 +9,7 @@ import { normalizePrivateShips } from './private-ships.mjs';
 import { normalizeCompiledRecords } from './compiler-data.mjs';
 import { normalizeCrewRoster } from './crew-management.mjs';
 import { normalizeShipDevelopment } from './ship-development.mjs';
-import { resolveActiveEpisodeId, resolveActiveSceneId } from './mission-workspace.mjs';
+import { resolveActiveEpisodeId, resolveActiveSceneId, normalizeSceneCorrections } from './mission-workspace.mjs';
 import { normalizeMissionThreads } from './mission-threads.mjs';
 export const DATA_VERSION = 1;
 
@@ -76,6 +76,7 @@ export function normalizeEpisode(episode) {
     ...episode, ...sceneData,
     activeSceneId: resolveActiveSceneId(episode,sceneData.scenes),
     threads: normalizeMissionThreads(episode.threads,sceneData.scenes),
+    sceneCorrections: normalizeSceneCorrections(episode.sceneCorrections,sceneData.scenes),
     summary: episode.summary ?? '', development: episode.development ?? '',
     careerEvents: episode.careerEvents ?? '',
     valueMarks: { minus: false, plus: false, challenged: false, ...episode.valueMarks },
