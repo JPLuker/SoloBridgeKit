@@ -24,6 +24,7 @@ import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './gu
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
+import { reviewBonusTotals, savedStageDrafts } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
@@ -2055,6 +2056,7 @@ function renderSourcePreparation(book) {
   const compiler=renderPrivateCompiler(book);
   advanced.append(compiler);
   for(const step of status.steps){
+    const drafts=savedStageDrafts(book,step.id);
     const row=el('div',{class:'document-item'},[
       el('div',{},[
         el('strong',{text:step.title}),
@@ -2092,6 +2094,23 @@ function renderSourcePreparation(book) {
       ]),
       el('div',{class:'source-suggestions','aria-live':'polite'})
     ]);
+    if(drafts.length){
+      row.append(el('p',{class:'hint',text:`You have ${drafts.length} unfinished choice${drafts.length===1?'':'s'} saved in this section.`}));
+      for(const draft of drafts){
+        row.append(el('div',{class:'document-item'},[
+          el('strong',{text:draft.label}),
+          el('p',{class:'hint',text:'Saved for review · PDF page '+draft.page}),
+          button('Continue reviewing '+draft.label,()=>{
+            if(typeof compiler.openGuidedCandidate!=='function'){
+              notify('The private review form needs repair.',true);return;
+            }
+            advanced.open=true;
+            compiler.openGuidedCandidate(draft);
+            advanced.scrollIntoView({behavior:'smooth',block:'start'});
+          })
+        ]));
+      }
+    }
     panel.append(row);
   }
   panel.append(advanced);
@@ -2188,6 +2207,8 @@ function renderPrivateCompiler(book) {
         ['education','Education'], ['career','Career'], ['event1','Career event']
       ], data.stepId);
       form.append(el('label', { class: 'field' }, [el('span', { text: 'Lifepath stage' }), step]));
+      form.append(el('p',{class:'hint',text:'Use the + and − buttons below to copy the bonuses from your PDF. The totals show how many points the stage expects. These buttons do not decide which bonuses your book grants.'}));
+      const totals=el('p',{class:'hint','aria-live':'polite'});
       const groups = [
         ['Attribute bonuses','attr', ['control','daring','fitness','insight','presence','reason'], data.record?.attributes],
         ['Discipline bonuses','discipline',['command','conn','security','engineering','science','medicine'],data.record?.disciplines]
@@ -2198,10 +2219,44 @@ function renderPrivateCompiler(book) {
         for (const key of keys) {
           const input = field(key, prefix + '_' + key, String(values?.[key] ?? 0), { number: true });
           input.querySelector('input').max = '5';
-          grid.append(input);
+          const valueInput=input.querySelector('input');
+          const wrapper=el('div',{class:'source-bonus-adjuster'},[
+            input,
+            el('div',{class:'actions'},[
+              button('− '+key,()=>{
+                valueInput.value=String(Math.max(0,Number(valueInput.value||0)-1));
+                valueInput.dispatchEvent(new Event('input',{bubbles:true}));
+              },'secondary'),
+              button('+ '+key,()=>{
+                valueInput.value=String(Math.min(5,Number(valueInput.value||0)+1));
+                valueInput.dispatchEvent(new Event('input',{bubbles:true}));
+              },'secondary')
+            ])
+          ]);
+          grid.append(wrapper);
         }
         form.append(grid);
       }
+      const updateTotals=()=>{
+        const fields=new FormData(form);
+        const rec={
+          attributes:Object.fromEntries(['control','daring','fitness','insight','presence','reason']
+            .map(key=>[key,fields.get('attr_'+key)])),
+          disciplines:Object.fromEntries(['command','conn','security','engineering','science','medicine']
+            .map(key=>[key,fields.get('discipline_'+key)]))
+        };
+        const budget=reviewBonusTotals(form.querySelector('[name=stepId]').value,rec);
+        if(!budget){totals.textContent='Compare the bonuses against your source page.';return;}
+        totals.textContent=['attributes','disciplines'].map(name=>{
+          const v=budget[name];
+          return v.valid?`${name}: ${v.assigned} of ${v.expected} points assigned`:
+            `${name}: enter whole numbers from 0 to 5`;
+        }).join(' · ');
+      };
+      form.querySelector('[name=stepId]').addEventListener('change',updateTotals);
+      form.addEventListener('input',updateTotals);
+      updateTotals();
+      form.append(totals);
       form.append(field('Value', 'value', data.record?.value ?? ''),
         field('Focuses', 'focuses', data.record?.focuses ?? '', { multiline: true }),
         field('Notes', 'notes', data.record?.notes ?? '', { multiline: true }));
