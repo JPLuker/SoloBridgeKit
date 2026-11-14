@@ -1,7 +1,7 @@
 ## v0.24.0 — M7 accessibility and layout gates (pending CI)
 
 - Added keyboard navigation, focus-visible, semantic label and mobile tap-target verification for packaged PWA.
-- Added 360/390/640/768/1280px responsive overflow coverage. Physical-device and screen-reader acceptance remains open.
+- Added 360/390/640/768/1280px responsive overflow coverage, computed light/dark text-contrast checks, reduced-motion verification and independent offline PWA reload. Physical-device and screen-reader acceptance remains open.
 
 ## v0.23.0 — M6 private multi-book search (verified CI #135)
 
