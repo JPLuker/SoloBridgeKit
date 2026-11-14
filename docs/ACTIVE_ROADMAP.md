@@ -117,6 +117,8 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M7. UX, accessibility and actual-device verification
 
+**Development progress: 25% (v0.24.0, pending CI).** Added packaged headless browser checks for keyboard navigation and visible focus, programmatic input/button labels, minimum navigation tap targets, and layout widths 360/390/640/768/1280px. Remaining: verify CI, fix reported accessibility or layout defects, install/upgrade/offline checks, and owner-only real Android/desktop acceptance with legally purchased books.
+
 **Build**
 - Test keyboard-only operation, focus visibility, accessibility labels, contrast, large text/200% zoom and screen readers.
 - Verify the interface at 360px, 390px, tablet and desktop, including virtual keyboards, notch/safe areas and mobile PDF reader.
