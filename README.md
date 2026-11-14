@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.25.1 (first-session guidance overhaul, pending CI; UNTESTED preview)
+## Current build: 0.25.2 (beginner-first rulebook onboarding, pending CI; UNTESTED preview)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -250,3 +250,7 @@ Use **Prepare for search** on a supplement, form or reference PDF to build a sho
 ## Release provenance
 
 For each development build, `npm run audit:release` validates exact dependency versions/licensing and writes a complete SHA-256 file manifest under `test-output/`. CI attaches this as an **UNTESTED** provenance artifact alongside its source-free PWA preview. See [release readiness gates](docs/RELEASE-READINESS.md), [M8 automated acceptance](docs/M8-AUTOMATED-ACCEPTANCE.md) and the [private device test checklist](docs/M7-DEVICE-ACCEPTANCE.md). Real-device validation, the public code license and official release approval are still pending; CI success does not make this an approved public 1.0 release.
+
+### Starting with no tabletop RPG experience
+
+Open **Home** and select **I have the PDF — add my rulebook**. The Library defaults to one *Captain's Log (2026)* rulebook PDF and prepares it locally without requiring technical document-type settings. The page explains what a rulebook is, which file to choose, privacy, progress and typical file errors. After successful preparation, choose **Next: Create a campaign**. The character, ship and mission screens introduce decisions as you encounter them; no prior D&D or RPG experience is assumed. Extra PDFs and advanced document types remain optional. The complete source book and private verified selections are still required; the app does not distribute publisher materials.
