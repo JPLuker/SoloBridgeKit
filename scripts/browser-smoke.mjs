@@ -370,6 +370,50 @@ try {
   }, previousGeneration);
   check(staleImport.importRejected && staleImport.patchRejected && staleImport.unchanged,
     'An obsolete import or reattachment wrote data after a restore.');
+  // A restore in ANOTHER browser tab must invalidate both outstanding imports
+  // and campaigns with the same numeric revision as the restored backup.
+  const oldTabSnapshot = await page.evaluate(async () => {
+    const storage = await import('./storage.mjs');
+    return {
+      generation: await storage.currentDataGeneration(),
+      campaign: structuredClone((await storage.all('campaigns'))[0])
+    };
+  });
+  const otherTab = await browser.newPage();
+  try {
+    await otherTab.goto(origin, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await otherTab.evaluate(async bundle => {
+      await (await import('./storage.mjs')).restoreBackup(bundle);
+    }, backup);
+  } finally { await otherTab.close(); }
+  const crossTab = await page.evaluate(async snapshot => {
+    const { all, addDocumentsAtomically, patchDocumentIfCurrent, saveCampaign } =
+      await import('./storage.mjs');
+    const before = await all('documents');
+    const fake = { id: crypto.randomUUID(), name: 'cross-tab-stale.pdf',
+      role: 'reference', blob: new Blob(['%PDF-1.7'], { type: 'application/pdf' }),
+      size: 8, importedAt: new Date().toISOString(), bookmarks: [] };
+    let importRejected = false, patchRejected = false, campaignRejected = false;
+    try { await addDocumentsAtomically([fake], snapshot.generation); }
+    catch (error) { importRejected = error.message.includes('database changed'); }
+    try { await patchDocumentIfCurrent(before[0].id,
+      { name: 'cross-tab-overwritten.pdf' }, snapshot.generation); }
+    catch (error) { patchRejected = error.message.includes('library changed'); }
+    try {
+      snapshot.campaign.title = 'Cross-tab stale campaign overwrite';
+      await saveCampaign(snapshot.campaign);
+    } catch (error) { campaignRejected = error.message.includes('another tab'); }
+    const after = await all('documents');
+    const campaign = (await all('campaigns'))[0];
+    return { importRejected, patchRejected, campaignRejected,
+      docsPreserved: after.length === before.length && after[0].name === before[0].name,
+      campaignPreserved: campaign.title === 'Synthetic test campaign',
+      sameRevision: campaign.revision === snapshot.campaign.revision };
+  }, oldTabSnapshot);
+  check(crossTab.importRejected && crossTab.patchRejected && crossTab.campaignRejected &&
+    crossTab.docsPreserved && crossTab.campaignPreserved && crossTab.sameRevision,
+    'Cross-tab restore allowed a stale write with an unchanged numeric campaign revision.');
+
 
 
 

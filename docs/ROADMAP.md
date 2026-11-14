@@ -215,3 +215,9 @@
 
 - Added mobile recovery UI screenshot/layout smoke and [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md) for privately conducted Android/desktop source-book tests.
 - M1 remains at less than 100% until real-device acceptance and explicit owner signoff.
+
+## v0.17.8 — M1 persistent cross-tab generation safety
+
+- Database epoch stored in IndexedDB and checked atomically with imports and document patches.
+- Reset/restore in another tab invalidates older jobs; restored campaigns reject stale versions even when their numeric revision is identical.
+- Two-tab headless Chrome regression added. Source PDF and private index remain unbundled.

@@ -994,7 +994,7 @@ function renderLibrary() {
     const files = [...fileInput.files];
     if (!files.length) return;
     const requestedRole = normalizeDocumentRole(roleSelect.value);
-    const importGeneration = currentDataGeneration();
+    const importGeneration = await currentDataGeneration();
     try {
       if (preparationController) throw new Error('Another preparation is already running.');
       preparationController = new AbortController();
@@ -1049,7 +1049,7 @@ function renderLibrary() {
         }
         if (preparationController) throw new Error('Another preparation is already running.');
         preparationController = new AbortController();
-        const importGeneration = currentDataGeneration();
+        const importGeneration = await currentDataGeneration();
         changeRole.disabled = true;
         cancelPreparation.hidden = false;
         changeRole.textContent = 'Preparing…';
@@ -1059,7 +1059,7 @@ function renderLibrary() {
         });
         assertNotCancelled(preparationController.signal);
         const current = await get('documents', document.id);
-        if (!current || currentDataGeneration() !== importGeneration)
+        if (!current || await currentDataGeneration() !== importGeneration)
           throw new Error('The book was removed or storage was reset during preparation. Nothing was saved.');
         await patchDocumentIfCurrent(document.id, { role: 'corebook', bookPack: pack }, importGeneration);
         await refresh();
@@ -1080,12 +1080,12 @@ function renderLibrary() {
       const selected = relinkInput.files?.[0];
       if (!selected) return;
       try {
-        const importGeneration = currentDataGeneration();
+        const importGeneration = await currentDataGeneration();
         const latest = await get('documents', document.id);
         if (!latest) throw new Error('The imported document no longer exists.');
         const replacement = await relinkDocument(latest, selected);
         await checkStorageCapacity([selected]);
-        if (importGeneration !== currentDataGeneration() || !(await get('documents', document.id)))
+        if (importGeneration !== await currentDataGeneration() || !(await get('documents', document.id)))
           throw new Error('The document was removed or local data was reset during reattachment. Nothing was saved.');
         await patchDocumentIfCurrent(document.id, {
           blob: replacement.blob, name: replacement.name,
@@ -1104,7 +1104,7 @@ function renderLibrary() {
     privatePackInput.addEventListener('change', async () => {
       const selected = privatePackInput.files?.[0];
       if (!selected) return;
-      const operationGeneration = currentDataGeneration();
+      const operationGeneration = await currentDataGeneration();
       try {
         const latest = await get('documents', document.id);
         if (!latest || normalizeDocumentRole(latest.role) !== 'corebook')
@@ -1610,7 +1610,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.6' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.8' })]));
   return root;
 }
 

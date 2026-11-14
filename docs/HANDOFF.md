@@ -204,3 +204,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/browser-smoke.mjs` checks recovery banner/button accessibility at 390px and saves `phone-recovery.png`.
 - [M1 acceptance checklist](M1-ACCEPTANCE.md) is the owner-only real-book/hardware verification requirement; do not treat green headless CI as actual Android acceptance.
 - Developer code for M1 is otherwise covered by automated tests and documented. **Do not start M2 until user accepts the M1 device test.**
+
+## v0.17.8 — M1 persisted generation token
+
+- `storage.currentDataGeneration()` is now asynchronous: reads a persistent token from the `settings` object store and combines it with the tab's local mutation counter.
+- `addDocumentsAtomically()` and `patchDocumentIfCurrent()` validate the token **inside the same IndexedDB transaction** that writes documents; a restore/reset in another tab cannot race these writes.
+- `resetData()` and `restoreBackup()` generate a new persistent token in the destructive transaction. Restored campaign records receive an epoch marker, so old tabs cannot overwrite a restored campaign with the same revision number.
+- `app.mjs` now awaits each generation capture/check. New Chrome smoke scenario performs a restore in a second browser tab and verifies both stale document writes and a stale campaign save are rejected.
+- Private owner book baseline has been independently inspected locally (336 pages; SHA-256 matches user-generated private search index). Cannot verify Chrome's browser-local extraction here because local Chromium is blocked/hanging. Android acceptance remains user-only; **M1 stays at 98%**.

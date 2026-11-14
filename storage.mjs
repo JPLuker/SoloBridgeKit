@@ -12,7 +12,17 @@ let dbPromise;
 const campaignWriteQueues = new Map();
 let destructiveMutation = false;
 let dataGeneration = 0;
-export function currentDataGeneration() { return dataGeneration; }
+const EPOCH_KEY = 'data-generation-epoch';
+const legacyEpoch = 'legacy';
+const nextEpoch = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+const epochValue = record => record?.value ?? legacyEpoch;
+export async function currentDataGeneration() {
+  // Persisted token detects a reset/restore performed in ANOTHER browser tab.
+  return `${dataGeneration}:${epochValue(await get('settings', EPOCH_KEY))}`;
+}
+function matchesGeneration(expected, record) {
+  return expected === `${dataGeneration}:${epochValue(record)}`;
+}
 
 async function withExclusiveMutation(action) {
   if (destructiveMutation) throw new Error('Another restore or reset is already running.');
@@ -71,10 +81,9 @@ export const remove = (store, id) => run(store, 'readwrite', objectStore => obje
 
 // Add an entire selected import batch in one IndexedDB transaction.
 // If ANY add fails (including quota, duplicate ID or serialization), none persist.
-export async function addDocumentsAtomically(records, expectedGeneration = dataGeneration) {
+export async function addDocumentsAtomically(records, expectedGeneration = undefined) {
   if (!Array.isArray(records) || !records.length) throw new Error('No documents to import.');
-  if (expectedGeneration !== dataGeneration)
-    throw new Error('The local database changed during PDF preparation. Re-import the file; no partial records were saved.');
+  const generation = expectedGeneration ?? await currentDataGeneration();
   const ids = new Set();
   for (const doc of records) {
     if (!doc || typeof doc.id !== 'string' || !doc.id || ids.has(doc.id) ||
@@ -84,20 +93,30 @@ export async function addDocumentsAtomically(records, expectedGeneration = dataG
     ids.add(doc.id);
   }
   const db = await database();
-  if (expectedGeneration !== dataGeneration || destructiveMutation)
-    throw new Error('The local database was reset or restored during PDF preparation. Retry the import.');
+  if (destructiveMutation)
+    throw new Error('A restore/reset is in progress. Retry the PDF import.');
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('documents', 'readwrite');
+    // Read the persistent epoch AND commit files within one transaction,
+    // preventing a reset/restore in any tab from racing the final import write.
+    const tx = db.transaction(['documents', 'settings'], 'readwrite');
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error ?? new Error('Could not save the PDF batch.'));
     tx.onabort = () => reject(tx.error ?? new Error('PDF import was rolled back.'));
-    try {
-      const store = tx.objectStore('documents');
-      for (const doc of records) store.add(doc); // add, never overwrite existing IDs
-    } catch (error) {
-      try { tx.abort(); } catch { /* Transaction may already have aborted. */ }
-      reject(error);
-    }
+    const check = tx.objectStore('settings').get(EPOCH_KEY);
+    check.onsuccess = () => {
+      if (!matchesGeneration(generation, check.result) || destructiveMutation) {
+        reject(new Error('The local database changed during PDF preparation. Re-import the file; no partial records were saved.'));
+        tx.abort();
+        return;
+      }
+      try {
+        const store = tx.objectStore('documents');
+        for (const doc of records) store.add(doc); // add, never overwrite IDs
+      } catch (error) {
+        reject(error);
+        tx.abort();
+      }
+    };
   });
 }
 
@@ -117,6 +136,7 @@ async function commitCampaignSnapshot(campaign) {
       if (!committed) return reject(new Error('Campaign save did not complete.'));
       campaign.revision = committed.revision;
       campaign.updatedAt = committed.updatedAt;
+      if (committed.storageEpoch) campaign.storageEpoch = committed.storageEpoch;
       resolve(committed);
     };
     tx.onerror = () => reject(tx.error ?? new Error('Campaign save failed.'));
@@ -125,12 +145,16 @@ async function commitCampaignSnapshot(campaign) {
     const request = store.get(snapshot.id);
     request.onsuccess = () => {
       const storedRevision = campaignRevision(request.result?.revision);
-      if (storedRevision !== expected) {
-        reject(new Error('This campaign was updated in another tab. Your stale edit was not saved. Export your data before reloading.'));
+      const storedEpoch = epochValue({ value: request.result?.storageEpoch });
+      const submittedEpoch = epochValue({ value: snapshot.storageEpoch });
+      if (storedRevision !== expected || storedEpoch !== submittedEpoch) {
+        reject(new Error('This campaign was updated or restored in another tab. Your stale edit was not saved. Export your recovery draft before reloading.'));
         tx.abort();
         return;
       }
-      committed = { ...snapshot, revision: expected + 1, updatedAt: new Date().toISOString() };
+      committed = { ...snapshot, revision: expected + 1,
+        ...(request.result?.storageEpoch ? { storageEpoch: request.result.storageEpoch } : {}),
+        updatedAt: new Date().toISOString() };
       store.put(committed);
     };
   });
@@ -142,22 +166,30 @@ export async function patchDocumentIfCurrent(id, changes, expectedGeneration) {
   if (!id || !changes || typeof changes !== 'object' || Array.isArray(changes))
     throw new Error('Invalid document update.');
   const db = await database();
-  if (expectedGeneration !== dataGeneration || destructiveMutation)
+  if (destructiveMutation)
     throw new Error('The library changed during preparation. Retry; existing data was preserved.');
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('documents', 'readwrite');
+    const tx = db.transaction(['documents', 'settings'], 'readwrite');
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error ?? new Error('Could not save document changes.'));
     tx.onabort = () => reject(tx.error ?? new Error('Document update was rolled back.'));
-    const store = tx.objectStore('documents');
-    const request = store.get(id);
-    request.onsuccess = () => {
-      if (!request.result) {
-        reject(new Error('The original PDF was removed. It was not recreated.'));
+    const check = tx.objectStore('settings').get(EPOCH_KEY);
+    check.onsuccess = () => {
+      if (!matchesGeneration(expectedGeneration, check.result) || destructiveMutation) {
+        reject(new Error('The library changed during preparation. Retry; existing data was preserved.'));
         tx.abort();
-      } else {
-        store.put({ ...request.result, ...changes, id });
+        return;
       }
+      const store = tx.objectStore('documents');
+      const request = store.get(id);
+      request.onsuccess = () => {
+        if (!request.result) {
+          reject(new Error('The original PDF was removed. It was not recreated.'));
+          tx.abort();
+        } else {
+          store.put({ ...request.result, ...changes, id });
+        }
+      };
     };
   });
 }
@@ -182,6 +214,7 @@ export async function resetData() {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAMES, 'readwrite');
       STORE_NAMES.forEach(name => tx.objectStore(name).clear());
+      tx.objectStore('settings').put({ key: EPOCH_KEY, value: nextEpoch() });
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error ?? new Error('Could not erase data.'));
       tx.onabort = () => reject(tx.error ?? new Error('Could not erase data.'));
@@ -238,10 +271,14 @@ export async function restoreBackup(raw) {
     const db = await database();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAMES, 'readwrite');
+      const restoredEpoch = nextEpoch();
       for (const name of STORE_NAMES) {
         if (name !== 'documents' || shouldReplaceDocumentsInRestore(bundle)) tx.objectStore(name).clear();
       }
-      for (const c of bundle.campaigns) tx.objectStore('campaigns').put(c);
+      tx.objectStore('settings').put({ key: EPOCH_KEY, value: restoredEpoch });
+      for (const c of bundle.campaigns) {
+        tx.objectStore('campaigns').put({ ...c, storageEpoch: restoredEpoch });
+      }
       if (shouldReplaceDocumentsInRestore(bundle)) {
         for (const d of docs) tx.objectStore('documents').put(d);
       }

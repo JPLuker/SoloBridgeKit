@@ -201,3 +201,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Headless Chrome screenshot of failure recovery action at 390px; no horizontal scroll or unreachable buttons.
 - [ ] Complete [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md) with the genuine owner-supplied book on Android and desktop.
 - **M1 stays below 100%** until user tests and accepts. All CI fixtures remain synthetic and distributable remains free of licensed content.
+
+## v0.17.8 cross-tab reset and restore regression
+
+- [ ] With two live tabs, start a library import in tab A, restore a different backup in tab B, then attempt tab A's obsolete write: transaction rejects and no orphan document appears.
+- [ ] An old tab's document patch must also fail if another tab has reset or restored storage.
+- [ ] A campaign with the same numeric revision before and after restore must refuse the old tab's write using the new storage epoch.
+- [ ] Verify old-form backup restores still work: the epoch marker is an internal field and does not change the JSON backup version.
+- [ ] Real Android and desktop tests with the purchased PDF remain part of [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md).

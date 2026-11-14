@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.7 completes available developer-side testing, including 390px recovery controls, and adds [M1 owner acceptance](M1-ACCEPTANCE.md). **M1 is 98% pending actual private 336-page source on Android/desktop and owner signoff. Do not start M2.**
+**Progress:** v0.17.8 adds persisted cross-tab restore/import generation checks and two-tab regression coverage. The private 336-page PDF and its index were independently inspected locally; full PDF.js import in the target browser and Android remain unverified. **M1 stays 98% pending actual-device acceptance and owner signoff; M2 remains locked.**
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

@@ -1,3 +1,11 @@
+## [0.17.8] - 2026-11-13
+### M1 — Cross-tab restore and import integrity
+- Persist a database generation token in IndexedDB across tabs; importing a PDF and verifying the token occurs atomically in the same transaction.
+- Invalidate prepared/importing PDF jobs after reset or restore in *another* tab; protect reattachments and private-index changes.
+- Assign new campaign storage-epoch identities on restore, rejecting stale-tab campaign saves even if numeric revisions match.
+- Add headless Chrome two-tab restore regression for imports, document changes and campaign overwrites.
+- Independently inspected the private 336-page book and confirmed its previously generated index matches its source SHA-256; physical Android testing remains pending.
+
 ## [0.17.7] - 2026-11-13
 ### M1 — Acceptance gate and mobile recovery UI
 - Chrome smoke asserts the persistent recovery banner/buttons fit the 390px phone viewport and records a screenshot.
