@@ -103,6 +103,8 @@ export async function addDocumentsAtomically(records, expectedGeneration = undef
     }
     ids.add(doc.id);
   }
+  if(records.filter(doc=>doc.role==='corebook').length>1)
+    throw new Error('Import one corebook at a time.');
   const db = await database();
   if (destructiveMutation)
     throw new Error('A restore/reset is in progress. Retry the PDF import.');
@@ -120,13 +122,24 @@ export async function addDocumentsAtomically(records, expectedGeneration = undef
         tx.abort();
         return;
       }
-      try {
-        const store = tx.objectStore('documents');
-        for (const doc of records) store.add(doc); // add, never overwrite IDs
-      } catch (error) {
-        reject(error);
-        tx.abort();
-      }
+      const store=tx.objectStore('documents');
+      const apply=existing=>{
+        try {
+          // A newly imported corebook becomes the one active source. Other
+          // editions remain as searchable references; none are deleted.
+          if(records.some(doc=>doc.role==='corebook')){
+            for(const previous of existing){
+              if(previous.role==='corebook')
+                store.put({...previous,role:'reference'});
+            }
+          }
+          for(const doc of records)store.add(doc); // add, never overwrite IDs
+        }catch(error){reject(error);tx.abort();}
+      };
+      if(records.some(doc=>doc.role==='corebook')){
+        const previous=store.getAll();
+        previous.onsuccess=()=>apply(previous.result);
+      }else apply([]);
     };
   });
 }
