@@ -6,6 +6,7 @@ import { validateBookPack } from './book-data.mjs';
 import { normalizePrivateTables } from './private-tables.mjs';
 import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
+import { normalizeCompiledRecords } from './compiler-data.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -176,7 +177,8 @@ export function validateBundle(bundle) {
       normalizePrivateTables(d.tables, d.bookPack.sourceSha256);
       normalizePrivateOptions(d.options, d.bookPack.sourceSha256);
       normalizePrivateShips(d.ships, d.bookPack.sourceSha256);
-    } else if ((d.tables != null && d.tables.length) || (d.options != null && d.options.length) || (d.ships != null && d.ships.length))
+      normalizeCompiledRecords(d.compiledRecords, d.bookPack.sourceSha256, d.bookPack.pageCount, { allowStale: true });
+    } else if ((d.tables != null && d.tables.length) || (d.options != null && d.options.length) || (d.ships != null && d.ships.length) || (d.compiledRecords != null && d.compiledRecords.length))
       throw new Error('Private options, tables, and ship classes require a prepared corebook.');
     docIds.add(d.id);
   }

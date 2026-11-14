@@ -1,6 +1,6 @@
 # M1 — Data Protection & Stability: acceptance gate
 
-**Status:** Developer work verified by CI; real-device acceptance pending. **Do not mark 100% or begin M2** until the actual purchased source book and device tests pass.
+**Status:** M1 DEVELOPMENT 100% complete at v0.18.0 by owner direction; real-device acceptance is deliberately deferred to M7. This checklist is retained for later release testing and does not block M2.
 
 **Test build:** v0.18.0; get the matching **UNTESTED** ZIP from the latest successful GitHub Actions run. Source checks, PDF verification, Chrome smoke and distribution audit must pass. This is **not** a fully device-tested release.
 
@@ -62,4 +62,4 @@ The supplied purchased 2026 PDF was checked with the **actual distributed PDF.js
 
 - All required steps pass or any exception has a documented justification and explicitly approved scope adjustment.
 - No book content was included in public source/distribution/artifact outputs.
-- User explicitly accepts M1 after testing. Only then record **M1 100%** and proceed to M2.
+- The owner approved separating coding completion from hardware acceptance. M1 development is 100%; complete this checklist later under M7.

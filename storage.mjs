@@ -5,6 +5,7 @@ import { validateBookPack, verifyPreparedBook } from './book-data.mjs';
 import { normalizePrivateTables } from './private-tables.mjs';
 import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
+import { normalizeCompiledRecords, upsertCompiledRecord, removeCompiledRecord } from './compiler-data.mjs';
 
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
@@ -214,6 +215,52 @@ export async function patchDocumentIfCurrent(id, changes, expectedGeneration) {
   });
 }
 
+// Compiler writes use the latest local document record in the same transaction.
+// Confirmed entries cannot overwrite unrelated private tables/options/bookmarks.
+export async function mutateCompiledRecords(documentId, operation, expectedGeneration = undefined) {
+  if (!documentId || !operation || !['upsert','remove'].includes(operation.type))
+    throw new Error('Invalid private compiler operation.');
+  const generation = expectedGeneration ?? await currentDataGeneration();
+  const db = await database();
+  if (destructiveMutation) throw new Error('A restore or reset is in progress.');
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['documents','settings'], 'readwrite');
+    let result;
+    tx.oncomplete = () => resolve(result);
+    tx.onerror = () => reject(tx.error ?? new Error('Private rules write failed.'));
+    tx.onabort = () => reject(tx.error ?? new Error('Private rules write rolled back.'));
+    const epoch = tx.objectStore('settings').get(EPOCH_KEY);
+    epoch.onsuccess = () => {
+      if (!matchesGeneration(generation, epoch.result) || destructiveMutation) {
+        reject(new Error('The library changed during compilation. No private rules were saved.'));
+        tx.abort();
+        return;
+      }
+      const store = tx.objectStore('documents');
+      const request = store.get(documentId);
+      request.onsuccess = () => {
+        const doc = request.result;
+        if (!doc?.bookPack) {
+          reject(new Error('The prepared source PDF is missing.'));
+          tx.abort();
+          return;
+        }
+        try {
+          const sha = doc.bookPack.sourceSha256, count = doc.bookPack.pageCount;
+          const records = operation.type === 'upsert'
+            ? upsertCompiledRecord(doc.compiledRecords, operation.record, sha, count)
+            : removeCompiledRecord(doc.compiledRecords, operation.id, sha, count);
+          store.put({ ...doc, compiledRecords: records });
+          result = records;
+        } catch (error) {
+          reject(error);
+          tx.abort();
+        }
+      };
+    };
+  });
+}
+
 export async function saveCampaign(campaign) {
   if (destructiveMutation) throw new Error('A restore or reset is in progress. Retry the save after it completes.');
   if (!campaign || typeof campaign.id !== 'string' || !campaign.id) {
@@ -268,7 +315,8 @@ export async function createBackup(options = {}) {
       ...(doc.bookPack ? { bookPack: validateBookPack(doc.bookPack),
         tables: normalizePrivateTables(doc.tables, doc.bookPack.sourceSha256),
         options: normalizePrivateOptions(doc.options, doc.bookPack.sourceSha256),
-        ships: normalizePrivateShips(doc.ships, doc.bookPack.sourceSha256) } : {}), base64: bytesToBase64(bytes) });
+        ships: normalizePrivateShips(doc.ships, doc.bookPack.sourceSha256),
+        compiledRecords: normalizeCompiledRecords(doc.compiledRecords, doc.bookPack.sourceSha256, doc.bookPack.pageCount, { allowStale: true }) } : {}), base64: bytesToBase64(bytes) });
   }
   return { format: 'solobridgekit', version: DATA_VERSION, createdAt: new Date().toISOString(),
     includesDocuments: shouldIncludeDocuments(options), campaigns, documents };
@@ -281,7 +329,8 @@ export async function restoreBackup(raw) {
     ...(d.bookPack ? { bookPack: validateBookPack(d.bookPack),
       tables: normalizePrivateTables(d.tables, d.bookPack.sourceSha256),
       options: normalizePrivateOptions(d.options, d.bookPack.sourceSha256),
-      ships: normalizePrivateShips(d.ships, d.bookPack.sourceSha256) } : {}),
+      ships: normalizePrivateShips(d.ships, d.bookPack.sourceSha256),
+      compiledRecords: normalizeCompiledRecords(d.compiledRecords, d.bookPack.sourceSha256, d.bookPack.pageCount, { allowStale: true }) } : {}),
     blob: new Blob([base64ToBytes(d.base64)], { type: 'application/pdf' }) }));
   // Validate every private index against its restored PDF before replacing any local records.
   for (const doc of docs) {

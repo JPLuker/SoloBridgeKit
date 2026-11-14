@@ -232,3 +232,8 @@
 - A newly created campaign is bound to the current database epoch; missing-record saves cannot recreate deleted data after cross-tab reset/restore.
 - Privacy-preserving local verifier uses the application's PDF.js compiler directly, with a synthetic 336-page CI fixture and independent local check of the owner's original 336-page source.
 - M1 still requires device-level acceptance and approval before moving to M2.
+
+## v0.19.0 — M1 development closure and M2 start
+
+- Per owner: **M1 code/build acceptance 100%**; physical-device and purchased-book experience tests deferred to M7 and kept as release gates.
+- M2 started with source-bound schema, locally extracted draft candidates and private persistence/recovery (25% of M2 development). No licensed content is bundled.

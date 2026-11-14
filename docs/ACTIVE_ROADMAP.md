@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.18.0 adds creation-time campaign epochs, preventing old tabs from resurrecting unsaved/deleted campaigns, and a privacy-preserving private book verifier. The actual 336-page owner PDF passed the very same PDF.js preparation function used by the PWA in a local Node harness (327 readable pages; source digest matched). Browser CI remains synthetic. **M1 stays 98% pending actual-device acceptance and owner signoff; M2 remains locked.**
+**Development completion: 100% (v0.18.0).** Per owner direction on 2026-11-13, physical-device acceptance is deferred to M7, and no longer counts against M1 coding completion. M1 implementation is closed for planned work; regressions/data-loss defects remain exceptions.
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.
@@ -41,6 +41,8 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 - CI exercises destructive/failure paths, not just successful imports.
 
 ### M2. Private game-data compiler
+
+**Development progress: 25% (v0.19.0).** Implemented versioned draft and confirmed schemas, source-bound extraction candidates, structural validation, saved private compiler collection and backup compatibility. Next: in-app review editor and consumer integration.
 
 **Build**
 - Add private, versioned structured schemas for lifepath choices, talents, class records and random tables with `sourcePdfSha256`, source page, data type, extraction/confirmation state and schema version.

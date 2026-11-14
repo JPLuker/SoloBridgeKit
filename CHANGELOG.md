@@ -1,3 +1,13 @@
+## [0.19.0] - 2026-11-13
+### M2 — Private compiler foundation (25% build completion)
+- Owner declared M1 complete for development; move real-device acceptance requirements to M7 and start M2.
+- Introduce versioned, SHA-256-bound private compiled records for lifepath choices, talents, classes and random tables.
+- Scan user-imported pages for **unverified** headings/numbered rows; do not invent mechanical bonuses or automatically confirm publisher data.
+- Validate confirmed records using existing private choice, class and table validators; require explicit review metadata.
+- Add atomic IndexedDB save/update/remove of compiled records, with cross-tab generation checks.
+- Preserve private compiled records only in opt-in PDF-inclusive backups; validate on restore.
+- Add synthetic unit tests for missing fields, source mismatch, stale compiled data and invalid table ranges.
+
 ## [0.18.0] - 2026-11-13
 ### M1 — Deleted-campaign protection and full-book parser verification
 - Capture a database epoch when creating a campaign. Verify it and its expected revision atomically during every save, including first saves.

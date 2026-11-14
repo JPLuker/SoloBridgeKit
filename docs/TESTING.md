@@ -223,3 +223,13 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Run `npm run verify:private-book -- "/path/to/private.pdf"` after build. It must use the distributed PDF.js compiler, print a page summary only, and never generate copyrighted content files.
 - [ ] The browser smoke must run the same verifier on a noncommercial generated 336-page PDF.
 - [ ] Confirm Android and desktop device import/offline/restore with the owner's private 2026 PDF per [M1-ACCEPTANCE.md](M1-ACCEPTANCE.md).
+
+## v0.19.0 M2 source compiler initial tests
+
+- [ ] Synthetic PDF scan returns unverified proposed headings/numbered tables and never claims a derived bonus as validated.
+- [ ] Missing stage, ship ratings, talent description and invalid random table ranges reject confirmation.
+- [ ] Confirmed records require a review timestamp, schema version, PDF SHA-256 and valid PDF page.
+- [ ] A changed source marks private candidate records as needing review; older records are not silently substituted.
+- [ ] Private full backup preserves compiled records, data-only backup omits them, legacy records remain valid.
+- [ ] No commercial source text or generated private catalog appears in CI or distribution artifacts.
+- Physical device cases are now part of M7, not M2 build percentage.

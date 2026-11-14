@@ -232,3 +232,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `scripts/verify-private-corebook.mjs` runs the exact shipped `dist/browser-compiler.mjs` preparation function with minimal Node rendering-API stubs, prints ONLY page counts/readability, and never writes/exposes book data. `npm run browser:smoke` verifies it against a synthetic 336-page book.
 - Independent LOCAL test of the actual purchased 336-page 2026 PDF successfully returned 336 prepared pages, 327 readable pages and matching stored SHA-256 in approximately 2.2 seconds on a server; this does not prove Chrome/Android performance. No private source/index was pushed to GitHub.
 - Still unverified: device-local Chrome/Android import, full offline browser save/restore and user signoff. M1 cannot be honestly marked 100% on the strength of desktop Node PDF parsing and CI alone.
+
+## v0.19.0 — M2 begins, M1 code-only closure
+
+- Owner specifically approved proceeding to M2 without counting deferred device testing in M1 completion. M1 is **100% for development**, pending M7 device acceptance. Keep M1 issue as a deferred M7 acceptance gate.
+- New `compiler-data.mjs` stores private SHA-bound records with `schemaVersion:1`, type, source page, status and payload. A page scan proposes only drafts; confirmed records go through existing strict value validators. Generic talent records require a private description, never auto-apply undisclosed bonuses.
+- `storage.mutateCompiledRecords()`: atomic single-document compiler mutation inside read-write transaction, validating the persistent database epoch. Backups include compiled records only when importing private PDFs is explicitly requested.
+- `model.validateBundle()` validates compiled records alongside previously saved choices/tables/classes; older backups remain valid.
+- Next in M2: in-app candidate review editor, source navigation, migration/recompile handling, confirmed catalog consumers, synthetic Chrome test, final M2 build-only acceptance. **Do not mark M2 100% early**.
