@@ -335,3 +335,7 @@
 - Added packaged Chrome keyboard-focus and semantic-label checks plus overflow gates at 360, 390, 640, 768 and 1280 pixels. No real-device acceptance or visual theme changes asserted.
 
 - M7 synthetic Chrome suite extended to test light/dark text contrast, reduced-motion preference and independent PWA offline reload; pending acceptance CI.
+
+## v0.24.0 — M7 automated checks verified
+
+- [CI #158](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43648819631) passed new accessibility, contrast, reduced-motion and offline reload checks. Real Android/desktop/assistive technology acceptance remains separate and open under issue #1. Continue buildable M8 release safety work.
