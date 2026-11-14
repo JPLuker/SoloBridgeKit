@@ -407,6 +407,8 @@ try {
   await clickText('Start mission');
   await waitForSave('Mission started.');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Scene actions'), { timeout: 10000 });
+  check(await page.$eval('#content',node=>node.textContent.includes('A scene is one moment in your adventure')),
+    'Mission scenes do not explain their purpose to a first-time RPG player.');
   await page.click('button[aria-label="Act 2 scene 3, pending"]');
   await page.waitForFunction(async () => {
     const {all}=await import('./storage.mjs');
