@@ -22,6 +22,7 @@ import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
 import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
+import { sourceReadiness } from './source-readiness.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
@@ -202,6 +203,16 @@ function renderHome() {
   const root = el('div', { class: 'page' });
   root.append(title('Home'));
   if (!hasPreparedCorebook(state.documents)) { root.append(corebookPrompt()); return root; }
+  const primaryBook=state.documents.find(doc=>doc.role==='corebook' && doc.bookPack);
+  const preparation=sourceReadiness(primaryBook);
+  if(preparation.indexed && !preparation.complete){
+    root.append(card([
+      el('h2',{text:'Next: Prepare your character choices'}),
+      el('p',{text:'Your rulebook is imported, but your character builder does not yet have confirmed choices for every step. Review source choices before creating a character so the app can fill in the published bonuses.'}),
+      el('p',{class:'hint',text:`${preparation.steps.filter(step=>step.hasChoice).length} of ${preparation.steps.length} choice sections started. You can keep working on your campaign at any time.`}),
+      button('Review choices from my book',()=>go('library'))
+    ]));
+  }
   const select = el('select', { 'aria-label': 'Select campaign' });
   for (const c of state.campaigns) {
     const option = el('option', { value: c.id, text: c.title });
@@ -2005,12 +2016,66 @@ function renderLibrary() {
   }
   const readyBook = state.documents.find(doc => libraryBookStatus(doc).gameplay);
   if (readyBook) {
-    root.append(renderPrivateCompiler(readyBook), renderPrivateTables(readyBook),
-      renderPrivateOptions(readyBook), renderPrivateShips(readyBook));
+    root.append(renderSourcePreparation(readyBook));
+    const extra=el('details',{class:'source-preparation-tools'},[
+      el('summary',{text:'Manage saved rules, tables and ship classes (advanced)'}),
+      renderPrivateTables(readyBook),renderPrivateOptions(readyBook),renderPrivateShips(readyBook)
+    ]);
+    root.append(extra);
   }
   return root;
 }
 
+
+function renderSourcePreparation(book) {
+  const status=sourceReadiness(book);
+  if(!status.indexed)return card([
+    el('h2',{text:'Your game choices need attention'}),
+    el('p',{text:'The rulebook index cannot be verified right now. Your existing books and campaigns are unchanged.'}),
+    button('Review my books',()=>go('library'),'secondary')
+  ]);
+  const panel=card([
+    el('h2',{text:'Prepare choices for your adventure'}),
+    el('p',{text:'Your PDF is imported and searchable. One more step is needed for the character and ship builders to fill in official bonuses automatically: review choices from your own copy of the book.'}),
+    el('p',{class:'hint',text:'Choose one section below. The app will look for possible names near that section of your private PDF. Check the name and numbers against the book before confirming. Unreviewed suggestions are never treated as game rules.'}),
+    el('p',{class:'hint',text:`${status.steps.filter(step=>step.hasChoice).length} of ${status.steps.length} sections have at least one confirmed choice. This does not mean every option in the book has been imported.`})
+  ]);
+  const advanced=el('details',{class:'source-preparation-tools'},[
+    el('summary',{text:'Review suggestions and correct rules (advanced tools)'})
+  ]);
+  const compiler=renderPrivateCompiler(book);
+  advanced.append(compiler);
+  for(const step of status.steps){
+    const row=el('div',{class:'document-item'},[
+      el('div',{},[
+        el('strong',{text:step.title}),
+        el('p',{class:'hint',text:step.hasChoice
+          ? `${step.count} confirmed choice${step.count===1?'':'s'} available in this section`
+          : 'No confirmed choices yet'}),
+        el('p',{class:'hint',text:step.explanation})
+      ]),
+      el('div',{class:'actions'},[
+        button(step.hasChoice?'Review more choices':'Find choices in my PDF',()=>{
+          advanced.open=true;
+          const fields=compiler.querySelector('form');
+          if(!fields) {notify('The private rules preparation tool needs repair.',true);return;}
+          fields.querySelector('[name=page]').value=String(step.page);
+          fields.querySelector('[name=kind]').value=step.kind;
+          fields.requestSubmit();
+          advanced.scrollIntoView({behavior:'smooth',block:'start'});
+        }),
+        button('Read rulebook page',()=>openPdf(book,step.page).catch(failure),'secondary')
+      ])
+    ]);
+    panel.append(row);
+  }
+  panel.append(advanced);
+  if(status.complete){
+    panel.append(el('p',{class:'hint',text:'You have at least one confirmed choice in each section. You can return to confirm more at any time.'}),
+      button('Continue to my character',()=>go('lifepath'),'secondary'));
+  }
+  return panel;
+}
 
 function renderPrivateCompiler(book) {
   const pack = book.bookPack, sha = pack.sourceSha256, count = pack.pageCount;
