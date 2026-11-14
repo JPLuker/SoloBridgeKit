@@ -40,10 +40,13 @@ export function updateScenePlan(mission, newPlan) {
   const current = normalizeMissionScenes(mission);
   for (const scene of current.scenes) {
     const referenced = (mission.threads??[]).some(t=>t.createdSceneId===scene.id||t.resolvedSceneId===scene.id);
+    const rollLinked = (mission.taskHistory??[]).some(roll=>roll.sceneId===scene.id);
+    const journalLinked = (mission.entries??[]).some(entry=>entry.sceneId===scene.id);
+    const undoLinked = (mission.sceneCorrections??[]).some(edit=>edit.sceneId===scene.id);
     if (scene.number > plan[scene.act - 1] &&
       (scene.completed || scene.title.trim() || scene.notes.trim() ||
-       scene.valuesUsed.trim() || referenced)) {
-      throw new Error(`Act ${scene.act} scene ${scene.number} has progress, notes or linked threads. Clear the reference before reducing scene count.`);
+       scene.valuesUsed.trim() || referenced || rollLinked || journalLinked || undoLinked)) {
+      throw new Error(`Act ${scene.act} scene ${scene.number} has progress or linked history. Move or clear its references before reducing scene count.`);
     }
   }
   return normalizeMissionScenes({ ...mission, ...current, scenePlan: plan });
