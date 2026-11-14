@@ -248,3 +248,9 @@
 - Confirmed local compiler results now power lifepath options, ship classes and mission random tables; talents remain source-linked references only.
 - Catalog revalidation preserves edited data and marks invalidated records needs-review; no silent source migration.
 - Chrome regression confirms local compiled catalog use and inclusion in opt-in private backups.
+
+## v0.19.3 — M2 development completed
+
+- Versioned private game-data records, source provenance, unverified extraction, typed review and confirmation, talent references, and integrated verified lifepath/ship/table catalogs are implemented.
+- User-corrected data survives compiler revalidation and private PDF backup round trips. Tests cover source mismatch, stale status, ambiguous tables, negative confirmations and mobile layout.
+- M2 is complete for the agreed **build-only** definition once v0.19.3 CI is green. Physical-device acceptance remains assigned to M7.

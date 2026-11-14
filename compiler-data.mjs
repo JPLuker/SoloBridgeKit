@@ -147,8 +147,15 @@ export function reviewCompiledRecord(record, { label = record.label, payload = r
 export function compiledCatalog(records, sourceSha256, pageCount, kind) {
   if (!ALLOWED.has(kind)) throw new Error('Unsupported compiled record kind.');
   // Stale records remain visible for review but cannot be used as game rules.
-  return normalizeCompiledRecords(records, sourceSha256, pageCount, { allowStale: true })
-    .filter(record => record.status === 'confirmed' && record.kind === kind &&
+  // Revalidate legacy records in memory, without writing or deleting them.
+  // A source mismatch or outdated payload is never allowed into gameplay.
+  let checked;
+  try { checked = revalidateCompiledRecords(records ?? [], sourceSha256, pageCount); }
+  catch (error) {
+    if (error.message.includes('newer compiler schema')) return [];
+    throw error;
+  }
+  return checked.filter(record => record.status === 'confirmed' && record.kind === kind &&
       record.sourceSha256 === sourceSha256 && record.page <= pageCount)
     .map(record => confirmedPayload(record, record.payload));
 }

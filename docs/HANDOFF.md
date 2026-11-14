@@ -256,3 +256,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - The mission/table/campaign export path continues referencing result IDs/page numbers, not publisher table prose.
 - Chrome synthetic test generates confirmed private talent, lifepath, ship and table records, rolls a compiled mission table and verifies opt-in private backup inclusion.
 - Remaining M2: full source-recompile safety and regression audit (including stale records, migration and data-only export), then build-only acceptance. Physical devices are deferred to M7.
+
+## v0.19.3 — Final M2 development handoff
+
+- M2 implemented in `compiler-data.mjs` and Library `renderPrivateCompiler()`. A saved record carries `schemaVersion`, `kind`, `label`, `page`, `sourceSha256`, `status`, `payload`, `excerpt`, and optional `reviewedAt`.
+- `compiledCatalog()` returns only confirmed source-matched data. Future incompatible record schemas remain stored but are not used; library shows an update warning instead of silently deleting records.
+- Drafts and rejected entries persist but do not appear in gameplay. Human-verified confirmed lifepath, ship and table records feed the existing game tools. Talent entries are source references only, not invented effects.
+- `storage.mutateCompiledRecords()` checks the persistent epoch and saves atomically, including revalidate action; private full backups include compiled records, default backups exclude book-derived data.
+- New [M2 acceptance checklist](M2-DEVELOPMENT-ACCEPTANCE.md) tracks build-only completion. All actual-book/phone-browser checks have been deferred to M7 on owner's request.
+- Next module M3: source-derived guided character creation, progression, and automated application of validated bonuses, keeping drafts and existing character saves safe.

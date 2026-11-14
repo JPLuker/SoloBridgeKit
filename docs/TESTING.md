@@ -250,3 +250,14 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Revalidate after a source/parser change; old player data remains intact and inaccessible to gameplay until reconfirmed against the current source.
 - [ ] Old schema records can be marked needs-review without losing their edited payload.
 - [ ] Synthetic Chrome test confirms four source-bound records and exercises compiled table roll in a mission.
+
+## v0.19.3 M2 developer acceptance
+
+- [ ] Chrome: scan candidate and refuse confirmation until checkbox is selected.
+- [ ] Chrome: after confirmation, revalidation, and rejection, exactly one verified talent is available and rejected entry stays inactive.
+- [ ] Chrome: lifepath choice, source-linked class, and random table reuse independently validated with synthetic data; mission rolling works.
+- [ ] Chrome: full private PDF-inclusive backup and restore retain all compiled records/statuses; data-only backup excludes them.
+- [ ] Chrome: private review editor fits a 390px screen without horizontal overflow; screenshot available as artifact.
+- [ ] Unit: future compiler schemas are not silently used; invalidated records are preserved and require review.
+- [ ] Source, build and distribution audits remain passing and free of publisher PDFs/proprietary table catalogs.
+- Full real-device and owner-book browser acceptance is deferred to M7.

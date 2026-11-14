@@ -95,3 +95,12 @@ test('ambiguous two-column table text remains unconfirmed until user fixes its r
     payload:{rows:'1 | A\n3 | B'}});
   assert.throws(()=>reviewCompiledRecord(incomplete,{},sha,210),/no gaps or overlaps/);
 });
+
+test('unreviewed, rejected, and newer-schema private data never reaches consumers',()=>{
+  const original=make();
+  const rejected=reviewCompiledRecord(original,{status:'rejected'},sha,210);
+  assert.equal(compiledCatalog([rejected],sha,210,'talent').length,0);
+  const future={...original,schemaVersion:999,status:'confirmed',reviewedAt:new Date().toISOString()};
+  assert.equal(compiledCatalog([future],sha,210,'talent').length,0);
+  assert.throws(()=>revalidateCompiledRecords([future],sha,210),/newer compiler schema/);
+});

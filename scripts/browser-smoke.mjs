@@ -132,6 +132,19 @@ try {
   check(beforeCompiler.length === 0, 'Scanning the book must not silently save or confirm extracted source.');
   await clickText('Review candidate');
   await page.type('textarea[name=description]', 'Privately confirmed synthetic talent description.');
+  const compilerViewport = await page.evaluate(() => ({
+    viewport: innerWidth, width: document.documentElement.scrollWidth
+  }));
+  check(compilerViewport.width <= compilerViewport.viewport + 4,
+    'The private compiler review form overflows the phone viewport.');
+  await page.screenshot({ path: join(output, 'phone-compiler-review.png'), fullPage: true });
+  await clickText('Confirm verified record');
+  await waitForSave('Confirm that you checked these values');
+  const noSilentPromotion = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    return (await all('documents')).find(doc => doc.role === 'corebook')?.compiledRecords?.length ?? 0;
+  });
+  check(noSilentPromotion === 0, 'Unchecked private compiler candidate became an active game rule.');
   await page.$eval('input[aria-label="I verified the values against my own PDF"]', input => input.click());
   await clickText('Confirm verified record');
   await waitForSave('Private record confirmed.');
@@ -146,6 +159,23 @@ try {
   check(confirmedCompiler.records === 1 && confirmedCompiler.status === 'confirmed' &&
     confirmedCompiler.source === confirmedCompiler.packSource,
     'The private compiler failed to save a validated source-bound record.');
+  await clickText('Revalidate saved records');
+  await waitForSave('Private records revalidated.');
+  await page.select('select[aria-label="Compiler record type"]', 'talent');
+  await clickText('Find candidates');
+  await clickText('Review candidate');
+  await clickText('Reject candidate');
+  await waitForSave('Candidate rejected.');
+  const rejectedHidden = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    const { compiledCatalog } = await import('./compiler-data.mjs');
+    const doc = (await all('documents')).find(d => d.role === 'corebook');
+    return { count: doc.compiledRecords?.length,
+      confirmedTalents: compiledCatalog(doc.compiledRecords, doc.bookPack.sourceSha256, doc.bookPack.pageCount, 'talent').length,
+      rejected: doc.compiledRecords?.filter(r => r.status === 'rejected').length };
+  });
+  check(rejectedHidden.count === 2 && rejectedHidden.confirmedTalents === 1 &&
+      rejectedHidden.rejected === 1, 'Rejected source candidates leaked into confirmed gameplay records.');
 
   // The same confirmed local catalog must feed the lifepath, class and mission
   // consumers. Every fixture below is fictional and generated only in CI.
@@ -177,7 +207,7 @@ try {
       ship:compiledCatalog(current.compiledRecords,sha,count,'ship-class').length,
       table:compiledCatalog(current.compiledRecords,sha,count,'random-table').length };
   });
-  check(compiledConsumers.count === 4 && compiledConsumers.lifepath === 1 &&
+  check(compiledConsumers.count === 5 && compiledConsumers.lifepath === 1 &&
     compiledConsumers.ship === 1 && compiledConsumers.table === 1,
     'Confirmed compiled records were not reusable by existing game systems.');
   await page.reload({waitUntil:'networkidle0'});
@@ -280,7 +310,7 @@ try {
     'Private backup omitted its explicit PDF-inclusive setting.');
   check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
     'Private backup lost its compiled source book.');
-  check(privateBundle.documents.some(d => d.compiledRecords?.length === 4),
+  check(privateBundle.documents.some(d => d.compiledRecords?.length === 5),
     'Private PDF-inclusive backup lost reviewed compiler records.');
   const privatePath = join(process.cwd(), output, 'synthetic-private-backup.json');
   const corruptPath = join(process.cwd(), output, 'synthetic-corrupt-backup.json');
@@ -312,10 +342,12 @@ try {
     const documents = await all('documents');
     const campaigns = await all('campaigns');
     return { docs: documents.length, campaigns: campaigns.length,
-      corebookPrepared: documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336) };
+      corebookPrepared: documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
+      compilerCount: documents.find(d=>d.role==='corebook')?.compiledRecords?.length ?? 0 };
   });
-  check(afterCorrupt.docs === libraryCount && afterCorrupt.corebookPrepared && afterCorrupt.campaigns === backup.campaigns.length,
-    'A corrupt private-backup restore changed existing local data.');
+  check(afterCorrupt.docs === libraryCount && afterCorrupt.corebookPrepared &&
+    afterCorrupt.compilerCount === 5 && afterCorrupt.campaigns === backup.campaigns.length,
+    'A corrupt private-backup restore changed existing local data or its reviewed compiler records.');
 
   // Valid private PDF-inclusive restore must reconstruct the book/index and campaign.
   page.once('dialog', dialog => dialog.accept());
@@ -324,12 +356,16 @@ try {
   const restored = await page.evaluate(async () => {
     const { all } = await import('./storage.mjs');
     const docs = await all('documents'), campaigns = await all('campaigns');
+    const book = docs.find(d => d.role === 'corebook');
     return { docs: docs.length, campaigns: campaigns.map(c => c.title),
-      pages: docs.find(d => d.role === 'corebook')?.bookPack?.pages?.length };
+      pages: book?.bookPack?.pages?.length, compiled: book?.compiledRecords?.length,
+      confirmed: book?.compiledRecords?.filter(r => r.status === 'confirmed').length,
+      rejected: book?.compiledRecords?.filter(r => r.status === 'rejected').length };
   });
   check(restored.docs === libraryCount && restored.pages === 336 &&
+    restored.compiled === 5 && restored.confirmed === 4 && restored.rejected === 1 &&
     restored.campaigns.includes('Synthetic test campaign'),
-    'A valid private backup failed to restore its campaign and book index.');
+    'A valid private backup failed to restore its campaign, book index, or private compiler catalog.');
   // Exact-file reattachment preserves source-derived data and refuses a different PDF.
   await navigate('Library');
   await heading('Library');

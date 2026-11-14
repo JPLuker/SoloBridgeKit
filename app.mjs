@@ -17,7 +17,7 @@ import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateSh
 import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
-import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog } from './compiler-data.mjs';
+import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -1226,12 +1226,19 @@ function renderLibrary() {
 
 function renderPrivateCompiler(book) {
   const pack = book.bookPack, sha = pack.sourceSha256, count = pack.pageCount;
-  const records = normalizeCompiledRecords(book.compiledRecords, sha, count, { allowStale: true });
+  let records;
+  try { records = revalidateCompiledRecords(book.compiledRecords ?? [], sha, count); }
+  catch (error) {
+    return card([el('h2', { text: 'Private rules compiler' }),
+      el('p', { class: 'muted', text: 'Your private catalog requires a newer or repaired compiler. The original records have not been modified.' }),
+      el('p', { class: 'hint', text: error.message })]);
+  }
   const panel = card([el('h2', { text: 'Private rules compiler' }),
     el('p', { class: 'hint', text: 'Find candidate entries in your local PDF. Review and confirm every field before it becomes available to gameplay. Nothing is uploaded or bundled.' })]);
   const counts = el('p', { class: 'muted', text:
     records.filter(r => r.status === 'confirmed').length + ' confirmed · ' +
-    records.filter(r => r.status !== 'confirmed').length + ' awaiting review' });
+    records.filter(r => r.status === 'draft' || r.status === 'needs-review').length +
+    ' awaiting review · ' + records.filter(r => r.status === 'rejected').length + ' rejected' });
   panel.append(counts, button('Revalidate saved records', async () => {
     try {
       await mutateCompiledRecords(book.id, { type: 'revalidate' }, await currentDataGeneration());
@@ -1374,11 +1381,13 @@ function renderPrivateCompiler(book) {
         await mutateCompiledRecords(book.id, { type: 'upsert', record: updated }, generation);
         state.openDocumentId = book.id;
         await refresh();
-        notify(status === 'confirmed' ? 'Private record confirmed.' : 'Private draft saved.');
+        notify(status === 'confirmed' ? 'Private record confirmed.' :
+          status === 'rejected' ? 'Candidate rejected.' : 'Private draft saved.');
       } catch (error) { failure(error); }
     }
     form.append(el('div', { class: 'actions' }, [
       button('Save draft', () => saveDecision('draft'), 'secondary'),
+      button('Reject candidate', () => saveDecision('rejected'), 'secondary'),
       el('button', { type: 'submit', class: 'button primary', text: 'Confirm verified record' })
     ]));
     form.addEventListener('submit', event => { event.preventDefault(); saveDecision('confirmed'); });
@@ -1832,7 +1841,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.19.2' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.19.3' })]));
   return root;
 }
 
