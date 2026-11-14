@@ -1494,7 +1494,11 @@ function renderMissionActions(mission) {
 }
 
 function renderSceneTracker(mission) {
-  const tracker = card([el('h2', { text: 'Scenes' }), line('Progress', `${mission.tracker} / ${mission.scenes.length}`)]);
+  const tracker = card([
+    el('h2',{text:'Scenes'}),
+    el('p',{class:'hint',text:'A scene is one moment in your adventure, such as arriving somewhere, investigating a clue or facing a problem. An act is a larger chapter. You can discover the story as you go; you do not have to plan every scene now.'}),
+    line('Progress',`${mission.tracker} / ${mission.scenes.length}`)
+  ]);
   const form = el('form', { class: 'inline-form scene-plan' });
   for (let i = 0; i < 3; i++) {
     const f = field(`Act ${i + 1}`, `act${i + 1}`, mission.scenePlan[i], { number: true });
@@ -2410,7 +2414,11 @@ function renderDice() {
     campaign?.episodes.find(e => e.status === 'active');
   if (campaign) {
     const char = campaign.character;
-    const taskCard = card([el('h2', { text: 'Task roll' })]);
+    const taskCard = card([
+      el('h2',{text:'Task roll'}),
+      el('p',{text:'When your character tries something that might fail, the dice help decide the result. Choose an attribute (how they approach it) and a discipline (what they know), then roll. There is no need to roll for every conversation or ordinary action.'}),
+      el('p',{class:'hint',text:'Difficulty is how challenging the attempt is. A Focus is a specific area of expertise. If you are unsure which ratings apply, use an example from your own rulebook.'})
+    ]);
     const attribute = ratingPicker(CHARACTER_ATTRIBUTES, 'Attribute', char.attributes);
     const discipline = ratingPicker(CHARACTER_DISCIPLINES, 'Discipline', char.disciplines);
     const difficulty = el('select', { 'aria-label': 'Difficulty' }, [
