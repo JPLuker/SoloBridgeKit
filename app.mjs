@@ -25,6 +25,7 @@ import { explainRulebookImportFailure, BEGINNER_STEPS } from './onboarding.mjs';
 import { sourceReadiness } from './source-readiness.mjs';
 import { verifiedChoicePreview, verifiedShipPreview, nextIncompleteCreationStep, nextIncompleteShipStep } from './guided-choice-preview.mjs';
 import { soloPlayPrompt } from './solo-play-guidance.mjs';
+import { localChoiceContext } from './source-choice-context.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
 import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -2306,7 +2307,13 @@ function renderPrivateCompiler(book) {
       el('p', { class: 'hint', text: 'PDF page ' + record.page + ' · ' + record.status + ' · Check against your own book.' }),
       button('Open source PDF page', () => openPdf(book, record.page).catch(failure), 'secondary')
     ]);
-    if (record.excerpt) form.append(el('p', { class: 'muted', text: record.excerpt }));
+    const bookContext=localChoiceContext(pack,record);
+    if(bookContext)form.append(el('details',{class:'local-source-context'},[
+      el('summary',{text:'Read nearby text from my PDF'}),
+      el('p',{class:'hint',text:'This is an excerpt from the book stored privately in your browser. PDF extraction may reorder columns or omit layouts. Check the original PDF before confirming numbers.'}),
+      el('p',{class:'source-excerpt',text:bookContext})
+    ]));
+    else if(record.excerpt)form.append(el('p',{class:'hint',text:'PDF heading: '+record.excerpt}));
     if (record.kind === 'talent') {
       form.append(
         field('Description (verify against PDF)', 'description', data.description ?? '', { multiline: true }),
