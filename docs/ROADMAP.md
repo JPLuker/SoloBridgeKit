@@ -303,3 +303,8 @@
 - Add per-scene player-authored Values and a story thread tracker with source/resolution scene IDs and reversible open/resolved status.
 - Scene workspace summarizes tasks, log entries and private table references; journal exports retain authored threads while omitting publisher content.
 - Reducing act length is refused if it would lose thread references or scene Values. Complete M5 playthrough, safe correction and module acceptance remain ahead.
+
+## v0.22.2 — M5 reversible scene writing (pending CI)
+
+- Scene title, notes and Values can be reverted to the prior player-written revision after an accidental save. Up to ten edits per mission are retained in campaign state, including local backups; dice/resources and private source-book content are not included in these snapshots.
+- Added unit and packaged-browser regression checks. M5 still requires complete three-act browser acceptance before closure.
