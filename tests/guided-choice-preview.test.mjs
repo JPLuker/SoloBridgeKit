@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifiedChoicePreview,verifiedShipPreview,nextIncompleteCreationStep} from '../guided-choice-preview.mjs';
+import {verifiedChoicePreview,verifiedShipPreview,nextIncompleteCreationStep,nextIncompleteShipStep} from '../guided-choice-preview.mjs';
 import {LIFEPATH_STEPS,createLifepath} from '../lifepath.mjs';
 test('only verified record effects are displayed; never invent bonuses',()=>{
   const rows=verifiedChoicePreview({record:{attributes:{control:1,daring:2,reason:0},disciplines:{science:1,medicine:0}}});
@@ -26,4 +26,18 @@ test('player-owned ship class preview does not bundle publisher statistics',()=>
     systems:{engines:'6',sensors:'9'},departments:{science:'3'}}),
     ['Starship','Scale 4','Systems ratings: 2 recorded','Departments ratings: 1 recorded']);
   assert.deepEqual(verifiedShipPreview(null),[]);
+});
+
+test('ship draft resumes at the next meaningful missing decision',()=>{
+  assert.equal(nextIncompleteShipStep(null),0);
+  const draft={kind:'starship',mode:'guided',era:'Player selected',className:'Private class',
+    scale:'4',sourceRef:{recordId:'private'}};
+  assert.equal(nextIncompleteShipStep(draft),2);
+  draft.polityTrait='Private polity';
+  assert.equal(nextIncompleteShipStep(draft),4);
+  draft.talents='Private talent';
+  assert.equal(nextIncompleteShipStep(draft),5);
+  draft.name='Player ship';
+  draft.registry='OWN-002';
+  assert.equal(nextIncompleteShipStep(draft),5);
 });
