@@ -20,6 +20,7 @@ import { resolveActiveEpisodeId, selectActiveEpisode, resolveActiveSceneId, sele
 import { createMissionThread, setMissionThreadStatus, deleteMissionThread, normalizeMissionThreads, summarizeSceneWorkspace } from './mission-threads.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
+import { guidanceForCharacterStep, shipGuidanceAt, MISSION_GUIDANCE } from './guided-explanations.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
@@ -493,6 +494,18 @@ function renderCharacterDevelopment(character) {
   return root;
 }
 
+function renderGuidedExplanation(data,number=null,total=null){
+  const panel=card([
+    ...(number!==null?[el('p',{class:'hint',text:`Step ${number} of ${total}`})]:[]),
+    el('h2',{text:data.question??data.heading}),
+    el('p',{text:data.explanation??data.introduction}),
+    el('p',{class:'hint',text:'Next: '+(data.next??data.firstScene)}),
+    ...(data.terms??[]).map(([label,meaning])=>el('p',{class:'hint',text:label+' — '+meaning}))
+  ]);
+  panel.classList.add('guided-explanation');
+  return panel;
+}
+
 function renderLifepath() {
   const root = el('div', { class: 'page' });
   root.append(title('Character lifepath'));
@@ -566,7 +579,8 @@ function renderLifepath() {
     buttonNode.textContent = `${step.title}${errors.length ? '' : ' ✓'}`;
     nav.append(buttonNode);
   }
-  root.append(modePanel, nav);
+  root.append(renderGuidedExplanation(guidanceForCharacterStep(current.id),
+    state.lifepathIndex+1,LIFEPATH_STEPS.length),modePanel, nav);
   if (corebook && current.id !== 'finishing') {
     const presets = catalog;
     if (presets.length) {
@@ -925,7 +939,7 @@ function renderShipBuilder() {
     control.setAttribute('aria-current', i===idx?'step':'false');
     nav.append(control);
   });
-  root.append(nav);
+  root.append(renderGuidedExplanation(shipGuidanceAt(idx),idx+1,SHIP_STEPS.length),nav);
   if (idx === 1 && corebook) {
     const savedClasses = classes;
     if (savedClasses.length) {
@@ -1260,6 +1274,14 @@ function renderLog() {
       await persist();
     } catch (error) { failure(error); }
   });
+  if(!campaign.episodes.length){
+    root.append(card([
+      el('h2',{text:MISSION_GUIDANCE.heading}),
+      el('p',{text:MISSION_GUIDANCE.introduction}),
+      ...MISSION_GUIDANCE.prompts.map((prompt,i)=>el('p',{class:'hint',text:(i+1)+'. '+prompt})),
+      el('p',{class:'hint',text:MISSION_GUIDANCE.firstScene})
+    ]));
+  }
   root.append(card([el('h2', { text: 'Missions' }), createForm, ...(campaign.episodes.length ? [missionSelect] : [])]));
   const selected = campaign.episodes.find(e => e.id === chosenEpisode) || campaign.episodes[0];
   if (!selected) { root.append(empty('No missions yet.')); return root; }
