@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCampaign,createEpisode} from '../model.mjs';
 import {resolveActiveEpisodeId,selectActiveEpisode,resolveActiveSceneId,selectActiveScene,
-  sceneTag,makePrivateTableReference,appendSceneTableReference} from '../mission-workspace.mjs';
+  sceneTag,makePrivateTableReference,appendSceneTableReference,saveSceneCorrection,undoSceneCorrection} from '../mission-workspace.mjs';
 const sha='c'.repeat(64);
 const table={id:'private-fake-table',sourceSha256:sha,page:210,sides:3,
   title:'Private book text must never enter journal',entries:[
@@ -45,4 +45,29 @@ test('invalid table sources, rolls and unknown mission scenes are rejected',()=>
   const ep=createEpisode('No external scenes');
   const entry=makePrivateTableReference(table,{value:1},sha,'1:1');
   assert.throws(()=>appendSceneTableReference({...ep,scenes:[]},entry),/no longer exists/);
+});
+
+test('scene corrections restore player writing without affecting rolls or threads',()=>{
+  const original=createEpisode('Three acts');
+  original.taskHistory=[{id:'roll-kept'}];
+  const first=saveSceneCorrection(original,'2:1',{title:'Encounter',notes:'Initial observation',valuesUsed:'Duty'},'2026-11-14T12:01:00Z');
+  assert.equal(original.scenes.find(s=>s.id==='2:1').title,'');
+  assert.equal(first.scenes.find(s=>s.id==='2:1').notes,'Initial observation');
+  const second=saveSceneCorrection(first,'2:1',{title:'Revised',notes:'Correction',valuesUsed:'Honor'},'2026-11-14T12:02:00Z');
+  const reverted=undoSceneCorrection(second,'2:1');
+  assert.equal(reverted.scenes.find(s=>s.id==='2:1').title,'Encounter');
+  assert.equal(reverted.scenes.find(s=>s.id==='2:1').valuesUsed,'Duty');
+  assert.equal(reverted.taskHistory[0].id,'roll-kept');
+  assert.equal(reverted.sceneCorrections.length,1);
+  assert.equal(undoSceneCorrection(reverted,'2:1').scenes.find(s=>s.id==='2:1').title,'');
+  assert.throws(()=>undoSceneCorrection(original,'2:1'),/No previous edit/);
+  assert.throws(()=>saveSceneCorrection(original,'9:9',{title:'a',notes:'b',valuesUsed:'c'}),/missing scene/);
+});
+test('scene undo history stays bounded and does not store private book data',()=>{
+  let ep=createEpisode('Long episode');
+  for(let i=0;i<15;i++)ep=saveSceneCorrection(ep,'1:1',{title:'Edited '+i,notes:'',valuesUsed:''});
+  assert.equal(ep.sceneCorrections.length,10);
+  assert.equal(ep.sceneCorrections[0].before.title,'Edited 4');
+  assert.equal(JSON.stringify(ep.sceneCorrections).includes('sourceSha256'),false);
+  assert.equal(saveSceneCorrection(ep,'1:1',{title:'Edited 14',notes:'',valuesUsed:''}),ep);
 });
