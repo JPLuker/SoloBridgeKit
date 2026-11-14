@@ -242,12 +242,15 @@ try {
   // M4: retain a ship's name and registry while applying a private confirmed class.
   await navigate('Starship');
   await clickText('Guided ship setup');
+  await page.waitForFunction(() => document.querySelector('#content h1')?.textContent?.includes('Guided ship setup'), {timeout:15000});
   await clickText('6. Identity');
+  await page.waitForSelector('#content form input[name=name]',{timeout:15000});
   await page.type('input[name=name]','Player-owned survey ship');
   await page.type('input[name=registry]','OWN-001');
   await clickText('Save step');
   await waitForSave('Ship setup saved.');
   await clickText('2. Class and ratings');
+  await page.waitForSelector('#content select[aria-label="Saved private starship or station class"]',{timeout:15000});
   await clickText('Apply saved class');
   await waitForSave('Source-verified class loaded.');
   const savedClass = await page.evaluate(async () => {
