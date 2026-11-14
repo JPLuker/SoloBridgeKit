@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.5 adds generation-based rejection of obsolete imports and reattachments after database resets/restores, plus atomic document patches. Developer-side automated M1 coverage is substantially complete; **physical Android/desktop acceptance with the actual privately owned 336-page PDF is still required**.
+**Progress:** v0.17.6 adds player-authored draft recovery from rejected saves, with a conflict-to-download-to-import browser test. Automated developer-side M1 requirements are covered; **physical Android/desktop acceptance using the actual private 336-page book is the final unverified gate**.
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

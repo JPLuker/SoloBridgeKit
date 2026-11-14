@@ -398,6 +398,41 @@ try {
     return (await preparePdfInBrowser(source.blob)).pageCount;
   });
   check(offlinePageCount === 336, 'The offline parser could not prepare a new 336-page index.');
+  // Force a UI save conflict and prove the unsaved player edits can be recovered.
+  await navigate('Character');
+  await heading('Character');
+  await page.evaluate(async () => {
+    const { all, saveCampaign } = await import('./storage.mjs');
+    const fresh = (await all('campaigns'))[0];
+    fresh.character.notes = 'Newer saved note from another tab';
+    await saveCampaign(fresh);
+  });
+  await page.type('textarea[name="notes"]', 'Unsaved after conflicting save');
+  await clickText('Save character');
+  await waitForSave('another tab');
+  check(await page.$eval('#recovery-banner', x => !x.hidden),
+    'A rejected character save did not expose recovery actions.');
+  await page.click('#download-recovery');
+  const recoveryName = 'solobridgekit-unsaved-' + new Date().toISOString().slice(0, 10) + '.json';
+  const recoveredText = await waitForDownload(recoveryName);
+  const recoveryDraft = JSON.parse(recoveredText);
+  check(recoveryDraft.campaign.character.notes.includes('Unsaved after conflicting save') &&
+    !Object.hasOwn(recoveryDraft, 'documents') && !recoveredText.includes('Synthetic sample page lifepath mission'),
+    'Recovery export omitted the unsaved player edit or leaked private source data.');
+  await navigate('Settings');
+  await heading('Settings');
+  await (await page.$('input[aria-label="Import recovered draft"]')).uploadFile(join(downloads, recoveryName));
+  await waitForSave('Recovery draft imported as a separate campaign.');
+  const recoveredCampaigns = await page.evaluate(async () => {
+    const { all } = await import('./storage.mjs');
+    return (await all('campaigns')).map(c => ({ title: c.title, notes: c.character.notes }));
+  });
+  check(recoveredCampaigns.some(c => c.title.includes('(recovered)') &&
+      c.notes.includes('Unsaved after conflicting save')) &&
+    recoveredCampaigns.some(c => c.title === 'Synthetic test campaign' &&
+      c.notes === 'Newer saved note from another tab'),
+    'The recovery flow lost either the newer save or the unsaved player draft.');
+
   check(errors.length === 0, 'Browser runtime errors: ' + errors.join(' | '));
   console.log('Browser smoke passed: 336-page source, cancelled retry, atomic import/restore, source reattachment, stale-cache upgrade, offline preparation, journals and backups.');
 } catch (error) {

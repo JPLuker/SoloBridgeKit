@@ -16,6 +16,7 @@ import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePri
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
+import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -23,7 +24,7 @@ const PAGES = [
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
-  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false, navigationVersion: 0 };
+  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false, navigationVersion: 0, recoveryDraft: null };
 const $ = selector => document.querySelector(selector);
 const content = $('#content');
 
@@ -102,16 +103,31 @@ async function refresh(expectedNavigationVersion = null) {
   // A save from another page must not redraw and erase inputs on the current page.
   if (expectedNavigationVersion === null || expectedNavigationVersion === state.navigationVersion) render();
 }
+$('#download-recovery').addEventListener('click', () => {
+  if (!state.recoveryDraft) return;
+  download(`solobridgekit-unsaved-${new Date().toISOString().slice(0, 10)}.json`,
+    JSON.stringify(state.recoveryDraft), 'application/json');
+  notify('Recovery draft downloaded. Keep this file private.');
+});
+$('#dismiss-recovery').addEventListener('click', () => {
+  state.recoveryDraft = null;
+  $('#recovery-banner').hidden = true;
+});
 async function persist() {
   if (!state.campaign) return;
+  const campaignAtSave = state.campaign;
   const navigationAtSave = state.navigationVersion;
   $('#save-status').textContent = 'Saving…';
   try {
-    await saveCampaign(state.campaign);
+    await saveCampaign(campaignAtSave);
     $('#save-status').textContent = 'Saved locally';
     await refresh(navigationAtSave);
   } catch (error) {
     $('#save-status').textContent = 'Save failed';
+    try {
+      state.recoveryDraft = createRecoveryDraft(campaignAtSave);
+      $('#recovery-banner').hidden = false;
+    } catch (draftError) { console.error('Could not prepare recovery draft.', draftError); }
     throw error;
   }
 }
@@ -1550,7 +1566,13 @@ function renderSettings() {
       }),
       button('Delete all data', async () => {
         if (!confirm('Delete all campaigns, logs and imported PDFs from this browser? This cannot be undone.')) return;
-        try { await resetData(); state.activeId = null; state.activeEpisodeId = null; await refresh(); notify('Local data deleted.'); }
+        try {
+          await resetData();
+          state.recoveryDraft = null;
+          $('#recovery-banner').hidden = true;
+          state.activeId = null; state.activeEpisodeId = null;
+          await refresh(); notify('Local data deleted.');
+        }
         catch (error) { failure(error); }
       }, 'danger subtle')
     ])
@@ -1570,7 +1592,25 @@ function renderSettings() {
     } catch (error) { failure(error); } finally { restoreInput.value = ''; }
   });
   root.append(card([el('h2', { text: 'Restore' }), restoreInput]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.2' })]));
+  const recoveryInput = el('input', { type: 'file', accept: '.json,application/json',
+    'aria-label': 'Import recovered draft' });
+  recoveryInput.addEventListener('change', async () => {
+    const file = recoveryInput.files?.[0];
+    if (!file) return;
+    try {
+      const recovered = recoverDraftAsNewCampaign(JSON.parse(await file.text()));
+      await saveCampaign(recovered);
+      state.activeId = recovered.id;
+      await refresh();
+      notify('Recovery draft imported as a separate campaign.');
+    } catch (error) { failure(error); } finally { recoveryInput.value = ''; }
+  });
+  root.append(card([
+    el('h2', { text: 'Recover unsaved work' }),
+    el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
+    recoveryInput
+  ]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.17.6' })]));
   return root;
 }
 

@@ -205,3 +205,8 @@
 
 - Stale import/reattachment jobs cannot resurrect documents after a reset or restore; document metadata patches retain changes made while extraction was running.
 - Browser regression checks that both obsolete batch insertion and obsolete document patch are rejected.
+
+## v0.17.6 — M1 save-conflict recovery
+
+- The UI can download an unsaved player-authored draft when a save is rejected; the downloaded draft is a separate format without publisher PDF/index contents.
+- Importing it creates a recovered campaign instead of overwriting the newer revision. Browser tests cover a real conflict and recovery loop.

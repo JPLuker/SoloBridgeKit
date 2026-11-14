@@ -1,3 +1,10 @@
+## [0.17.6] - 2026-11-13
+### M1 — Unsaved-draft recovery
+- On save failure, retain a player-authored campaign snapshot and show a persistent download control.
+- Import recovery JSON as a NEW campaign, preserving both the newer saved revision and the unsaved draft.
+- Recovery format excludes commercial PDF bytes and privately compiled rules data.
+- Add unit and full Chrome conflict-to-download-to-recovery tests.
+
 ## [0.17.5] - 2026-11-13
 ### M1 — Import/reset race protection
 - Track database generation across resets/restores and reject obsolete staged PDF imports.

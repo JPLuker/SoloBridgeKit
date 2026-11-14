@@ -191,3 +191,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.mjs` captures import generation before long tasks and passes it to the final database mutation.
 - Chrome test restores a data-only backup then attempts obsolete document insertion and patch: both must fail without changing records.
 - **Pending:** actual physical-device test with the owner's legal 336-page corebook and a final M1 acceptance signoff. Do not call M1 complete without those checks.
+
+## v0.17.6 — M1 unsaved-draft recovery
+
+- `recovery.mjs`: validates and snapshots player-authored campaign data separately from private PDF content; recovering always assigns a new ID/title and revision zero.
+- `app.mjs`: failed `persist()` displays a persistent recovery banner with user-triggered draft download; Settings can import the JSON draft as a separate campaign.
+- Unit tests plus full browser test simulate stale save conflict, download the unsaved draft, import it, and verify both versions coexist.
+- **Remaining M1 acceptance:** real-device Android and desktop import with actual 336-page privately owned PDF, offline reload, backup/restore and recovery smoke. No 100% claim before owner acceptance.

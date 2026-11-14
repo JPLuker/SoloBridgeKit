@@ -180,3 +180,18 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Reattach/update an old document with a pre-restore generation: refuse without changing the latest document.
 - [ ] During a long extraction, independently modify bookmarks: final patch must preserve latest unrelated document fields.
 - [ ] Physical-device verification on Android and desktop still needed before 100% M1.
+
+## v0.17.6 unsaved-save recovery
+
+- [ ] Cause a stale-tab save conflict in Chrome; banner offers to download unsaved draft without clearing typed text.
+- [ ] Recovery JSON includes the user's unsaved notes but no source-book text, private index, tables, or PDFs.
+- [ ] Import the recovery draft in Settings; a new campaign exists and the newer original campaign remains unchanged.
+- [ ] On real Android and desktop browsers, verify the banner remains reachable at normal and 200% zoom.
+
+### Final M1 owner acceptance (still required)
+
+- [ ] Import the actual lawfully obtained 336-page 2026 PDF on physical Android and desktop, verify progress and source matching.
+- [ ] Cancel/retry a long preparation; existing campaign and book still intact.
+- [ ] Export a data-only backup, optionally a private PDF-inclusive backup, and successfully restore the intended data.
+- [ ] Reload with network disabled, inspect corebook search and resume a mission; confirm no missing saves or unexpected prompts.
+- [ ] Validate source reattachment with the same PDF and refusal of a different book/edition.

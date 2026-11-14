@@ -33,3 +33,9 @@
 .scene-plan .field { min-width:0 }
 .scene-plan input[type=number] { min-width:0; width:100%; max-width:100%; }
 @media(max-width:520px) { .scene-plan { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+
+/* Persistent, accessible recovery action only when a write fails. */
+.recovery-banner{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 20px;border-bottom:1px solid var(--edge);background:var(--surface);font-size:13px;line-height:1.4}
+.recovery-banner span{flex:1 1 230px}
+.recovery-banner[hidden]{display:none}
+@media(max-width:400px){.recovery-banner .button{flex:1}}
