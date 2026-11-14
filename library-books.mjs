@@ -92,3 +92,14 @@ export function summarizeDocumentRemoval(document,documents,campaigns=[]){
       'Other books and campaigns are not deleted.'
     ].join(' ')};
 }
+
+export function selectPrimaryCorebookRoles(documents,selectedId){
+  if(!Array.isArray(documents))throw new Error('The document library is invalid.');
+  const selected=documents.find(document=>document.id===selectedId);
+  if(!selected||selected.bookPack?.format!==BOOK_FORMAT ||
+    !libraryBookStatus({...selected,role:'corebook'}).gameplay)
+    throw new Error('Prepare a valid corebook before activating it.');
+  return documents.map(document=>({...document,
+    role:document.id===selectedId?'corebook':
+      document.role==='corebook'?'reference':normalizeDocumentRole(document.role)}));
+}
