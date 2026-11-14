@@ -132,6 +132,8 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M8. Release candidate and public-readiness gate
 
+**Development progress: 55% (v0.25.0, pending CI).** Committed a fully pinned npm lockfile resolved by verified CI, switched to reproducible `npm ci`, added per-file SHA-256 provenance manifest, direct-dependency license/version/integrity audits and explicit UNTESTED artifact labeling. [Release readiness](RELEASE-READINESS.md) documents remaining manual license, identity, M7 device and release approval gates. Remaining: CI proof, dependency and public artifact inspections, release-blocker documentation and owner decisions. **No 1.0 or maintenance mode without owner approval.**
+
 **Build**
 - Audit source, `dist/`, cache, workflow artifacts, source maps, screenshots, fixtures and releases for licensed book material.
 - Verify third-party licenses, dependencies, release provenance, checksums, stable upgrade, safe backups and user-facing error states.
