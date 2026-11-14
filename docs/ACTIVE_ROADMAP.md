@@ -132,7 +132,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M8. Release candidate and public-readiness gate
 
-**Development progress: 55% (v0.25.0, pending CI).** Committed a fully pinned npm lockfile resolved by verified CI, switched to reproducible `npm ci`, added per-file SHA-256 provenance manifest, direct-dependency license/version/integrity audits and explicit UNTESTED artifact labeling. [Release readiness](RELEASE-READINESS.md) documents remaining manual license, identity, M7 device and release approval gates. Remaining: CI proof, dependency and public artifact inspections, release-blocker documentation and owner decisions. **No 1.0 or maintenance mode without owner approval.**
+**Automated development completion: 100% — VERIFIED (v0.25.0).** Reproducible lockfile/`npm ci`, high-severity production advisory audit, full synthetic browser and accessibility suites, source/distribution network audits, direct-dependency license checks and independent SHA-256 package provenance all passed [CI #188](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43649559686). See [M8 automated acceptance](M8-AUTOMATED-ACCEPTANCE.md) and [release readiness](RELEASE-READINESS.md). **Public release acceptance is OPEN**, blocked by real-device [M7 issue #1](https://github.com/JPLuker/SoloBridgeKit/issues/1) and owner [M8 issue #2](https://github.com/JPLuker/SoloBridgeKit/issues/2). No 1.0 or maintenance declaration.
 
 **Build**
 - Audit source, `dist/`, cache, workflow artifacts, source maps, screenshots, fixtures and releases for licensed book material.
