@@ -2,7 +2,7 @@ import { normalizeMissionScenes } from './missions.mjs';
 import { normalizeBookmarks } from './bookmarks.mjs';
 import { normalizeTaskHistory } from './rollhistory.mjs';
 import { normalizeDocumentRole } from './content-policy.mjs';
-import { validateBookPack } from './book-data.mjs';
+import { validatePreparedDocumentPack } from './book-data.mjs';
 import { normalizePrivateTables } from './private-tables.mjs';
 import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
@@ -216,7 +216,7 @@ export function validateBundle(bundle) {
     normalizeBookmarks(d.bookmarks);
     normalizeDocumentRole(d.role);
     if (d.bookPack) {
-      validateBookPack(d.bookPack);
+      validatePreparedDocumentPack(d.bookPack);
       normalizePrivateTables(d.tables, d.bookPack.sourceSha256);
       normalizePrivateOptions(d.options, d.bookPack.sourceSha256);
       normalizePrivateShips(d.ships, d.bookPack.sourceSha256);
