@@ -3,14 +3,15 @@
 import {scanBookPage} from './compiler-data.mjs';
 import {SOURCE_PREPARATION_STEPS} from './source-readiness.mjs';
 
-export function discoverStageCandidates(pack,stepId,{maxPages=4,limit=18}={}){
+export function discoverStageCandidates(pack,stepId,{maxPages=4,limit=18,startPage=null}={}){
   const step=SOURCE_PREPARATION_STEPS.find(item=>item.id===stepId);
   if(!step)throw new Error('Select a character or ship choice section.');
   if(!Number.isSafeInteger(maxPages)||maxPages<1||maxPages>8||
     !Number.isSafeInteger(limit)||limit<1||limit>30)
     throw new Error('Invalid private suggestion limit.');
-  const start=step.page;
-  if(start>pack?.pageCount)throw new Error('The selected source page is outside this PDF.');
+  const start=startPage===null?step.page:Number(startPage);
+  if(!Number.isSafeInteger(start)||start<1||start>pack?.pageCount)
+    throw new Error('The selected source page is outside this PDF.');
   const results=[],seen=new Set();
   for(let page=start;page<=Math.min(pack.pageCount,start+maxPages-1);page++){
     const candidates=scanBookPage(pack,page,step.kind,Math.min(12,limit));
