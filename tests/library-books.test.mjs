@@ -108,3 +108,13 @@ test('switching prepared corebook is non-destructive and retains other editions'
  assert.throws(()=>selectPrimaryCorebookRoles(docs,'c'),/valid corebook/);
  assert.throws(()=>selectPrimaryCorebookRoles(docs,'missing'),/valid corebook/);
 });
+
+test('orphaned source references surface without erasing user campaigns',()=>{
+ const docs=[{id:'core',name:'Core',role:'corebook',bookPack:core()}];
+ const campaigns=[{id:'one',ship:{builder:{sourceRef:{sourcePdfSha256:'f'.repeat(64)}}}},
+                  {id:'two',episodes:[{entries:[{sourceSha256:'e'.repeat(64)}]}]}];
+ const report=libraryDiagnostics(docs,campaigns);
+ assert.deepEqual(report.missingSources,['f'.repeat(64)]);
+ assert.ok(report.warnings.some(w=>w.includes('missing')));
+ assert.equal(campaigns[0].ship.builder.sourceRef.sourcePdfSha256,'f'.repeat(64));
+});
