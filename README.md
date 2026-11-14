@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.25.2 (beginner-first rulebook onboarding, pending CI; UNTESTED preview)
+## Current build: 0.26.0 (R1 guided source-readiness development; UNTESTED preview)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -253,4 +253,4 @@ For each development build, `npm run audit:release` validates exact dependency v
 
 ### Starting with no tabletop RPG experience
 
-Open **Home** and select **I have the PDF — add my rulebook**. The Library defaults to one *Captain's Log (2026)* rulebook PDF and prepares it locally without requiring technical document-type settings. The page explains what a rulebook is, which file to choose, privacy, progress and typical file errors. After successful preparation, choose **Next: Create a campaign**. The character, ship and mission screens introduce decisions as you encounter them; no prior D&D or RPG experience is assumed. Extra PDFs and advanced document types remain optional. The complete source book and private verified selections are still required; the app does not distribute publisher materials.
+Open **Home** and select **I have the PDF — add my rulebook**. The Library defaults to one *Captain's Log (2026)* rulebook PDF and prepares it locally without requiring technical document-type settings. The page explains what a rulebook is, which file to choose, privacy, progress and typical file errors. After import, open **Review my book choices**. A searchable PDF is not automatically a verified character/ship catalog; review the suggestions against your own copy of the book before using their mechanical bonuses. The guided sections offer private page links and candidate scans, with the advanced rules compiler still available. The character, ship and mission screens introduce decisions as you encounter them; no prior D&D or RPG experience is assumed. Extra PDFs and advanced document types remain optional. The complete source book and private verified selections are still required; the app does not distribute publisher materials.
