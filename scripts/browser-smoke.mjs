@@ -360,6 +360,27 @@ try {
   check(activeScene.missionId && activeScene.scene==='2:3' &&
     activeScene.notes==='Player wrote this scene description.',
     'M5 failed to resume the exact saved act/scene and its authored notes after reload.');
+  await page.type('.scene-editor textarea[name=valuesUsed]','Player-described challenged Value A');
+  await clickText('Save scene');
+  await waitForSave('Scene saved.');
+  await page.type('.story-thread-create input[name=title]','Where did the anomaly go?');
+  await page.type('.story-thread-create textarea[name=notes]','An unresolved player-written plot point');
+  await clickText('Add story thread');
+  await waitForSave('Story thread saved.');
+  await clickText('Resolve thread');
+  await waitForSave('Story thread updated.');
+  await clickText('Reopen thread');
+  await waitForSave('Story thread updated.');
+  const story=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const ep=(await all('campaigns'))[0].episodes[0];
+    return {scene:ep.activeSceneId,values:ep.scenes.find(s=>s.id==='2:3')?.valuesUsed,
+      thread:ep.threads?.[0]};
+  });
+  check(story.scene==='2:3' && story.values==='Player-described challenged Value A' &&
+    story.thread?.status==='open' && story.thread?.createdSceneId==='2:3' &&
+    story.thread?.notes==='An unresolved player-written plot point',
+    'M5 story thread or scene Value was not saved independently of the current scene.');
   await clickText('Roll task');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20:'), { timeout: 20000 });
   const compiledTableVisible = await page.$eval('select[aria-label="Private random table"]', select =>
@@ -400,8 +421,10 @@ try {
   check(!episodeMarkdown.includes('Synthetic sample page lifepath mission') &&
     !episodeMarkdown.includes('Synthetic private result') &&
     !episodeMarkdown.includes('Synthetic source table') &&
-    episodeMarkdown.includes('Act 2, Scene 3'),
-    'Episode export leaked private table prose or lost the resume scene.');
+    episodeMarkdown.includes('Act 2, Scene 3') &&
+    episodeMarkdown.includes('Where did the anomaly go?') &&
+    episodeMarkdown.includes('Player-described challenged Value A'),
+    'M5 journal leaked private table prose or lost the scene, threads or Values.');
   await navigate('Home');
   await heading('Home');
   await clickText('Export journal');

@@ -70,3 +70,16 @@ test('mission resume location survives normalization and a harmless scene-plan u
   const removed=normalizeEpisode({...ep,activeSceneId:'3:10'});
   assert.equal(removed.activeSceneId,'1:1');
 });
+
+
+test('scene values and linked story threads survive resizing without data loss',()=>{
+  const ep=createEpisode('Scenes and Values');
+  ep.scenes[4].valuesUsed='A player-written challenged Value';
+  assert.throws(()=>updateScenePlan(ep,[4,5,5]),/progress, notes or linked threads/);
+  const safe=updateScenePlan(ep,[5,6,5]);
+  assert.equal(safe.scenes[4].valuesUsed,'A player-written challenged Value');
+  const thread={id:'thread-ref',title:'Player mystery',notes:'',status:'open',
+    createdSceneId:'3:5',resolvedSceneId:null,createdAt:'2026-11-14T12:00:00Z'};
+  const linked={...ep,threads:[thread]};
+  assert.throws(()=>updateScenePlan(linked,[5,5,4]),/linked threads/);
+});

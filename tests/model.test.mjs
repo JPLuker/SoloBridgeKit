@@ -167,3 +167,17 @@ test('vessel source history survives normalization and malformed/duplicate priva
   delete ship.development;
   assert.equal(validateBundle(bundle),bundle);
 });
+
+
+test('backup rejects dangling scene threads before a destructive restore',()=>{
+  const c=createCampaign('Thread backup integrity');
+  const ep=createEpisode('Threaded mission');
+  ep.threads=[{id:'thread1',title:'My thread',notes:'Owner notes',
+    status:'open',createdSceneId:'1:1',resolvedSceneId:null,
+    createdAt:'2026-11-14T12:00:00Z',resolvedAt:null}];
+  c.episodes=[ep];
+  const bundle={format:'solobridgekit',version:DATA_VERSION,campaigns:[c],documents:[]};
+  assert.equal(validateBundle(bundle),bundle);
+  ep.threads[0].createdSceneId='9:9';
+  assert.throws(()=>validateBundle(bundle),/no longer available/);
+});

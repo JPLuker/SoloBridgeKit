@@ -41,3 +41,17 @@ test('journal preserves scene context but strips private table text and old gene
   assert.ok(journal.includes('PDF page 210 · roll 3'));
   assert.equal(journal.includes('Licensed privately imported title'),false);
 });
+
+
+test('episode journal retains authored scene Values and unresolved threads only',()=>{
+  const ep=createEpisode('Solo mission');
+  ep.scenes[0].valuesUsed='Player-created value reference';
+  ep.threads=[{id:'private-thread',title:'My unresolved mystery',
+    notes:'My own context',createdAt:'2026-11-14T10:00:00Z',
+    createdSceneId:'1:1',resolvedSceneId:null,resolvedAt:null,status:'open'}];
+  const journal=renderEpisodeJournal(ep);
+  assert.ok(journal.includes('Player-created value reference'));
+  assert.ok(journal.includes('My unresolved mystery'));
+  assert.ok(journal.includes('Unresolved'));
+  assert.ok(journal.includes('Act 1, Scene 1'));
+});

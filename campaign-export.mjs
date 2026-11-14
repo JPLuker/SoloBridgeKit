@@ -33,7 +33,17 @@ export function renderEpisodeJournal(raw) {
   for (const scene of mission.scenes) {
     result.push(`### Act ${scene.act}, Scene ${scene.number}${scene.completed ? ' (complete)' : ''}`, '',
       ...(scene.title ? [oneLine(scene.title), ''] : []),
-      ...(scene.notes ? [safe(scene.notes), ''] : []));
+      ...(scene.notes ? [safe(scene.notes), ''] : []),
+      ...(scene.valuesUsed ? ['Values used or challenged: '+safe(scene.valuesUsed), ''] : []));
+  }
+  result.push('## Story threads', '');
+  if (!mission.threads.length) result.push('_No story threads_', '');
+  for (const thread of mission.threads) {
+    result.push('### '+oneLine(thread.title), '',
+      field('Status',thread.status==='resolved'?'Resolved':'Unresolved'),
+      ...(thread.createdSceneId?[field('Introduced',sceneTag(thread.createdSceneId)??thread.createdSceneId)]:[]),
+      ...(thread.resolvedSceneId?[field('Resolved',sceneTag(thread.resolvedSceneId)??thread.resolvedSceneId)]:[]),
+      ...(thread.notes?[safe(thread.notes)]:[]), '');
   }
   result.push('## Timeline', '');
   const entries = Array.isArray(mission.entries) ? mission.entries : [];

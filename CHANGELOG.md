@@ -1,3 +1,12 @@
+## [0.22.1] - 2026-11-14
+### M5 — Scene workspaces, player Values and story threads (65% development)
+- Add source-free, player-authored story-thread records with introduced/resolved scene IDs, notes, status changes, deletion and strict duplicate/scene validation.
+- Add per-scene Values used/challenged without overwriting the episode's act log.
+- Present a selected-scene workspace with task roll, table reference, log and unresolved-thread counts.
+- Prevent shortening an act if it would delete a scene's Values or a referenced story thread.
+- Include player-written thread status/source/resolution and Values in Markdown journals, but no private table text.
+- Validate all episode threads before destructive backup restore, add unit and Chrome tests for creation/resolution/reopening and data persistence.
+
 ## [0.22.0] - 2026-11-14
 ### M5 — Persist mission/scene selection and source-safe roll references (30% development)
 - Persist the player's selected mission and exact scene in the campaign/episode instead of relying on transient browser state.

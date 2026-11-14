@@ -88,7 +88,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M5. Integrated solo mission player
 
-**Development progress: 30% (v0.22.0, pending CI).** Active mission/scene persistence, scene-linked task history, source-safe private-table references and contextual Markdown export are implemented. Remaining: integrated act/scene workspace, unresolved threads and Values, safe correction/undo, full three-act browser playthrough and final module acceptance.
+**Development progress: 65% (v0.22.1, pending CI).** Mission/scene persistence, scene-linked roll references, source-safe table history, player-written Values per scene, unresolved/resolved threads, and contextual workspace counts are implemented. Remaining: safe correction/undo, full three-act end-to-end browser playthrough and M5 development acceptance.
 
 **Build**
 - Use one active-scene workspace for roll outcomes, Momentum/Threat, available private random tables, notes, status and source references.

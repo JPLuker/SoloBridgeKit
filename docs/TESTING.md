@@ -334,3 +334,13 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Legacy auto-generated table references lose publisher table titles in Markdown exports; manually authored narrative remains intact.
 - [ ] Save/restore campaign-only JSON and verify selected mission, scene notes, roll provenance and reference IDs survive without book content.
 - [ ] Physical device acceptance remains M7, not included in M5 development percentage.
+
+## v0.22.1 M5 scene Values and threads
+
+- [ ] Save player-authored Values for Act 2 Scene 3; reload and confirm existing scene notes/completion are retained.
+- [ ] Create a thread in that scene, resolve it, reopen it, and confirm the original wording/scene provenance persist.
+- [ ] Scene workspace counts only the selected scene's task rolls, table references, and journal entries.
+- [ ] Act-length reduction fails if it would remove written Values or a referenced thread; previously written data remains.
+- [ ] Private/data-only backups preserve story threads; corrupt/dangling thread references reject restore before local data is cleared.
+- [ ] Export Markdown includes player-authored Values/threads but never source table text or licensed row descriptions.
+- [ ] Physical device playtesting remains M7 rather than affecting build percentages.

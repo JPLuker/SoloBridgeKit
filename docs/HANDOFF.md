@@ -347,3 +347,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `campaign-export.mjs` annotates scene references in journals and removes private table names from legacy auto-generated entries during Markdown export.
 - Unit and headless Chrome regressions include exact Act 2 Scene 3 resume after browser reload and no source-text leakage in exported journals.
 - **Next M5:** integrated scene workspace, Values and unresolved threads, corrections/undo, and full 3-act episode testing. Real devices remain M7; no release claim.
+
+## v0.22.1 — M5 story thread and scene workspace
+
+- `mission-threads.mjs` provides strict normalized player-authored threads, creation, resolution/reopening, deletion and per-scene roll/table/log/thread counts; no authored narrative or private book prose is generated.
+- `missions.createScene()` now preserves optional `valuesUsed`; `updateScenePlan()` blocks shortening an act if it would remove written Values or referenced threads.
+- `model.normalizeEpisode()` loads legacy missions with `threads: []`; `validateBundle()` normalizes episode state before destructive restore, rejecting invalid/dangling thread provenance.
+- `app.renderMissionThreads()` adds a scene workspace and thread controls; scene editor separately saves Values used/challenged. A player can resolve, reopen or delete threads without altering other mission text.
+- `campaign-export.mjs` includes scene Values and the player's thread records; still no private table text in default journals.
+- Synthetic unit and Chrome tests exercise a selected Act 2 Scene 3, authored Value, unresolved/resolved thread, reload, mission tasks and export. M5 remains open for corrections/undo and full three-act episode completion.

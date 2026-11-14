@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.22.0
+## Current build: 0.22.1
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -232,3 +232,7 @@ Players can record **optional, mission-linked ship and station milestones** usin
 ### v0.22.0 — M5 resumable scene workspace
 
 Campaigns remember which mission was selected, and each mission remembers the exact active act and scene across reloads and backup restoration. Scene notes and completions remain independent. Character task rolls now retain their originating scene ID—even after a reroll—and are visibly labeled in the task history and Markdown journal. Privately rolled random-table references store **only** the source PDF fingerprint/page, private table ID, numerical roll and scene ID; extracted table titles and row prose are never copied to default campaign exports. Older generated text references are sanitized during Markdown export without altering the user's local records. No AI-generated narrative or commercial book content is included.
+
+### v0.22.1 — Scene Values and unresolved story threads
+
+The mission player now shows a **Scene workspace** with counts of that scene's saved task rolls, table references, and journal entries. Each scene has a player-written **Values used or challenged** field, independent of the act-level mission log. Players can add their own unresolved story threads, annotate them, resolve them during another scene, reopen them, or remove an accidental entry. Thread IDs, source/resolution scenes and notes survive local reload and private/data-only backups. A scene cannot be removed through the scene-count editor while it contains referenced threads or written Values. Markdown episode journals include only the player's thread and Value wording; the app does not generate plot suggestions or publish rulebook content.

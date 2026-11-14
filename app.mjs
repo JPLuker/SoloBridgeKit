@@ -16,6 +16,7 @@ import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePri
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 import { commitTaskToMission } from './mission-actions.mjs';
 import { resolveActiveEpisodeId, selectActiveEpisode, resolveActiveSceneId, selectActiveScene, sceneTag, makePrivateTableReference, appendSceneTableReference } from './mission-workspace.mjs';
+import { createMissionThread, setMissionThreadStatus, deleteMissionThread, normalizeMissionThreads, summarizeSceneWorkspace } from './mission-threads.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -1334,8 +1335,9 @@ function renderLog() {
     entries,
     form
   ]));
-  root.append(renderMissionActions(selected));
   root.append(renderSceneTracker(selected));
+  root.append(renderMissionActions(selected));
+  root.append(renderMissionThreads(selected));
   root.append(renderTaskHistory(selected));
   root.append(missionForm);
   return root;
@@ -1483,7 +1485,8 @@ function renderSceneTracker(mission) {
     const editor = el('form', { class: 'form-stack scene-editor' }, [
       el('h3', { text: `Act ${active.act} · Scene ${active.number}` }),
       field('Scene title', 'title', active.title),
-      field('Scene notes', 'notes', active.notes, { multiline: true })
+      field('Scene notes', 'notes', active.notes, { multiline: true }),
+      field('Values used or challenged', 'valuesUsed', active.valuesUsed ?? '', { multiline: true })
     ]);
     editor.append(el('div', { class: 'actions' }, [
       el('button', { type: 'submit', class: 'button secondary', text: 'Save scene' }),
@@ -1491,6 +1494,7 @@ function renderSceneTracker(mission) {
         try {
           const values = new FormData(editor);
           active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
+          active.valuesUsed = String(values.get('valuesUsed') || '');
           Object.assign(mission, toggleMissionScene(mission, active.act, active.number, !active.completed));
           mission.activeSceneId = active.id; await persist();
         } catch (error) { failure(error); }
@@ -1500,6 +1504,7 @@ function renderSceneTracker(mission) {
       event.preventDefault();
       const values = new FormData(editor);
       active.title = String(values.get('title') || ''); active.notes = String(values.get('notes') || '');
+          active.valuesUsed = String(values.get('valuesUsed') || '');
       try { await persist(); notify('Scene saved.'); } catch (error) { failure(error); }
     });
     tracker.append(editor);
@@ -1507,6 +1512,64 @@ function renderSceneTracker(mission) {
   return tracker;
 }
 
+
+function renderMissionThreads(episode) {
+  const sceneId=resolveActiveSceneId(episode);
+  const summary=summarizeSceneWorkspace(episode,sceneId);
+  const threads=normalizeMissionThreads(episode.threads,episode.scenes);
+  const cardNode=card([
+    el('h2',{text:'Scene workspace'}),
+    el('p',{class:'hint',text:(sceneTag(sceneId)??'Scene')+
+      ' · '+summary.taskRolls+' task roll(s) · '+summary.tableRefs+' private table reference(s) · '+
+      summary.journalEntries+' log entries'}),
+    el('h3',{text:'Unresolved story threads'}),
+    el('p',{class:'muted',text:'Write your own unresolved questions and developments. No plot suggestions are generated.'})
+  ]);
+  const form=el('form',{class:'form-stack story-thread-create'},[
+    field('Thread title','title','',{required:true}),
+    field('Thread details (optional)','notes','',{multiline:true}),
+    el('button',{type:'submit',class:'button secondary',text:'Add story thread'})
+  ]);
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    try{
+      const data=new FormData(form);
+      Object.assign(episode,createMissionThread(episode,{
+        title:String(data.get('title')??''),notes:String(data.get('notes')??''),sceneId
+      }));
+      await persist();notify('Story thread saved.');
+    }catch(error){failure(error);}
+  });
+  cardNode.append(form);
+  if(threads.length) {
+    for(const item of [...threads].sort((a,b)=>Number(a.status==='resolved')-Number(b.status==='resolved'))) {
+      const target=item.status==='open'?'resolved':'open';
+      cardNode.append(el('div',{class:'document-item'},[
+        el('strong',{text:item.title+' · '+(item.status==='open'?'Unresolved':'Resolved')}),
+        el('p',{class:'muted',text:item.notes||'No details recorded'}),
+        el('p',{class:'hint',text:(item.createdSceneId?('Started '+(sceneTag(item.createdSceneId)??'Scene')):'Started before scene selection')+
+          (item.resolvedSceneId?' · Resolved '+(sceneTag(item.resolvedSceneId)??'later'):'')}),
+        el('div',{class:'actions'},[
+          button(target==='resolved'?'Resolve thread':'Reopen thread',async()=>{
+            try{
+              Object.assign(episode,setMissionThreadStatus(episode,item.id,target,
+                target==='resolved'?sceneId:null));
+              await persist();notify('Story thread updated.');
+            }catch(error){failure(error);}
+          },'secondary'),
+          button('Delete thread',async()=>{
+            if(!confirm('Delete this story thread? Your written notes will be deleted.'))return;
+            try{
+              Object.assign(episode,deleteMissionThread(episode,item.id));
+              await persist();notify('Story thread deleted.');
+            }catch(error){failure(error);}
+          },'danger subtle')
+        ])
+      ]));
+    }
+  }
+  return cardNode;
+}
 
 function renderTaskHistory(mission) {
   const records = mission.taskHistory || [];
@@ -2386,7 +2449,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.22.0' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.22.1' })]));
   return root;
 }
 

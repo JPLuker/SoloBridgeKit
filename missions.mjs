@@ -11,7 +11,8 @@ export function validateScenePlan(plan) {
 
 export function createScene(act, number, existing = {}) {
   return { id: existing.id || `${act}:${number}`, act, number, title: String(existing.title ?? ''),
-    notes: String(existing.notes ?? ''), completed: Boolean(existing.completed), completedAt: existing.completedAt ?? null };
+    notes: String(existing.notes ?? ''), valuesUsed: String(existing.valuesUsed ?? ''),
+    completed: Boolean(existing.completed), completedAt: existing.completedAt ?? null };
 }
 
 export function createMissionScenes(plan = DEFAULT_SCENE_PLAN) {
@@ -38,8 +39,11 @@ export function updateScenePlan(mission, newPlan) {
   const plan = validateScenePlan(newPlan);
   const current = normalizeMissionScenes(mission);
   for (const scene of current.scenes) {
-    if (scene.number > plan[scene.act - 1] && (scene.completed || scene.title.trim() || scene.notes.trim())) {
-      throw new Error(`Act ${scene.act} scene ${scene.number} has progress or notes. Clear it before reducing scene count.`);
+    const referenced = (mission.threads??[]).some(t=>t.createdSceneId===scene.id||t.resolvedSceneId===scene.id);
+    if (scene.number > plan[scene.act - 1] &&
+      (scene.completed || scene.title.trim() || scene.notes.trim() ||
+       scene.valuesUsed.trim() || referenced)) {
+      throw new Error(`Act ${scene.act} scene ${scene.number} has progress, notes or linked threads. Clear the reference before reducing scene count.`);
     }
   }
   return normalizeMissionScenes({ ...mission, ...current, scenePlan: plan });

@@ -297,3 +297,9 @@
 - Tag mechanical task results and journal log entries with the original scene; preserve tags through rerolls.
 - Private random table rolls save source references, result numbers and scene IDs without table prose or titles in default exports; legacy generated table labels are removed when exporting.
 - M5 continues with fuller scene workspace and player notes, thread tracking, undo/correction and complete 3-act workflow.
+
+## v0.22.1 — M5 story threads and scene-specific Values
+
+- Add per-scene player-authored Values and a story thread tracker with source/resolution scene IDs and reversible open/resolved status.
+- Scene workspace summarizes tasks, log entries and private table references; journal exports retain authored threads while omitting publisher content.
+- Reducing act length is refused if it would lose thread references or scene Values. Complete M5 playthrough, safe correction and module acceptance remain ahead.

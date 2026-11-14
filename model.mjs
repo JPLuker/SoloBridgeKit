@@ -10,6 +10,7 @@ import { normalizeCompiledRecords } from './compiler-data.mjs';
 import { normalizeCrewRoster } from './crew-management.mjs';
 import { normalizeShipDevelopment } from './ship-development.mjs';
 import { resolveActiveEpisodeId, resolveActiveSceneId } from './mission-workspace.mjs';
+import { normalizeMissionThreads } from './mission-threads.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -74,6 +75,7 @@ export function normalizeEpisode(episode) {
   return {
     ...episode, ...sceneData,
     activeSceneId: resolveActiveSceneId(episode,sceneData.scenes),
+    threads: normalizeMissionThreads(episode.threads,sceneData.scenes),
     summary: episode.summary ?? '', development: episode.development ?? '',
     careerEvents: episode.careerEvents ?? '',
     valueMarks: { minus: false, plus: false, challenged: false, ...episode.valueMarks },
@@ -175,6 +177,11 @@ export function validateBundle(bundle) {
     if (!c || typeof c.id !== 'string' || !c.id || typeof c.title !== 'string' ||
         !Array.isArray(c.episodes) || !c.character || !c.ship || ids.has(c.id)) {
       throw new Error('The backup contains an invalid campaign.');
+    }
+    for (const episode of c.episodes) {
+      // Catch dangling story-thread scene links and invalid roll histories
+      // BEFORE restore clears any existing local campaigns.
+      normalizeEpisode(episode);
     }
     normalizeCrewRoster(c.crew);
     normalizeShipDevelopment(c.ship?.development);
