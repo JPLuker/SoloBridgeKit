@@ -600,31 +600,28 @@ function renderLifepath() {
   if (corebook && current.id !== 'finishing') {
     const presets = catalog;
     if (presets.length) {
-      const list = el('select', { 'aria-label': 'Saved private lifepath choice' });
-      for (const option of presets)
-        list.append(el('option', { value: option.id, text: option.label }));
       root.append(card([
-        el('h2', { text: 'Saved private choices' }),
-        list,
-        el('div', { class: 'actions' }, [
-          button('Apply saved choice', async () => {
-            try {
-              const option = presets.find(x => x.id === list.value);
-              if (!option) throw new Error('Select a saved choice.');
-              const existing = readStep();
-              if (existing.choice && !confirm('Replace the current lifepath step with this saved choice?')) return;
-              const updated = chooseVerifiedLifepathOption(path, current.id, option,
-                corebook.bookPack.sourceSha256, corebook.bookPack.pageCount);
-              c.lifepath = updated;
-              await persist();
-              notify('Verified source choice applied. Add any personalized value or focus before continuing.');
-            } catch (error) { failure(error); }
-          }),
-          button('Open source page', () => {
-            const option = presets.find(x => x.id === list.value);
-            if (option) openPdf(corebook, option.page).catch(failure);
-          }, 'secondary')
-        ])
+        el('h2',{text:'Choose your option'}),
+        el('p',{class:'hint',text:'These choices were confirmed from your private PDF. Select one to fill the bonuses automatically, then add any personal details.'}),
+        el('div',{class:'document-list'},presets.map(option=>
+          el('div',{class:'document-item'},[
+            el('strong',{text:option.label}),
+            el('p',{class:'hint',text:'Verified in your PDF · page '+option.page}),
+            el('div',{class:'actions'},[
+              button('Choose '+option.label,async()=>{
+                try{
+                  const existing=readStep();
+                  if(existing.choice&&existing.choice!==option.label&&!confirm('Replace this step with the selected choice?'))return;
+                  c.lifepath=chooseVerifiedLifepathOption(path,current.id,option,
+                    corebook.bookPack.sourceSha256,corebook.bookPack.pageCount);
+                  await persist();
+                  notify('Verified source choice applied. Add any personalized value or focus before continuing.');
+                }catch(error){failure(error);}
+              }),
+              button('View source page',()=>openPdf(corebook,option.page).catch(failure),'secondary')
+            ])
+          ])
+        ))
       ]));
     } else if (path.mode === 'guided') {
       root.append(card([
@@ -963,27 +960,27 @@ function renderShipBuilder() {
   if (idx === 1 && corebook) {
     const savedClasses = classes;
     if (savedClasses.length) {
-      const choose = el('select', { 'aria-label': 'Saved private starship or station class' });
-      savedClasses.forEach(x => choose.append(el('option', { value: x.id, text: `${x.className} (${x.kind})` })));
       root.append(card([
-        el('h2', { text: 'Saved private classes' }), choose,
-        el('div', { class: 'actions' }, [
-          button('Apply saved class', async () => {
-            try {
-              const selection = savedClasses.find(x => x.id === choose.value);
-              if (!selection) throw new Error('Select a saved class.');
-              if (builder.className && !confirm('Replace your current class ratings with this saved template?')) return;
-              ship.builder = selectVerifiedShipClass(builder, selection,
-                corebook.bookPack.sourceSha256, corebook.bookPack.pageCount);
-              await persist();
-              notify('Source-verified class loaded. Identity and customizations preserved.');
-            } catch (error) { failure(error); }
-          }),
-          button('Open source page', () => {
-            const selection = savedClasses.find(x => x.id === choose.value);
-            if (selection) openPdf(corebook, selection.page).catch(failure);
-          }, 'secondary')
-        ])
+        el('h2',{text:'Choose a ship or station class'}),
+        el('p',{class:'hint',text:'Each class listed here was confirmed from your private book. Choosing one fills its published ratings; you can still customize its identity.'}),
+        el('div',{class:'document-list'},savedClasses.map(selection=>
+          el('div',{class:'document-item'},[
+            el('strong',{text:selection.className}),
+            el('p',{class:'hint',text:selection.kind+' · PDF page '+selection.page}),
+            el('div',{class:'actions'},[
+              button('Choose '+selection.className,async()=>{
+                try{
+                  if(builder.className&&builder.className!==selection.className&&!confirm('Replace the current class ratings?'))return;
+                  ship.builder=selectVerifiedShipClass(builder,selection,
+                    corebook.bookPack.sourceSha256,corebook.bookPack.pageCount);
+                  await persist();
+                  notify('Source-verified class loaded. Identity and customizations preserved.');
+                }catch(error){failure(error);}
+              }),
+              button('View source page',()=>openPdf(corebook,selection.page).catch(failure),'secondary')
+            ])
+          ])
+        ))
       ]));
     } else if (builder.mode==='guided') {
       root.append(card([
