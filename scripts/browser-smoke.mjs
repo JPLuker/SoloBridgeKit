@@ -285,7 +285,7 @@ try {
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Character lifepath'), { timeout: 15000 });
   check(await page.$eval('#content', node => node.textContent.includes('Verified choices · 0/7')),
     'New characters should default to verified-guidance mode.');
-  await clickText('Apply saved choice');
+  await clickText('Choose Synthetic lifepath choice');
   await waitForSave('Verified source choice applied.');
   const linkedStage = await page.evaluate(async () => {
     const { all } = await import('./storage.mjs');
@@ -306,8 +306,8 @@ try {
   await clickText('Save step');
   await waitForSave('Ship setup saved.');
   await clickText('2. Class and ratings');
-  await page.waitForSelector('#content select[aria-label="Saved private starship or station class"]',{timeout:15000});
-  await clickText('Apply saved class');
+  await page.waitForFunction(()=>[...document.querySelectorAll('#content button')].some(b=>b.textContent.trim()==='Choose Synthetic ship class'),{timeout:15000});
+  await clickText('Choose Synthetic ship class');
   await waitForSave('Source-verified class loaded.');
   const savedClass = await page.evaluate(async () => {
     const { all } = await import('./storage.mjs');
