@@ -103,7 +103,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M6. Multi-book and library quality
 
-**Development progress: 35% (v0.23.0, pending CI).** Generalized private source validation, offline preparation for short supplement/reference PDFs, cross-book search with document/page fingerprints and library conflict warnings have been implemented. Remaining: repair/rebuild and removal safety, cross-book/browser backup coverage, multi-source compatibility, and M6 acceptance.
+**Development progress: 95% (v0.23.0, pending CI).** Private short-reference indexes, cross-book provenance search, per-book edition labels, source-conflict/orphan warnings, index repair and rebuild, safe PDF removal warnings, atomic single-corebook selection, private-backup compatibility, and synthetic browser regression coverage are implemented. Remaining: verify an uncancelled full CI run, correct failures if any, and close M6 development acceptance.
 
 **Build**
 - Support source roles/versions for corebook, supplements and forms; identify conflicting or missing rule dependencies.
