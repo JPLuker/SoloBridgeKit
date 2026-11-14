@@ -3,18 +3,26 @@
 import { normalizeDocumentRole } from './content-policy.mjs';
 import { BOOK_FORMAT, REFERENCE_FORMAT, validatePreparedDocumentPack, searchBookPack } from './book-data.mjs';
 
+export function normalizeSourceEdition(value){
+  if(value==null)return '';
+  if(typeof value!=='string'||value.length>100)
+    throw new Error('Source edition must be at most 100 characters.');
+  return value.trim();
+}
+
 export function libraryBookStatus(document){
   const role=normalizeDocumentRole(document?.role);
+  const edition=normalizeSourceEdition(document?.sourceEdition);
   const pack=document?.bookPack;
-  if(!pack)return {role,status:'unprepared',searchable:false,gameplay:false};
+  if(!pack)return {role,edition,status:'unprepared',searchable:false,gameplay:false};
   try{
     validatePreparedDocumentPack(pack);
-    return {role,status:'prepared',searchable:true,
+    return {role,edition,status:'prepared',searchable:true,
       gameplay:role==='corebook' && pack.format===BOOK_FORMAT,
       sourceSha256:pack.sourceSha256,pageCount:pack.pageCount,
       indexType:pack.format===REFERENCE_FORMAT?'reference':'corebook'};
   }catch{
-    return {role,status:'repair-needed',searchable:false,gameplay:false};
+    return {role,edition,status:'repair-needed',searchable:false,gameplay:false};
   }
 }
 
