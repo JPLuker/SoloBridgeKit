@@ -318,3 +318,10 @@
 - Short supplements, forms and reference PDFs can be prepared into locally owned, SHA-256-bound searchable source indexes without acting as corebook gameplay unlocks.
 - Combined search identifies the originating imported PDF and page. Library diagnostics show preparation and source conflicts; private indexes remain excluded from default campaign backups and public packages.
 - M6 completion awaits recovery/rebuild/remove safety and browser round-trip verification.
+
+## v0.23.0 — M6 source edition, rebuild and dependency safety (pending CI)
+
+- Per-book edition labels and missing source fingerprint warnings help users understand which records depend on imported PDFs.
+- Importing a new corebook selects it atomically; previous editions remain as reference documents with private indexes intact and can be selected again.
+- Rebuilding private indexes preserves the original PDF and unrelated campaign data on failure; removal warns about source-linked campaigns and game lockout.
+- Extended synthetic-browser checks cover reference preparation, cross-book search, multi-source private backups and corebook switching. No publisher content is shipped.
