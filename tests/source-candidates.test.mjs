@@ -26,3 +26,13 @@ test('guided discovery bounds scan work and refuses invalid stages',()=>{
   assert.throws(()=>discoverStageCandidates(data,'species',{maxPages:100}),/limit/);
   assert.ok(discoverStageCandidates(data,'species',{limit:1}).length<=1);
 });
+
+test('a locally searched PDF page can override an edition-specific default page offset',()=>{
+  const data=mock();
+  data.pages[150].text='Synthetic Offset Choice\nUnrelated local text from test book';
+  const found=discoverStageCandidates(data,'species',{startPage:151,maxPages:1});
+  assert.ok(found.some(x=>x.label==='Synthetic Offset Choice'&&x.page===151));
+  assert.ok(found.every(x=>x.status==='draft'));
+  assert.throws(()=>discoverStageCandidates(data,'species',{startPage:999}),/outside/);
+  assert.throws(()=>discoverStageCandidates(data,'species',{startPage:0}),/outside/);
+});
