@@ -93,6 +93,7 @@ test('edition labels are player-owned metadata and are validated',()=>{
  assert.throws(()=>normalizeSourceEdition(2026),/100 characters/);
  const editionDoc={id:'ref',name:'Book.pdf',role:'forms',bookPack:small(),sourceEdition:'Second edition'};
  assert.equal(libraryBookStatus(editionDoc).edition,'Second edition');
+ assert.equal(searchPreparedLibrary([editionDoc],'alternate')[0].edition,'Second edition');
 });
 
 test('switching prepared corebook is non-destructive and retains other editions',()=>{
