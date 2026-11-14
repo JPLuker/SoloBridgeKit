@@ -370,3 +370,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Library UI prepares other documents individually for local search and renders results linked to each source page.
 - Changed book pack validation in campaign-private backup/restore to accept either supported local index type. New `tests/library-books.test.mjs`. v0.23.0 artifacts, offline cache and audits include only code.
 - M6 still open; verify CI and complete repair/removal/round trips. M5 accepted in CI #76.
+
+## M6 follow-up — multi-edition integrity (pending CI)
+
+- `library-books.mjs`: interleaved cross-book search, per-document edition/version labels, missing SHA dependency diagnostics, source-aware removal warnings, and pure single-primary-corebook selection.
+- `storage.mjs`: imported corebooks atomically demote former primary corebooks to references without losing their local indexes; `activatePreparedCorebook` reselects a verified source in one transaction.
+- Library exposes private source index rebuild and corebook selection/repair. Reference-only index import is explicitly rejected from the corebook import path.
+- Synthetic Chrome flow includes preparing a 3-page supplement, cross-book search, two-book private backup/restore, and edition switch/restore without deleting other documents. Check the latest CI run before closing M6.
