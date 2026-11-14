@@ -91,9 +91,9 @@ try {
   await page.waitForFunction(() =>
     document.querySelector('#content')?.textContent?.includes('corebook · prepared'), { timeout: 180000 });
   check(await page.$eval('#content',node=>
-      node.textContent.includes('Next: Create a campaign') &&
-      node.textContent.includes('Your rulebook is ready')),
-    'Import success did not explain the next beginner action.');
+      node.textContent.includes('Review my book choices') &&
+      node.textContent.includes('Your rulebook is searchable')),
+    'Import success did not distinguish indexed PDF from verified choices.');
   await page.screenshot({ path: join(output, 'phone-library.png'), fullPage: true });
   // A malformed second file must abort the WHOLE batch, preserving the prepared corebook.
   const libraryCount = await page.evaluate(async () => {
