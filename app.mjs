@@ -1,6 +1,6 @@
 import { createCampaign, createEpisode, createEntry, createCrewMember, rollDice, resolveTask, makeId, normalizeCampaign,
   CHARACTER_ATTRIBUTES, CHARACTER_DISCIPLINES, SHIP_SYSTEMS, SHIP_DEPARTMENTS } from './model.mjs';
-import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent, stampNewCampaign, mutateCompiledRecords } from './storage.mjs';
+import { all, get, put, remove, saveCampaign, createBackup, restoreBackup, resetData, database, addDocumentsAtomically, currentDataGeneration, patchDocumentIfCurrent, activatePreparedCorebook, stampNewCampaign, mutateCompiledRecords } from './storage.mjs';
 import { prepareImportBatch, storageMessage, assertNotCancelled, relinkDocument, checkStorageCapacity } from './import-safety.mjs';
 import { createLifepath, normalizeLifepath, LIFEPATH_STEPS, validateLifepathStep, lifepathReview, applyLifepathToCharacter } from './lifepath.mjs';
 import { updateScenePlan, toggleMissionScene } from './missions.mjs';
@@ -1672,7 +1672,7 @@ function renderLibrary() {
   for (const document of state.documents) {
     const role = normalizeDocumentRole(document.role);
     const libraryStatus = libraryBookStatus(document);
-    const changeRole = button(role === 'corebook' ? 'Unmark corebook' : 'Prepare as corebook', async () => {
+    const changeRole = button(role === 'corebook' ? 'Unmark corebook' : (libraryBookStatus({...document,role:'corebook'}).gameplay?'Use as corebook':'Prepare as corebook'), async () => {
       const previousText = changeRole.textContent;
       try {
         const latest = await get('documents', document.id);
@@ -1684,8 +1684,13 @@ function renderLibrary() {
           return;
         }
         if (preparationController) throw new Error('Another preparation is already running.');
-        preparationController = new AbortController();
         const importGeneration = await currentDataGeneration();
+        if(libraryBookStatus({...latest,role:'corebook'}).gameplay){
+          await activatePreparedCorebook(document.id,latest.bookPack,importGeneration);
+          await refresh();notify('Selected corebook activated. Other editions remain in the library.');
+          return;
+        }
+        preparationController = new AbortController();
         changeRole.disabled = true;
         cancelPreparation.hidden = false;
         changeRole.textContent = 'Preparing…';
@@ -1697,7 +1702,7 @@ function renderLibrary() {
         const current = await get('documents', document.id);
         if (!current || await currentDataGeneration() !== importGeneration)
           throw new Error('The book was removed or storage was reset during preparation. Nothing was saved.');
-        await patchDocumentIfCurrent(document.id, { role: 'corebook', bookPack: pack }, importGeneration);
+        await activatePreparedCorebook(document.id,pack,importGeneration);
         await refresh();
         notify('Corebook prepared and ready.');
       } catch (error) {
