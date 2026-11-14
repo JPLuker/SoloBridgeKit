@@ -1722,9 +1722,12 @@ function renderLibrary() {
       assertNotCancelled(preparationController.signal);
       progress.textContent = 'Saving to this device…';
       await addDocumentsAtomically(records, importGeneration);
-      progress.textContent = requestedRole === 'corebook' ? 'Your rulebook is ready. Next, create your first campaign.' : 'PDFs saved on this device.';
+      progress.textContent = requestedRole === 'corebook'
+        ? 'Your PDF is indexed. Next, review the choices you want to use in character creation.'
+        : 'PDFs saved on this device.';
       await refresh();
-      notify(requestedRole === 'corebook' ? 'Rulebook ready! Start by creating a campaign.' : `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
+      notify(requestedRole === 'corebook' ? 'PDF indexed. Review game choices next.' :
+        `${records.length} PDF${records.length === 1 ? '' : 's'} imported.`);
     } catch (error) {
       progress.textContent = explainRulebookImportFailure(error,requestedRole);
       progress.setAttribute('role','alert');
@@ -1758,11 +1761,15 @@ function renderLibrary() {
     ]));
   }else{
     root.append(card([
-      el('p',{class:'hint',text:'Getting started · Step 1 complete'}),
-      el('h2',{text:'Your rulebook is ready'}),
-      el('p',{text:"You can now make your character. A campaign is simply your saved adventure and everything that happens in it."}),
-      button('Next: Create a campaign',()=>go('home')),
-      el('p',{class:'hint',text:'Your PDF stays stored locally in this browser. You can return here later to add other documents.'})
+      el('p',{class:'hint',text:'Getting started · Your PDF is imported'}),
+      el('h2',{text:'Your rulebook is searchable'}),
+      el('p',{text:"Your book has been saved privately and you can open it any time. The app still needs you to confirm the choices and numeric bonuses it will use in character and ship creation."}),
+      el('p',{class:'hint',text:'Next: Choose a section below, find suggested options, and compare each one to your own PDF before confirming. You do not have to import every book option at once.'}),
+      button('Review my book choices',()=>{
+        const target=document.querySelector('#content .source-preparation');
+        if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+      }),
+      button('Start a campaign without confirmed choices',()=>go('home'),'secondary')
     ]));
     root.append(card([el('h2',{text:'Add another PDF (optional)'}),roleField,fileInput,progress,cancelPreparation,
       el('p',{class:'hint',text:'You can keep forms, supplements, or another edition alongside your first rulebook. Select the correct document type before importing.'})]));
@@ -2040,6 +2047,7 @@ function renderSourcePreparation(book) {
     el('p',{class:'hint',text:'Choose one section below. The app will look for possible names near that section of your private PDF. Check the name and numbers against the book before confirming. Unreviewed suggestions are never treated as game rules.'}),
     el('p',{class:'hint',text:`${status.steps.filter(step=>step.hasChoice).length} of ${status.steps.length} sections have at least one confirmed choice. This does not mean every option in the book has been imported.`})
   ]);
+  panel.classList.add('source-preparation');
   const advanced=el('details',{class:'source-preparation-tools'},[
     el('summary',{text:'Review suggestions and correct rules (advanced tools)'})
   ]);
