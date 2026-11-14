@@ -1,3 +1,10 @@
+## v0.26.0 — R1 private source readiness, first build (pending CI)
+
+- Separate searchable PDF preparation from private, verified options needed for character and ship selection.
+- Guide players by character/ship choice section, with source-page links and one-click candidate discovery; keep the full rules editor behind an advanced disclosure.
+- Correct first-import messaging: uploaded PDF is **indexed**, not automatically a playable verified option catalog.
+- Add conservative readiness tests and expanded synthetic Chrome coverage without distributing publisher content.
+
 ## Product review — D&D Beyond-inspired beginner redesign (documentation only)
 
 - Audited v0.25.2 source flows against official D&D Beyond builder guidance; recorded an ordered first-session redesign and acceptance criteria in `docs/DND-BEYOND-PRODUCT-REVIEW.md` and issue #4. No application behavior changed in this documentation update.
