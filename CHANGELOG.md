@@ -1,3 +1,12 @@
+## [0.21.2] - 2026-11-14
+### M4 — Vessel milestones, conditions and development-completion candidate
+- Add player-authorized, completed-mission ship System or Department redistribution/improvement with source page references and rating bounds.
+- Preserve previous ratings, mission identity, source SHA and player-written rationale in the vessel's private milestone history; prevent duplicate milestones per mission.
+- Add descriptive vessel damage/repair notes and recovery states without unverified gameplay penalties.
+- Validate ship history and source identifiers before backup restore; maintain legacy ship compatibility.
+- Add full synthetic guided-ship and crew flow to Chrome regressions, then record vessel milestones and verify data-only/private backup preservation.
+- Add M4 development acceptance checklist. Code-only completion requires green CI; device testing remains M7.
+
 ## [0.21.1] - 2026-11-14
 ### M4 — Optional NPC stat sheets and assignments (70% development)
 - Preserve legacy roster members while adding optional six-Attribute/six-Discipline/Focus NPC sheets and lightweight ship-department representation.

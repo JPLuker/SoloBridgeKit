@@ -284,3 +284,9 @@
 - Expanded crew into source-compatible lightweight or full stat representations, privately entered ratings/Focuses, assignment and relationship management.
 - Added user-initiated crew task target calculation using source-backed ship or NPC scores, with no invented mechanics.
 - Crew/ship milestone advancement and final M4 acceptance remain to build.
+
+## v0.21.2 — M4 vessel milestone and condition histories
+
+- After completed missions, player-authorized vessel milestones may adjust Systems/Departments under existing source limits, with recorded mission, source page and original rating snapshot.
+- Persistent user-entered vessel conditions have repair progress states without invented penalties; source records survive legacy migration and private backups.
+- Final M4 Chrome workflow completes a guided ship, creates two crew and relationships, then records ship milestones and backup round trips. M4 completion requires full passing CI; device testing stays M7.

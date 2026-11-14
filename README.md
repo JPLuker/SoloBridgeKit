@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.21.1
+## Current build: 0.21.2
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -224,3 +224,7 @@ New ship-builder drafts start in **Verified class** mode and use player-confirme
 ### v0.21.1 — Crew officer sheets, assignments and relationships
 
 Crew members now support optional **private NPC character sheets** with user-entered Attributes, Disciplines and Focuses, alongside a lightweight mode using the existing ship's Systems + Departments. The app computes a task target from the selected ratings only; it never invents official NPC scores or generates narration. Crew can be marked on-board, away-team or unassigned, with player-selected duty/availability and links describing relationships with other saved officers. Old roster names, roles and notes migrate without data loss. Removing an officer leaves other officers' relationship notes intact and marks the missing person as former crew. All of this is private campaign data, not published source material.
+
+### v0.21.2 — M4 vessel development
+
+Players can record **optional, mission-linked ship and station milestones** using the privately imported 2026 book's ship-development rules (PDF page 181): shifting a point between two Systems or Departments within allowed ranges, or improving one allowed rating. The system never automatically awards a milestone, changes stats without consent, or generates story text. Players also record vessel condition/repair notes and mark them active, recovering, or resolved without applying invented penalties. Every history entry includes its original source PDF fingerprint, mission ID, page and user-authored reason. Existing ships and campaign-only/private PDF backups retain this history. [M4 developer acceptance](docs/M4-DEVELOPMENT-ACCEPTANCE.md) defines the build-only completion gate; real-device tests remain in M7.

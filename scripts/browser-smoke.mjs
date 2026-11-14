@@ -262,6 +262,31 @@ try {
   check(savedClass.ref==='synthetic-ship' && savedClass.name==='Player-owned survey ship' &&
     savedClass.registry==='OWN-001' && savedClass.engines==='6',
     'The source-verified ship class did not preserve identity or use saved source ratings.');
+  // Finish a guided vessel using *only* synthetic source class data.
+  await clickText('3. Polity');
+  await page.waitForSelector('#content input[name=polityTrait]',{timeout:15000});
+  await page.type('input[name=polityTrait]','Synthetic polity choice');
+  await clickText('Save step');
+  await waitForSave('Ship setup saved.');
+  await clickText('5. Talents');
+  await page.waitForSelector('#content textarea[name=talents]',{timeout:15000});
+  await page.type('textarea[name=talents]','Private Talent One\nPrivate Talent Two\nPrivate Talent Three\nPrivate Talent Four');
+  await clickText('Save step');
+  await waitForSave('Ship setup saved.');
+  await page.waitForFunction(()=>
+    [...document.querySelectorAll('#content button')].some(x=>x.textContent.trim()==='Apply to ship sheet'&&!x.disabled),{timeout:15000});
+  await clickText('Apply to ship sheet');
+  await waitForSave('Ship setup applied.');
+  const completeShip=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const ship=(await all('campaigns'))[0].ship;
+    return {name:ship.name,registry:ship.registry,classRef:ship.builder?.sourceRef?.recordId,
+      systems:ship.systems,departments:ship.departments,scale:ship.scale};
+  });
+  check(completeShip.name==='Player-owned survey ship' && completeShip.registry==='OWN-001' &&
+    completeShip.classRef==='synthetic-ship' && completeShip.systems.engines==='6' &&
+    completeShip.scale==='4',
+    'Complete guided ship setup did not preserve private source ratings and identity.');
   // M4: optional fully entered NPC sheets, assignments and relationships.
   await navigate('Crew');
   await heading('Crew');
@@ -354,6 +379,29 @@ try {
   // 2026 milestone actions, and injury status stays narrative-only.
   await navigate("Captain's log");
   await clickText('Complete mission');
+  // Ship milestones can only be entered after a completed mission.
+  await navigate('Starship');
+  await page.select('select[name=type]','improve-system');
+  await page.select('select[name=to]','engines');
+  await page.type('input[name=reason]','Synthetic player-earned ship improvement');
+  await clickText('Record ship milestone');
+  await waitForSave('Ship milestone recorded.');
+  await page.type('input[name=label]','Synthetic repair task');
+  await clickText('Add vessel condition');
+  await waitForSave('Vessel condition saved.');
+  await clickText('Mark vessel recovering');
+  await waitForSave('Vessel condition updated.');
+  const vesselProgress=await page.evaluate(async()=>{
+    const {all}=await import('./storage.mjs');
+    const ship=(await all('campaigns'))[0].ship;
+    return {engine:ship.systems.engines,sourcePage:ship.development?.history?.[0]?.sourcePage,
+      milestones:ship.development?.history?.length,conditions:ship.development?.conditions?.length,
+      conditionState:ship.development?.conditions?.[0]?.state,classId:ship.builder?.sourceRef?.recordId};
+  });
+  check(vesselProgress.engine==='7' && vesselProgress.sourcePage===181 &&
+    vesselProgress.milestones===1 && vesselProgress.conditions===1 &&
+    vesselProgress.conditionState==='recovering' && vesselProgress.classId==='synthetic-ship',
+    'Ship advancement or source-linked condition history failed to persist.');
   await page.evaluate(async () => {
     const { all, saveCampaign } = await import('./storage.mjs');
     const campaign=(await all('campaigns'))[0];
@@ -431,6 +479,9 @@ try {
     'Default campaign backup must exclude imported books and private compiled data.');
   check(backup.campaigns.some(c => c.title === 'Synthetic test campaign'),
     'Backup did not contain the campaign.');
+  check(backup.campaigns.some(c=>c.ship?.development?.history?.length===1 &&
+    c.ship?.development?.conditions?.length===1 && c.ship?.systems?.engines==='7'),
+    'Data-only campaign backup lost player-authored vessel history.');
   check(backup.campaigns.some(c =>
     c.character?.development?.history?.length === 3 &&
     c.character?.development?.conditions?.[0]?.state === 'recovering' &&
@@ -467,6 +518,10 @@ try {
     'Private backup lost its compiled source book.');
   check(privateBundle.documents.some(d => d.compiledRecords?.length === 5),
     'Private PDF-inclusive backup lost reviewed compiler records.');
+  check(privateBundle.campaigns.some(c=>c.ship?.development?.history?.length===1 &&
+    c.ship?.development?.conditions?.length===1 && c.ship?.systems?.engines==='7' &&
+    c.ship?.builder?.sourceRef?.recordId==='synthetic-ship'),
+    'Full private backup lost ship milestones, conditions or class source ID.');
   const privatePath = join(process.cwd(), output, 'synthetic-private-backup.json');
   const corruptPath = join(process.cwd(), output, 'synthetic-corrupt-backup.json');
   const campaignPath = join(process.cwd(), output, 'synthetic-campaign-backup.json');
@@ -519,11 +574,17 @@ try {
       rejected: book?.compiledRecords?.filter(r => r.status === 'rejected').length,
       history: character?.development?.history?.length,
       conditions: character?.development?.conditions?.length,
-      originalStage: character?.lifepath?.stages?.species?.sourceRef?.recordId };
+      originalStage: character?.lifepath?.stages?.species?.sourceRef?.recordId,
+      shipHistory: campaigns.find(c=>c.title==='Synthetic test campaign')?.ship?.development?.history?.length,
+      shipConditions: campaigns.find(c=>c.title==='Synthetic test campaign')?.ship?.development?.conditions?.length,
+      shipEngine: campaigns.find(c=>c.title==='Synthetic test campaign')?.ship?.systems?.engines,
+      shipSource: campaigns.find(c=>c.title==='Synthetic test campaign')?.ship?.builder?.sourceRef?.recordId };
   });
   check(restored.docs === libraryCount && restored.pages === 336 &&
     restored.compiled === 5 && restored.confirmed === 4 && restored.rejected === 1 &&
     restored.history === 3 && restored.conditions === 1 && restored.originalStage === 'synthetic-life' &&
+    restored.shipHistory === 1 && restored.shipConditions === 1 &&
+    restored.shipEngine === '7' && restored.shipSource === 'synthetic-ship' &&
     restored.campaigns.includes('Synthetic test campaign'),
     'Private backup failed to restore character provenance, progression, or source-bound catalog.');
   // Exact-file reattachment preserves source-derived data and refuses a different PDF.

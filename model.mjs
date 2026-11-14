@@ -8,6 +8,7 @@ import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
 import { normalizeCompiledRecords } from './compiler-data.mjs';
 import { normalizeCrewRoster } from './crew-management.mjs';
+import { normalizeShipDevelopment } from './ship-development.mjs';
 export const DATA_VERSION = 1;
 
 // These labels are transcribed from the owner's Captain's Log blank forms v1.2.
@@ -37,6 +38,7 @@ export function createShip() {
   return {
     name: '', registry: '', className: '', scale: '', traits: '', talents: '', notes: '',
     kind: 'starship', era: '', builder: null,
+    development: { history: [], conditions: [] },
     systems: emptyRatings(SHIP_SYSTEMS), departments: emptyRatings(SHIP_DEPARTMENTS)
   };
 }
@@ -57,7 +59,8 @@ export function normalizeCampaign(campaign) {
     },
     ship: {...createShip(), ...ship,
       systems: {...emptyRatings(SHIP_SYSTEMS), ...ship.systems},
-      departments: {...emptyRatings(SHIP_DEPARTMENTS), ...ship.departments}
+      departments: {...emptyRatings(SHIP_DEPARTMENTS), ...ship.departments},
+      development: normalizeShipDevelopment(ship.development)
     },
     crew: normalizeCrewRoster(campaign.crew),
     episodes: episodes.map(normalizeEpisode)
@@ -170,6 +173,7 @@ export function validateBundle(bundle) {
       throw new Error('The backup contains an invalid campaign.');
     }
     normalizeCrewRoster(c.crew);
+    normalizeShipDevelopment(c.ship?.development);
     const history = c.character?.development;
     if (history != null) {
       if (!history || typeof history !== 'object' || Array.isArray(history) ||

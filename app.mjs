@@ -20,6 +20,7 @@ import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
 import { selectVerifiedShipClass, shipSourceStatus, applyGuidedShipBuilder } from './ship-guidance.mjs';
 import { normalizeCrewMember, normalizeCrewRoster, crewSheetReview, crewTaskTarget, shipCrewTaskTarget, crewAssignments, addCrewConnection, removeCrewConnection } from './crew-management.mjs';
+import { applyShipMilestone, addShipCondition, updateShipCondition, normalizeShipDevelopment } from './ship-development.mjs';
 import { applyCharacterMilestone, replaceChallengedValue, addCharacterCondition, updateCharacterCondition, swapEndOfMissionFocus, normalizeCharacterDevelopment } from './character-development.mjs';
 import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog, revalidateCompiledRecords } from './compiler-data.mjs';
 
@@ -751,8 +752,117 @@ function renderStarship() {
       await persist(); notify('Ship saved.');
     } catch (error) { failure(error); }
   });
-  root.append(form);
+  root.append(form, renderShipDevelopment(c));
   return root;
+}
+function renderShipDevelopment(ship) {
+  const result = el('div',{class:'form-stack'});
+  const book = state.documents.find(d=>d.role==='corebook'&&d.bookPack);
+  if(!book)return result;
+  const sha=book.bookPack.sourceSha256;
+  const completed=state.campaign.episodes.filter(e=>e.status==='completed');
+  const progress=normalizeShipDevelopment(ship.development);
+  const controls=card([
+    el('h2',{text:'Vessel development'}),
+    el('p',{class:'hint',text:'After a completed mission, record a ship milestone you earned. No automatic awards or ratings changes.'}),
+    button('Open ship milestone rules · PDF page 181',()=>openPdf(book,181).catch(failure),'secondary')
+  ]);
+  const select=(name,options)=>{
+    const field=el('select',{name,'aria-label':name});
+    for(const [value,label] of options)field.append(el('option',{value,text:label}));
+    return field;
+  };
+  if(completed.length){
+    const type=select('type',[
+      ['transfer-system','Transfer System point'],['transfer-department','Transfer Department point'],
+      ['improve-system','Improve one System'],['improve-department','Improve one Department']
+    ]);
+    const origin=el('label',{class:'field'}),destination=el('label',{class:'field'});
+    const form=el('form',{class:'form-stack'},[
+      el('label',{class:'field'},[el('span',{text:'Completed mission'}),
+        select('missionId',completed.map(e=>[e.id,e.title]))]),
+      el('label',{class:'field'},[el('span',{text:'Milestone action'}),type]),
+      el('div',{class:'field-grid'},[origin,destination]),
+      field('Reason for this milestone','reason','',{required:true}),
+      field('Notes (optional)','note','',{multiline:true}),
+      el('button',{type:'submit',class:'button primary',text:'Record ship milestone'})
+    ]);
+    const draw=()=>{
+      const key=type.value, isSystem=key.endsWith('system');
+      const names=(isSystem?SHIP_SYSTEMS:SHIP_DEPARTMENTS).map(x=>[x.toLowerCase(),x]);
+      const previous=select('from',names),next=select('to',names);
+      // Omit the origin select entirely for an improvement rather than transfer.
+      origin.replaceChildren(el('span',{text:'Decrease rating'}),previous);
+      origin.hidden=!key.startsWith('transfer-');
+      destination.replaceChildren(el('span',{text:'Increase rating'}),next);
+    };
+    type.addEventListener('change',draw);draw();
+    form.addEventListener('submit',async e=>{
+      e.preventDefault();
+      try{
+        const data=new FormData(form),missionId=String(data.get('missionId'));
+        const mission=state.campaign.episodes.find(m=>m.id===missionId);
+        state.campaign.ship=applyShipMilestone(state.campaign.ship,{
+          type:String(data.get('type')),from:String(data.get('from')??''),to:String(data.get('to'))
+        },{
+          sourcePdfSha256:sha,missionId,missionComplete:mission?.status==='completed',
+          reason:String(data.get('reason')),note:String(data.get('note')??'')
+        });
+        await persist();notify('Ship milestone recorded.');
+      }catch(error){failure(error);}
+    });
+    controls.append(form);
+  } else controls.append(el('p',{class:'muted',text:'Complete a mission before recording a vessel milestone.'}));
+  if(progress.history.length){
+    controls.append(el('h3',{text:'Vessel milestone history'}));
+    for(const milestone of [...progress.history].reverse()){
+      const original=state.documents.find(doc=>doc.bookPack?.sourceSha256===milestone.sourcePdfSha256);
+      controls.append(el('div',{class:'document-item'},[
+        el('strong',{text:milestone.type+' · '+(state.campaign.episodes.find(e=>e.id===milestone.missionId)?.title??'Previous mission')}),
+        el('p',{class:'muted',text:milestone.reason}),
+        original?button('Open original source · page '+milestone.sourcePage,
+          ()=>openPdf(original,milestone.sourcePage).catch(failure),'secondary'):
+          el('p',{class:'hint',text:'Original source PDF no longer imported.'})
+      ]));
+    }
+  }
+  result.append(controls);
+  const conditions=card([el('h2',{text:'Vessel condition notes'}),
+    el('p',{class:'hint',text:'Player-authored condition and repair notes. No system penalties or repairs are applied automatically.'})]);
+  const form=el('form',{class:'form-stack'},[
+    field('Condition','label','',{required:true}),
+    field('Notes','note','',{multiline:true}),
+    el('button',{type:'submit',class:'button secondary',text:'Add vessel condition'})
+  ]);
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    try{
+      const values=new FormData(form);
+      state.campaign.ship=addShipCondition(state.campaign.ship,{
+        label:String(values.get('label')),note:String(values.get('note')??'')
+      },{sourcePdfSha256:sha});
+      await persist();notify('Vessel condition saved.');
+    }catch(error){failure(error);}
+  });
+  conditions.append(form);
+  for(const record of progress.conditions){
+    const next=record.state==='active'?'recovering':record.state==='recovering'?'resolved':'active';
+    const original=state.documents.find(doc=>doc.bookPack?.sourceSha256===record.sourcePdfSha256);
+    conditions.append(el('div',{class:'document-item'},[
+      el('strong',{text:record.label+' · '+record.state}),
+      el('p',{class:'muted',text:record.note||'No notes'}),
+      original?button('Source page '+record.sourcePage,()=>openPdf(original,record.sourcePage).catch(failure),'secondary'):
+        el('p',{class:'hint',text:'Original source no longer imported.'}),
+      button(next==='active'?'Reopen vessel condition':next==='recovering'?'Mark vessel recovering':'Mark vessel resolved',async()=>{
+        try{
+          state.campaign.ship=updateShipCondition(state.campaign.ship,record.id,next);
+          await persist();notify('Vessel condition updated.');
+        }catch(error){failure(error);}
+      },'secondary')
+    ]));
+  }
+  result.append(conditions);
+  return result;
 }
 const SHIP_STEPS = [
   ['Setting', 147], ['Class and ratings', 149], ['Polity', 147], ['Unique trait', 174], ['Talents', 175], ['Identity', 180]
@@ -2255,7 +2365,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.21.1' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.21.2' })]));
   return root;
 }
 

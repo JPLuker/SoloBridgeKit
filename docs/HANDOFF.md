@@ -323,3 +323,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - When an officer is removed, relationship descriptions on other officers are retained and displayed as 'Former crew member'.
 - CI browser checks two synthetic NPC crew, full ratings, assignment, relationship, task target and phone width.
 - Next M4: player-triggered ship/station milestones using the book's PDF p.181 caps and source history, final regression and build-only acceptance. Physical device testing is deferred to M7.
+
+## v0.21.2 — M4 ship development / closure candidate
+
+- `ship-development.mjs`: optional, player-triggered after-mission vessel milestones anchored to owner PDF page 181. Transferring a System point is bounded 6–12 and Department 1–5; a milestone may alternatively improve one rating within caps. Duplicate per-mission milestones are rejected. No inferred XP or automatic rewards.
+- `model.createShip()` now initializes `ship.development`; `normalizeCampaign()` restores legacy ships to an empty history without deleting saved builder data. `validateBundle()` checks source hashes/pages and duplicate ship history IDs before restore.
+- `app.renderShipDevelopment()` offers mission selection, milestone type/rating fields, source reference, and descriptive vessel conditions with recovery states. History page links open only a document matching the original PDF fingerprint.
+- Chrome smoke now finishes a guided ship with source-confirmed class and player-provided talents, tests full NPC sheets/relationships, records one vessel milestone/condition, and checks data-only/full-private backup restoration.
+- [M4 acceptance checklist](M4-DEVELOPMENT-ACCEPTANCE.md) is ready. Only close M4 after v0.21.2 CI passes; then continue M5 integrated solo mission play. Real device/owner acceptance remains M7.

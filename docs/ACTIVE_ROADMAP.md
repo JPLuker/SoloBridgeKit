@@ -73,7 +73,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M4. Starship, station and crew management
 
-**Development progress: 70% (v0.21.1, pending CI).** Private verified ship classes, source provenance, optional NPC crew sheets, assignment/duty/relationship management and source-grounded crew target calculations are implemented. Remaining: player-selected ship milestones, final backup/regression cases and M4 developer acceptance.
+**Development completion candidate: 100% (v0.21.2, pending CI).** Source-bound ship/station classes and identity, crew sheets/assignments/relationships, ship/crew task targets, and mission-linked vessel milestones/condition history are implemented. Final full-size synthetic Chrome workflow and data-only/private backup restore checks must pass before M4 closes. [M4 development acceptance](M4-DEVELOPMENT-ACCEPTANCE.md); physical devices remain M7.
 
 **Build**
 - Drive class and talent selection from the confirmed private source catalog, with source-validated ratings/limits.

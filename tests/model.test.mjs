@@ -145,3 +145,25 @@ test('legacy crew data normalizes with optional private NPC fields without losin
   backup.campaigns[0].crew.push({...rebuilt.crew[0]});
   assert.throws(()=>validateBundle(backup),/duplicate/);
 });
+
+test('vessel source history survives normalization and malformed/duplicate private backups are rejected',()=>{
+  const c=createCampaign('Synthetic vessel history');
+  const ship=c.ship;
+  ship.development={
+    history:[{id:'ship-milestone-1',type:'improve-system',sourcePdfSha256:'a'.repeat(64),
+      sourcePage:181,missionId:'completed-mission'}],
+    conditions:[{id:'ship-damage-1',sourcePdfSha256:'a'.repeat(64),sourcePage:181,state:'active'}]
+  };
+  const normalized=normalizeCampaign(c);
+  assert.equal(normalized.ship.development.history.length,1);
+  assert.equal(normalized.ship.development.conditions[0].state,'active');
+  const bundle={format:'solobridgekit',version:DATA_VERSION,campaigns:[c],documents:[]};
+  assert.equal(validateBundle(bundle),bundle);
+  ship.development.conditions[0].id='ship-milestone-1';
+  assert.throws(()=>validateBundle(bundle),/ship history/);
+  ship.development.conditions[0].id='ship-damage-1';
+  ship.development.history[0].sourcePdfSha256='unverified';
+  assert.throws(()=>validateBundle(bundle),/ship history/);
+  delete ship.development;
+  assert.equal(validateBundle(bundle),bundle);
+});
