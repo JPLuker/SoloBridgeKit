@@ -399,6 +399,17 @@ try {
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Character lifepath'), { timeout: 15000 });
   check(await page.$eval('#content', node => node.textContent.includes('Verified choices · 0/7')),
     'New characters should default to verified-guidance mode.');
+  check(await page.$eval('#content', node =>
+    node.textContent.includes('+1 Control') &&
+    node.querySelector('details.guided-choice-editor')?.open===false &&
+    [...node.querySelectorAll('button')].some(b=>b.textContent.trim()==='Save and exit')),
+    'Beginner character creation should preview verified bonuses and hide manual editors.');
+  await clickText('Save and exit');
+  await waitForSave('Character creation draft saved.');
+  check(await page.$eval('#content',node=>node.textContent.includes('Continue character') &&
+    node.textContent.includes('Next character step: 1. Species')),
+    'Home did not show the next unfinished lifepath decision.');
+  await clickText('Continue character');
   await clickText('Choose Synthetic lifepath choice');
   await waitForSave('Verified source choice applied.');
   const linkedStage = await page.evaluate(async () => {
