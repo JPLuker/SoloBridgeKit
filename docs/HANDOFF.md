@@ -456,3 +456,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Updated offline cache and CI artifacts to v0.26.2. Pending full CI and real novice acceptance; R1 not declared complete.
 
 - **Verification:** v0.26.2 [CI #322](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43654523330) passed source/unit checks, synthetic full Chrome playthrough (including source search by book phrase, saved draft reload, missing-bonus refusal, confirm gates), mobile accessibility, public dist audits and provenance. Owner-only real book/UX acceptance is OPEN; no public release approval.
+
+## v0.28.0 — R1–R5 playable UX integration (pending CI)
+
+- Continued v0.26.2 R1–R6 overhaul. R1 guided source-choice review is mounted in the main Library panel instead of inside the technical compiler. Compiler remains available in a folded Advanced details; source confirmation remains strict and local. Browser test asserts visibility outside Advanced.
+- R2 `guided-choice-preview.mjs` formats only player-verified numerical options; source-backed character cards show summaries, raw lifepath fields become an optional disclosure, and Home resumes the next unsourced lifepath step. Back and Save-and-exit are implemented while preserving existing drafts and state.
+- R3 ship class cards present class type/scale/verified rating counts, class-number fields become optional, and Back/Save-and-exit are present. Existing Save step remains for compatibility.
+- R4 `solo-play-guidance.mjs` gives contextual non-narrative first/ongoing/closed-scene actions; Play now links journal focus and task tools without inventing story. All story remains player authored.
+- R5 primary navigation concentrates on Home/Character/Starship/Captain's log/Library/More. Crew, Dice and Settings remain in More. Character and ship screens display readable ratings by default, manual editing under details.
+- Build updated to v0.28.0, new modules included in offline cache and source distribution audit, synthetic Chrome tests updated. **Pending CI; owner real-book, first-time-player and final visual acceptance remain open.**
