@@ -178,3 +178,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## R1 first development checkpoint — v0.26.0 (pending CI)
 
 **Progress (build scope): 50% (verified CI #283, 2026-11-14).** Added verified-option readiness, guided section source lookup with locally discovered candidate cards across bounded nearby pages, direct candidate review, and advanced compiler disclosure. Preserved previously indexed PDFs, verified records, source fingerprints, manual workflow and offline data safety. Next: intuitive source option confirmation without entering technical page/type fields; ensure confirmed choices feed the builder and complete first-session smoke tests. No owner usability acceptance has been claimed. Prior M1–M8 technical completeness remains historical; R1–R6 product rebuild is current forward roadmap.
+
+## R1 v0.26.1 — review assistance checkpoint (pending CI)
+
+**R1 coding progress: 65% provisional.** Added saved draft visibility/resume and stage-linked +/− modifiers with live point allocations while retaining source confirmation and the advanced compiler. Remaining: improve extracted candidate quality/completeness and make a whole first-session workflow pass a genuine novice test. Do not count tests or source-derived copyright data as code completion.
