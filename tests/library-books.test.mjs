@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateReferencePack, validatePreparedDocumentPack, REFERENCE_FORMAT,
   BOOK_FORMAT, BOOK_FORMAT_VERSION, hasPreparedCorebook } from '../book-data.mjs';
-import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval, normalizeSourceEdition } from '../library-books.mjs';
+import { libraryBookStatus, libraryDiagnostics, searchPreparedLibrary, summarizeDocumentRemoval, normalizeSourceEdition, selectPrimaryCorebookRoles } from '../library-books.mjs';
 
 const sha='d'.repeat(64);
 const small=()=>({format:REFERENCE_FORMAT,version:BOOK_FORMAT_VERSION,
@@ -93,4 +93,18 @@ test('edition labels are player-owned metadata and are validated',()=>{
  assert.throws(()=>normalizeSourceEdition(2026),/100 characters/);
  const editionDoc={id:'ref',name:'Book.pdf',role:'forms',bookPack:small(),sourceEdition:'Second edition'};
  assert.equal(libraryBookStatus(editionDoc).edition,'Second edition');
+});
+
+test('switching prepared corebook is non-destructive and retains other editions',()=>{
+ const docs=[{id:'a',name:'Edition A',role:'corebook',bookPack:core(),compiledRecords:[{id:'keep-me'}]},
+  {id:'b',name:'Edition B',role:'reference',bookPack:core(),sourceEdition:'Revised'},
+  {id:'c',name:'Supplement',role:'supplement',bookPack:small()}];
+ const switched=selectPrimaryCorebookRoles(docs,'b');
+ assert.equal(switched.find(x=>x.id==='a').role,'reference');
+ assert.equal(switched.find(x=>x.id==='b').role,'corebook');
+ assert.equal(switched.find(x=>x.id==='c').role,'supplement');
+ assert.equal(switched.find(x=>x.id==='a').compiledRecords[0].id,'keep-me');
+ assert.equal(docs[0].role,'corebook');
+ assert.throws(()=>selectPrimaryCorebookRoles(docs,'c'),/valid corebook/);
+ assert.throws(()=>selectPrimaryCorebookRoles(docs,'missing'),/valid corebook/);
 });
