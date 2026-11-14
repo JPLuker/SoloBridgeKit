@@ -1,4 +1,4 @@
-## v0.23.0 — M6 private multi-book search (pending CI)
+## v0.23.0 — M6 private multi-book search (verified CI #135)
 
 - Added separate local reference indexes for short supplemental PDFs, with fingerprint and pagination checks.
 - Added library preparation, cross-book search provenance and source conflict warnings.
