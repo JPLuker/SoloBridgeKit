@@ -39,15 +39,24 @@ export function searchPreparedLibrary(documents,query,limit=30){
   if(!Number.isSafeInteger(limit)||limit<1||limit>100)throw new Error('Invalid library search limit.');
   const term=String(query??'').trim();
   if(term.length<2)return [];
-  const results=[];
+  const perBook=[];
   for(const doc of documents??[]){
     const status=libraryBookStatus(doc);
     if(!status.searchable||typeof doc.id!=='string')continue;
-    for(const hit of searchBookPack(doc.bookPack,term,Math.min(100,limit-results.length))){
-      results.push({documentId:doc.id,documentName:doc.name??'Imported PDF',
-        role:status.role,sourceSha256:status.sourceSha256,page:hit.page,excerpt:hit.excerpt});
-      if(results.length>=limit)return results;
+    const hits=searchBookPack(doc.bookPack,term,limit).map(hit=>({
+      documentId:doc.id,documentName:doc.name??'Imported PDF',
+      role:status.role,sourceSha256:status.sourceSha256,page:hit.page,excerpt:hit.excerpt}));
+    if(hits.length)perBook.push(hits);
+  }
+  // Interleave results: the corebook cannot crowd every supplement off page one.
+  const results=[];
+  for(let offset=0;results.length<limit;offset++){
+    let advanced=false;
+    for(const hits of perBook){
+      if(offset<hits.length){results.push(hits[offset]);advanced=true;}
+      if(results.length>=limit)break;
     }
+    if(!advanced)break;
   }
   return results;
 }
