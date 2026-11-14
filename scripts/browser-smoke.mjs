@@ -71,7 +71,7 @@ try {
   const input = await page.$('input[aria-label="Choose PDF files"]');
   check(input, 'PDF picker missing.');
   const pdfPath = join(process.cwd(), output, 'temporary-synthetic.pdf');
-  writeFileSync(pdfPath, syntheticPdf());
+  writeFileSync(pdfPath, syntheticPdf(336));
   await input.uploadFile(pdfPath);
   await page.waitForFunction(() =>
     document.querySelector('#content')?.textContent?.includes('Prepared corebook'), { timeout: 180000 });
@@ -200,7 +200,7 @@ try {
   const privateBundle = JSON.parse(await waitForDownload(backupName, 30000));
   check(privateBundle.includesDocuments === true && privateBundle.documents.length === libraryCount,
     'Private backup omitted its explicit PDF-inclusive setting.');
-  check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 210),
+  check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
     'Private backup lost its compiled source book.');
   const privatePath = join(process.cwd(), output, 'synthetic-private-backup.json');
   const corruptPath = join(process.cwd(), output, 'synthetic-corrupt-backup.json');
@@ -232,7 +232,7 @@ try {
     const documents = await all('documents');
     const campaigns = await all('campaigns');
     return { docs: documents.length, campaigns: campaigns.length,
-      corebookPrepared: documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 210) };
+      corebookPrepared: documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336) };
   });
   check(afterCorrupt.docs === libraryCount && afterCorrupt.corebookPrepared && afterCorrupt.campaigns === backup.campaigns.length,
     'A corrupt private-backup restore changed existing local data.');
@@ -247,7 +247,7 @@ try {
     return { docs: docs.length, campaigns: campaigns.map(c => c.title),
       pages: docs.find(d => d.role === 'corebook')?.bookPack?.pages?.length };
   });
-  check(restored.docs === libraryCount && restored.pages === 210 &&
+  check(restored.docs === libraryCount && restored.pages === 336 &&
     restored.campaigns.includes('Synthetic test campaign'),
     'A valid private backup failed to restore its campaign and book index.');
   // Exact-file reattachment preserves source-derived data and refuses a different PDF.
@@ -266,19 +266,65 @@ try {
     const docs = await all('documents');
     return { count: docs.length, pages: docs.find(d => d.role === 'corebook')?.bookPack?.pages?.length };
   });
-  check(afterRelink.count === libraryCount && afterRelink.pages === 210,
+  check(afterRelink.count === libraryCount && afterRelink.pages === 336,
     'A different edition replaced the original local book or invalidated the index.');
   rmSync(differentPdfPath, { force: true });
 
 
+  // Abort after a known number of pages; no incomplete index may be committed.
+  const cancelled = await page.evaluate(async () => {
+    const { preparePdfInBrowser } = await import('./browser-compiler.mjs');
+    const { all } = await import('./storage.mjs');
+    const previous = await all('documents');
+    const source = previous.find(d => d.role === 'corebook');
+    const controller = new AbortController();
+    let reached = 0, wasCancelled = false;
+    try {
+      await preparePdfInBrowser(source.blob, {
+        signal: controller.signal,
+        onProgress: ({ page }) => { reached = page; if (page === 16) controller.abort(); }
+      });
+    } catch (error) { wasCancelled = String(error.message).includes('cancelled'); }
+    const after = await all('documents');
+    return { reached, wasCancelled, countBefore: previous.length, countAfter: after.length,
+      preserved: after.some(d => d.id === source.id && d.bookPack?.pages?.length === 336) };
+  });
+  check(cancelled.wasCancelled && cancelled.reached === 16 &&
+      cancelled.countBefore === cancelled.countAfter && cancelled.preserved,
+    'Interrupted 336-page preparation damaged a saved source or was not cancelled.');
+  const retryPageCount = await page.evaluate(async () => {
+    const { preparePdfInBrowser } = await import('./browser-compiler.mjs');
+    const { all } = await import('./storage.mjs');
+    return (await preparePdfInBrowser((await all('documents')).find(d => d.role === 'corebook').blob)).pageCount;
+  });
+  check(retryPageCount === 336, 'Retry after cancelled preparation failed.');
+
   await navigate('Home');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload({ waitUntil: 'networkidle0' });
+  // Re-register the app shell with an obsolete cache present, simulating upgrade cleanup.
+  await page.evaluate(async () => {
+    const stale = await caches.open('solobridgekit-shell-legacy-test');
+    await stale.put('./obsolete', new Response('obsolete'));
+    const registration = await navigator.serviceWorker.ready;
+    await registration.unregister();
+  });
+  await page.reload({ waitUntil: 'networkidle0' });
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.waitForFunction(async () => !(await caches.keys()).includes('solobridgekit-shell-legacy-test'),
+    { timeout: 15000 });
   await page.setOfflineMode(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic test campaign'), { timeout: 15000 });
+  const offlinePageCount = await page.evaluate(async () => {
+    const { preparePdfInBrowser } = await import('./browser-compiler.mjs');
+    const { all } = await import('./storage.mjs');
+    const source = (await all('documents')).find(d => d.role === 'corebook');
+    return (await preparePdfInBrowser(source.blob)).pageCount;
+  });
+  check(offlinePageCount === 336, 'The offline parser could not prepare a new 336-page index.');
   check(errors.length === 0, 'Browser runtime errors: ' + errors.join(' | '));
-  console.log('Browser smoke passed: import, prepared search, campaign, character, mission, task roll, Markdown downloads, data-only backup and offline reload.');
+  console.log('Browser smoke passed: 336-page source, cancelled retry, atomic import/restore, source reattachment, stale-cache upgrade, offline preparation, journals and backups.');
 } catch (error) {
   console.error('Browser smoke failed:', error);
   if (page) {

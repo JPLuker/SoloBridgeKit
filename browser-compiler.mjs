@@ -1,6 +1,6 @@
 // Local-only PDF preparation. No game-book text exists in the distributed module.
 // pdfjs-dist is copied into the offline app at build time.
-import { BOOK_FORMAT, BOOK_FORMAT_VERSION, validateBookPack, pdfSha256 } from './book-data.mjs';
+import { BOOK_FORMAT, BOOK_FORMAT_VERSION, validateBookPack } from './book-data.mjs';
 
 export async function preparePdfInBrowser(blob, { onProgress = () => {}, signal } = {}) {
   if (!blob || typeof blob.arrayBuffer !== 'function') throw new Error('Select a PDF.');
@@ -14,9 +14,15 @@ export async function preparePdfInBrowser(blob, { onProgress = () => {}, signal 
   }
   pdfjs.GlobalWorkerOptions.workerSrc = new URL('./vendor/pdf.worker.mjs', import.meta.url).href;
   const data = new Uint8Array(await blob.arrayBuffer());
+  if (signal?.aborted) throw new Error('Preparation cancelled.');
   if (new TextDecoder().decode(data.subarray(0, 5)) !== '%PDF-')
     throw new Error('The selected file is not a PDF.');
-  const fingerprint = await pdfSha256(blob);
+  // Hash the existing byte buffer before PDF.js transfers it to its worker.
+  // Avoid allocating a SECOND full PDF buffer on memory-constrained phones.
+  if (!globalThis.crypto?.subtle?.digest) throw new Error('SHA-256 is unavailable in this browser.');
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', data);
+  const fingerprint = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  if (signal?.aborted) throw new Error('Preparation cancelled.');
   let task;
   let document;
   try {

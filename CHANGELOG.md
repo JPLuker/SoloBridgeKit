@@ -1,3 +1,11 @@
+## [0.17.3] - 2026-11-13
+### M1 — Interrupted import and offline resilience
+- Chrome regression uses a generated, noncommercial 336-page PDF to reflect the 2026 edition's page count.
+- Verify cancellation after extraction begins, previous records intact, and successful retry.
+- Reinstall the offline shell while an old cache exists; verify cleanup and retained campaign data.
+- Prepare a private PDF again with network access disabled.
+- Hash existing parser input in place, avoiding another full PDF read during preparation.
+
 ## [0.17.2] - 2026-11-13
 ### M1 — Source-replacement integrity
 - Reattach existing source PDFs only if their SHA-256 fingerprint matches the saved book.

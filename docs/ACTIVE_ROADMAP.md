@@ -26,7 +26,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M1. Data safety and preparation resilience — FIRST
 
-**Progress:** v0.17.2 adds SHA-256-verified PDF reattachment and source-replacement protection. M1 remains open for interrupted extraction and offline update recovery, plus physical-device checks.
+**Progress:** v0.17.3 now covers atomic import, quota warning, full private restore/rollback, source reattachment, mid-extraction cancellation/retry and offline update simulation in Chrome. M1 is still open for actual 336-page owner-book / physical-device acceptance and release-data review.
 
 **Build**
 - Make PDF import/preparation atomic: interrupted, cancelled or failed preparation never discards an existing prepared book or user campaign.

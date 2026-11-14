@@ -188,3 +188,9 @@
 
 - Exact-byte reattachment of missing/moved PDF files retains their privately compiled data, bookmarks and campaigns.
 - Different PDFs are rejected instead of overwriting options from another edition; import different books separately.
+
+## v0.17.3 — M1 336-page interruption and offline upgrade
+
+- Added browser checks of 336-page source processing, in-flight cancellation and successful retry with no source-data loss.
+- Simulated offline shell replacement with stale-cache cleanup and tested preparation without network connectivity.
+- Reduced temporary import memory by digesting the existing PDF buffer.

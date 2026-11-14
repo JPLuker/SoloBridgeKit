@@ -157,3 +157,11 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Reattach the same source file: the ID and private index remain valid.
 - [ ] Attempt to reattach a different PDF/edition: reject it, leave the current book and campaign intact, allow separately importing the new edition.
 - [ ] Recover a missing blob from a valid existing PDF fingerprint without losing bookmarks.
+
+## v0.17.3 synthetic full-length and offline tests
+
+- [ ] In headless Chrome, generate a 336-page noncommercial PDF; prepare a corebook successfully and search it.
+- [ ] Abort at the sixteenth extracted page: no partial index or campaign mutation. Retry succeeds.
+- [ ] Re-register the service worker with a legacy cache; obsolete cache is removed without losing campaigns.
+- [ ] With network disabled, the bundled parser prepares a new private index from the saved source.
+- [ ] Final physical Android and desktop test must use the owner's private real PDF; it is not a CI fixture.

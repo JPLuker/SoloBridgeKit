@@ -168,3 +168,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `import-safety.relinkDocument()` verifies a reattached PDF's SHA-256 against the existing prepared book or original PDF blob. A mismatch throws before changing IndexedDB.
 - `app.mjs` exposes **Reattach the same PDF** for each imported document. The in-place write preserves all existing private content and the original document ID.
 - Browser smoke and unit tests cover same-source reattachment and different-source rejection. Next: cancellation during long extraction and offline updates.
+
+## v0.17.3 — M1 interruption/upgrade testing
+
+- `scripts/browser-smoke.mjs` uses 336-page synthetic source and checks mid-parse cancellation, retry, service-worker re-registration and legacy-cache cleanup, and PDF index preparation while offline.
+- `browser-compiler.mjs` hashes already-loaded bytes to reduce temporary memory use and checks the AbortSignal after reading input.
+- Pending: CI validation; physical Android and desktop browser tests with the actual privately owned 336-page edition remain owner-only acceptance gates.

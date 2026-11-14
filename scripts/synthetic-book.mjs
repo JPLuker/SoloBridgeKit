@@ -1,7 +1,7 @@
 // Deterministic, entirely synthetic PDF test fixture generated at runtime.
 // Never commit copyrighted source PDFs or extracts.
 export function syntheticPdf(pages = 210) {
-  if (!Number.isInteger(pages) || pages < 1 || pages > 300)
+  if (!Number.isInteger(pages) || pages < 1 || pages > 400)
     throw new Error('Invalid synthetic PDF page count.');
   const fontId = 3 + pages * 2;
   const objects = Array(fontId + 1).fill('');
