@@ -193,6 +193,9 @@ try {
     'R1 source preparation readiness was missing after importing an unreviewed PDF.');
   const prepareAction=await page.$('#content button');
   check(!!prepareAction,'Guided source actions were not rendered.');
+  const quickReview=await page.$eval('#content',node=>[...node.querySelectorAll('button')]
+    .filter(item=>item.textContent.trim()==='Find possible choices').length);
+  check(quickReview>=7,'New-player source lookup requires manual page-number preparation.');
   await page.$eval('details.source-preparation-tools',element=>element.open=true);
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
   // usable after the player edits the fields and explicitly confirms the PDF.
