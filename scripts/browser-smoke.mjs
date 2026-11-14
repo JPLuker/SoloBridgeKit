@@ -222,6 +222,19 @@ try {
     node.textContent.includes('Review lifepath') &&
     node.textContent.includes('I verified these values against my own PDF')),
     'Choosing a suggested source option did not open the guarded private review form.');
+  check(await page.$eval('#content',node=>
+    node.textContent.includes('attributes: 0 of 3 points assigned') &&
+    [...node.querySelectorAll('button')].some(b=>b.textContent.trim()==='+ control')),
+    'The beginner review is missing stage-budget guidance and point steppers.');
+  await page.evaluate(()=>{
+    const button=[...document.querySelectorAll('#content button')]
+      .find(b=>b.textContent.trim()==='+ control');
+    button?.click();
+  });
+  check(await page.$eval('#content',node=>
+    node.textContent.includes('attributes: 1 of 3 points assigned') &&
+    node.querySelector('input[name=attr_control]')?.value==='1'),
+    'Plus button did not update the numeric field and live review totals.');
   await page.$eval('details.source-preparation-tools',element=>element.open=true);
   // M2: a scanned page must produce an UNVERIFIED suggestion. It only becomes
   // usable after the player edits the fields and explicitly confirms the PDF.
