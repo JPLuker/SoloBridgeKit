@@ -73,7 +73,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M4. Starship, station and crew management
 
-**Development completion candidate: 100% (v0.21.2, pending CI).** Source-bound ship/station classes and identity, crew sheets/assignments/relationships, ship/crew task targets, and mission-linked vessel milestones/condition history are implemented. Final full-size synthetic Chrome workflow and data-only/private backup restore checks must pass before M4 closes. [M4 development acceptance](M4-DEVELOPMENT-ACCEPTANCE.md); physical devices remain M7.
+**Development completion: 100% — VERIFIED (v0.21.2).** All **139/139 unit tests**, the guided-ship/crew/milestone Chrome workflow, static package and distribution audit passed in [GitHub Actions run 43644543711](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43644543711). Confirmed ship classes, legacy crew, optional NPC sheets, assignments, relationships, milestone/condition records and private backup restoration complete the planned M4 development scope. Physical device acceptance stays M7. **Next: M5.**
 
 **Build**
 - Drive class and talent selection from the confirmed private source catalog, with source-validated ratings/limits.

@@ -331,3 +331,9 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `app.renderShipDevelopment()` offers mission selection, milestone type/rating fields, source reference, and descriptive vessel conditions with recovery states. History page links open only a document matching the original PDF fingerprint.
 - Chrome smoke now finishes a guided ship with source-confirmed class and player-provided talents, tests full NPC sheets/relationships, records one vessel milestone/condition, and checks data-only/full-private backup restoration.
 - [M4 acceptance checklist](M4-DEVELOPMENT-ACCEPTANCE.md) is ready. Only close M4 after v0.21.2 CI passes; then continue M5 integrated solo mission play. Real device/owner acceptance remains M7.
+
+## M4 FINAL VERIFIED HANDOFF — v0.21.2
+
+- M4 development is **100%** per the owner's build-only milestones. The [v0.21.2 CI run](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43644543711) passed **139/139 unit tests**, full headless Chrome synthetic book and guided vessel/NPC/milestone/backup smoke, static build, and distribution audit.
+- [M4 acceptance checklist](M4-DEVELOPMENT-ACCEPTANCE.md) is closed for coding scope. User-owned vessel and crew choices remain in private campaign data; the public app contains no source book or official class/NPC catalogs.
+- No planned M4 backlog remains. Only regression/security/data-loss defects should reopen it. Begin M5 integrated scene/mission play. Device acceptance remains M7.

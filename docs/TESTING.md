@@ -315,11 +315,13 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 
 ## v0.21.2 M4 final build gate
 
-- [ ] Full guided ship builds from synthetic source-confirmed class, preserves custom name, registry, traits, and talents, and shows source record ID/page.
-- [ ] One earned vessel milestone after a completed mission can adjust allowed Systems/Departments; a second milestone on the same mission is refused.
-- [ ] Vessel condition and repair status remain descriptive, persisted, and leave ratings unchanged.
-- [ ] Legacy ship records normalize into empty development history without deleting prior crew/player content.
-- [ ] Corrupted source SHA/page or duplicate ship milestone/condition IDs are rejected before backup restore.
-- [ ] Default campaign and opt-in full-private backup round trips preserve player vessel history and matching class source IDs.
-- [ ] Complete Chrome smoke uses only synthetic PDF/class/crew text, checks phone layouts, and passes copyright/distribution audit.
-- [ ] Physical-device validation remains M7 and does not count against M4 developer completion.
+- [x] Full guided ship builds from synthetic source-confirmed class, preserves custom name, registry, traits, and talents, and shows source record ID/page.
+- [x] One earned vessel milestone after a completed mission can adjust allowed Systems/Departments; a second milestone on the same mission is refused.
+- [x] Vessel condition and repair status remain descriptive, persisted, and leave ratings unchanged.
+- [x] Legacy ship records normalize into empty development history without deleting prior crew/player content.
+- [x] Corrupted source SHA/page or duplicate ship milestone/condition IDs are rejected before backup restore.
+- [x] Default campaign and opt-in full-private backup round trips preserve player vessel history and matching class source IDs.
+- [x] Complete Chrome smoke uses only synthetic PDF/class/crew text, checks phone layouts, and passes copyright/distribution audit.
+- [x] Physical-device validation remains M7 and does not count against M4 developer completion.
+
+**Verified:** CI run 43644543711 passed 139/139 unit tests, full Chrome smoke, static build, public-content audit. Real-device acceptance stays M7.

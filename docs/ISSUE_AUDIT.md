@@ -28,3 +28,8 @@ No user playtest issues recorded for this new repository as of 2026-11-11. Open 
 
 - M3 developer-side work is complete at v0.20.2; 124 unit tests, browser smoke, and audits passed in [run 43600347014](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43600347014).
 - Source-bound guided creation and progression are complete. Real-device acceptance remains in Issue #1 under M7; M4 is next.
+
+## 2026-11-14 M4 developer closure
+
+- M4 is complete for development at v0.21.2, passing 139 unit tests, Chrome browser smoke and package audits in [run 43644543711](https://github.com/JPLuker/SoloBridgeKit/actions/runs/43644543711).
+- Physical-device acceptance remains in M7 Issue #1, not a blocker for M5 coding.
