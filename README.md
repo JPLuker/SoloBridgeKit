@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.26.2 (R1 book-search fallback verified in CI #322; UNTESTED preview)
+## Current build: 0.28.0 (guided-first adventure build checkpoint, pending CI; UNTESTED preview)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -260,3 +260,7 @@ Open **Home** and select **I have the PDF — add my rulebook**. The Library def
 Once your private rulebook is indexed, **Library → Prepare choices for your adventure** shows which sections have verified options and which still need review. Choose **Find possible choices**, compare a suggested heading against the PDF page, and open **Review this choice**. Use the +/− controls and live point totals to copy only the bonuses the book actually specifies; confirm only after checking the source. If you leave before finishing, **Save draft** makes the unfinished choice available as **Continue reviewing** in the same section. The advanced compiler remains available for troubleshooting.
 
 If a step's suggested pages don't match your PDF edition, open **Can’t find the right choices? Search my book** in that step. Search for a term from the rulebook, select a matching page, and review suggested options. This reads only your local book; it does not infer or approve game-rule bonuses automatically.
+
+### New guided first-adventure layout
+
+Home highlights the next character decision; verified character and ship options show effects in plain language. Full attribute and class rating editors are optional disclosures, and the regular character/ship screens prioritize readable play sheets. The Captain's log explains what to do with a first scene and offers direct player-written journal and dice actions. Crew, Dice and Settings are found in More. **Nothing generates campaign prose, art, options or official book statistics automatically.**
