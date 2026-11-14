@@ -432,6 +432,10 @@ try {
   await waitForSave('Ship setup saved.');
   await clickText('2. Class and ratings');
   await page.waitForFunction(()=>[...document.querySelectorAll('#content button')].some(b=>b.textContent.trim()==='Choose Synthetic ship class'),{timeout:15000});
+  check(await page.$eval('#content',node=>node.querySelector('details.guided-choice-editor')?.open===false &&
+    node.textContent.includes('Scale 4') &&
+    [...node.querySelectorAll('button')].some(b=>b.textContent.trim()==='Save and exit')),
+    'R3 ship builder should show verified class details before manual ratings.');
   await clickText('Choose Synthetic ship class');
   await waitForSave('Source-verified class loaded.');
   const savedClass = await page.evaluate(async () => {
