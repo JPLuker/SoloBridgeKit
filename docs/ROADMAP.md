@@ -345,3 +345,5 @@
 - Pinned exact npm dependency tree in source with committed lockfile and `npm ci`.
 - Added SHA-256 public distribution provenance and direct third-party dependency license/integrity audit; CI artifacts remain UNTESTED.
 - No software code license, logo/visual identity or public 1.0 decision is assumed. User M7 device checklist remains open.
+
+- M8 added an independent integrity verifier and synthetic regression tests that reject package modification, extra assets and unsafe paths.
