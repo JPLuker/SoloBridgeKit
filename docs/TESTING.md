@@ -241,3 +241,12 @@ Run `npm run check && npm test`. Results: 59/59 unit tests passed, JavaScript sy
 - [ ] Talent, lifepath, ship and table editors use the corresponding strict validator before confirmation.
 - [ ] Confirmed records show page references and can be removed without modifying the imported PDF.
 - [ ] Chrome synthetic fixture confirms one private talent and source fingerprint without containing copyrighted text.
+
+## v0.19.2 M2 catalog reuse and revalidation
+
+- [ ] Confirmed compiler lifepath option appears in its associated lifepath stage, source-linked class appears in ship selection, and compiled table can roll in a mission.
+- [ ] Draft, rejected or invalidated records never appear as available gameplay options.
+- [ ] Private talent references are visible with source page, but have no invented mechanical effects.
+- [ ] Revalidate after a source/parser change; old player data remains intact and inaccessible to gameplay until reconfirmed against the current source.
+- [ ] Old schema records can be marked needs-review without losing their edited payload.
+- [ ] Synthetic Chrome test confirms four source-bound records and exercises compiled table roll in a mission.

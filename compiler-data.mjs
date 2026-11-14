@@ -146,12 +146,14 @@ export function reviewCompiledRecord(record, { label = record.label, payload = r
 }
 export function compiledCatalog(records, sourceSha256, pageCount, kind) {
   if (!ALLOWED.has(kind)) throw new Error('Unsupported compiled record kind.');
-  return normalizeCompiledRecords(records, sourceSha256, pageCount)
-    .filter(record => record.status === 'confirmed' && record.kind === kind)
+  // Stale records remain visible for review but cannot be used as game rules.
+  return normalizeCompiledRecords(records, sourceSha256, pageCount, { allowStale: true })
+    .filter(record => record.status === 'confirmed' && record.kind === kind &&
+      record.sourceSha256 === sourceSha256 && record.page <= pageCount)
     .map(record => confirmedPayload(record, record.payload));
 }
 export function upsertCompiledRecord(records, record, sourceSha256, pageCount) {
-  const existing = normalizeCompiledRecords(records, sourceSha256, pageCount);
+  const existing = normalizeCompiledRecords(records, sourceSha256, pageCount, { allowStale: true });
   const validated = normalizeOne(record, sourceSha256, pageCount);
   const at = existing.findIndex(item => item.id === validated.id);
   if (at >= 0) existing[at] = validated;
@@ -159,11 +161,33 @@ export function upsertCompiledRecord(records, record, sourceSha256, pageCount) {
   return normalizeCompiledRecords(existing, sourceSha256, pageCount);
 }
 export function removeCompiledRecord(records, id, sourceSha256, pageCount) {
-  const existing = normalizeCompiledRecords(records, sourceSha256, pageCount);
+  const existing = normalizeCompiledRecords(records, sourceSha256, pageCount, { allowStale: true });
   return existing.filter(item => item.id !== id);
 }
 export function revalidateCompiledRecords(records, newSourceSha256, newPageCount) {
-  // Preserve edited data when switching/recompiling sources; mark mismatches as
-  // needing review, NEVER silently treat old records as new source-verified rules.
-  return normalizeCompiledRecords(records, newSourceSha256, newPageCount, { allowStale: true });
+  // Preserve player corrections across parser/schema updates; revalidation
+  // never discards content or silently promotes stale source records.
+  if (!HASH.test(newSourceSha256 ?? '') || !Number.isSafeInteger(newPageCount) ||
+      newPageCount < 1 || !Array.isArray(records) || records.length > MAX_RECORDS)
+    throw new Error('Cannot revalidate invalid private compiler data.');
+  const seen = new Set();
+  return records.map(raw => {
+    object(raw, 'Compiler record');
+    if (typeof raw.id !== 'string' || !raw.id || seen.has(raw.id))
+      throw new Error('Duplicate or invalid compiler ID during revalidation.');
+    seen.add(raw.id);
+    if (raw.schemaVersion > COMPILER_SCHEMA)
+      throw new Error('A newer compiler schema is required; original private data was preserved.');
+    const updated = { ...raw, schemaVersion: COMPILER_SCHEMA };
+    if (raw.schemaVersion !== COMPILER_SCHEMA) {
+      return { ...updated, status: 'needs-review', reviewedAt: null };
+    }
+    try {
+      return normalizeOne(updated, newSourceSha256, newPageCount, { allowStale: true });
+    } catch (error) {
+      // Strict validators can become stricter after app updates; preserve the
+      // original payload while preventing outdated rules from being consumed.
+      return { ...updated, status: 'needs-review', reviewedAt: null };
+    }
+  });
 }

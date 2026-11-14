@@ -64,3 +64,34 @@ test('upsert, rejection, duplicate detection, and removal retain source truth',(
   assert.deepEqual(removeCompiledRecord(up,'sample',sha,210),[]);
   assert.throws(()=>normalizeCompiledRecords([d,d],sha,210),/Duplicate/);
 });
+
+test('revalidation preserves invalidated user data and never silently accepts stale rules',()=>{
+  const original=reviewCompiledRecord(make(),{payload:{description:'Player verified',prerequisites:''}},sha,210);
+  const malformed={ ...original, payload:{}, status:'confirmed' };
+  const checked=revalidateCompiledRecords([malformed],'a'.repeat(64),210);
+  assert.equal(checked.length,1);
+  assert.equal(checked[0].status,'needs-review');
+  assert.equal(checked[0].label,'Synthetic Choice');
+  assert.equal(compiledCatalog(checked,sha,210,'talent').length,0);
+  const stale=revalidateCompiledRecords([original],'b'.repeat(64),210);
+  assert.equal(stale[0].status,'needs-review');
+  assert.equal(compiledCatalog(stale,'b'.repeat(64),210,'talent').length,0);
+  assert.equal(removeCompiledRecord(stale,'sample','b'.repeat(64),210).length,0);
+});
+test('older private compiler schema can be preserved without automatically confirming it',()=>{
+  const raw={...make(),schemaVersion:0,payload:{ description:'Player data' }};
+  const migrated=revalidateCompiledRecords([raw],sha,210);
+  assert.equal(migrated[0].schemaVersion,COMPILER_SCHEMA);
+  assert.equal(migrated[0].status,'needs-review');
+  assert.equal(migrated[0].payload.description,'Player data');
+  assert.throws(()=>revalidateCompiledRecords([{...raw,schemaVersion:500}],sha,210),/newer compiler schema/);
+});
+test('ambiguous two-column table text remains unconfirmed until user fixes its ranges',()=>{
+  const p=pack();
+  p.pages[4].text+='1 - Name A     2 - Name B\n';
+  const found=scanBookPage(p,5,'random-table');
+  assert.ok(found.every(x=>x.status==='draft'));
+  const incomplete=draftCandidate({id:'ranges',kind:'random-table',label:'Two columns',page:5,sourceSha256:sha,pageCount:210,
+    payload:{rows:'1 | A\n3 | B'}});
+  assert.throws(()=>reviewCompiledRecord(incomplete,{},sha,210),/no gaps or overlaps/);
+});

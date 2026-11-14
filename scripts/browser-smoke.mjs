@@ -147,6 +147,43 @@ try {
     confirmedCompiler.source === confirmedCompiler.packSource,
     'The private compiler failed to save a validated source-bound record.');
 
+  // The same confirmed local catalog must feed the lifepath, class and mission
+  // consumers. Every fixture below is fictional and generated only in CI.
+  const compiledConsumers = await page.evaluate(async () => {
+    const { all, mutateCompiledRecords } = await import('./storage.mjs');
+    const { draftCandidate, reviewCompiledRecord, compiledCatalog } =
+      await import('./compiler-data.mjs');
+    const doc = (await all('documents')).find(d => d.role === 'corebook');
+    const sha = doc.bookPack.sourceSha256, count = doc.bookPack.pageCount;
+    const entries = [
+      { id:'synthetic-life',kind:'lifepath',label:'Synthetic lifepath choice',
+        payload:{stepId:'species',record:{attributes:{control:1},disciplines:{command:1},
+          value:'',focuses:'',notes:'Synthetic confirmation'}} },
+      { id:'synthetic-ship',kind:'ship-class',label:'Synthetic ship class',
+        payload:{kind:'starship',era:'Synthetic testing era',scale:4,
+          systems:Object.fromEntries(['comms','computers','engines','sensors','structure','weapons'].map(key=>[key,6])),
+          departments:Object.fromEntries(['command','conn','security','engineering','science','medicine'].map(key=>[key,1]))} },
+      { id:'synthetic-table',kind:'random-table',label:'Synthetic source table',
+        payload:{rows:'1 | Synthetic private result Alpha\n2 | Synthetic private result Beta\n3 | Synthetic private result Gamma'}} 
+    ];
+    for (const data of entries) {
+      const draft = draftCandidate({id:data.id,kind:data.kind,label:data.label,page:1,sourceSha256:sha,pageCount:count});
+      const record = reviewCompiledRecord(draft,{payload:data.payload},sha,count);
+      await mutateCompiledRecords(doc.id,{type:'upsert',record});
+    }
+    const current=(await all('documents')).find(d=>d.id===doc.id);
+    return { count: current.compiledRecords.length,
+      lifepath:compiledCatalog(current.compiledRecords,sha,count,'lifepath').length,
+      ship:compiledCatalog(current.compiledRecords,sha,count,'ship-class').length,
+      table:compiledCatalog(current.compiledRecords,sha,count,'random-table').length };
+  });
+  check(compiledConsumers.count === 4 && compiledConsumers.lifepath === 1 &&
+    compiledConsumers.ship === 1 && compiledConsumers.table === 1,
+    'Confirmed compiled records were not reusable by existing game systems.');
+  await page.reload({waitUntil:'networkidle0'});
+  await navigate('Library');
+  await heading('Library');
+
   await page.type('input[name=query]', 'starship');
   await clickText('Search');
   await page.waitForFunction(() =>
@@ -173,6 +210,11 @@ try {
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Scene actions'), { timeout: 10000 });
   await clickText('Roll task');
   await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('2d20:'), { timeout: 20000 });
+  const compiledTableVisible = await page.$eval('select[aria-label="Private random table"]', select =>
+    [...select.options].some(option => option.textContent.includes('Synthetic source table')));
+  check(compiledTableVisible, 'A confirmed compiled table was not offered in active mission play.');
+  await clickText('Roll table');
+  await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Synthetic private result'), { timeout: 10000 });
   await page.screenshot({ path: join(output, 'phone-mission.png'), fullPage: true });
   const phoneGeometry = await page.evaluate(() => ({
     viewport: window.innerWidth, document: document.documentElement.scrollWidth
@@ -238,6 +280,10 @@ try {
     'Private backup omitted its explicit PDF-inclusive setting.');
   check(privateBundle.documents.some(d => d.role === 'corebook' && d.bookPack?.pages?.length === 336),
     'Private backup lost its compiled source book.');
+  check(privateBundle.documents.some(d => d.compiledRecords?.length === 4),
+    'Private backup lost the user's confirmed and source-bound private records.');
+  check(privateBundle.documents.some(d => d.compiledRecords?.length === 4),
+    'Private PDF-inclusive backup lost reviewed compiler records.');
   const privatePath = join(process.cwd(), output, 'synthetic-private-backup.json');
   const corruptPath = join(process.cwd(), output, 'synthetic-corrupt-backup.json');
   const campaignPath = join(process.cwd(), output, 'synthetic-campaign-backup.json');

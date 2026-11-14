@@ -12,12 +12,12 @@ import { normalizeDocumentRole, requiresCorebook, shouldReplaceDocumentsInRestor
 import { hasPreparedCorebook, verifyPreparedBook, searchBookPack } from './book-data.mjs';
 import { preparePdfInBrowser } from './browser-compiler.mjs';
 import { suggestRowsFromPage, formatCandidateRows, makePrivateTable, normalizePrivateTables, addPrivateTable, removePrivateTable, rollPrivateTable } from './private-tables.mjs';
-import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption } from './private-options.mjs';
+import { makePrivateOption, normalizePrivateOptions, addPrivateOption, removePrivateOption, optionsForStep, applyPrivateOption, categoryForStep } from './private-options.mjs';
 import { makePrivateShip, normalizePrivateShips, addPrivateShip, removePrivateShip, applyPrivateShip } from './private-ships.mjs';
 import { commitTaskToMission } from './mission-actions.mjs';
 import { renderCampaignJournal, renderEpisodeJournal, journalFilename } from './campaign-export.mjs';
 import { createRecoveryDraft, recoverDraftAsNewCampaign } from './recovery.mjs';
-import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord } from './compiler-data.mjs';
+import { COMPILER_KINDS, draftCandidate, scanBookPage, normalizeCompiledRecords, reviewCompiledRecord, compiledCatalog } from './compiler-data.mjs';
 
 const PAGES = [
   ['home', 'Home'], ['character', 'Character'], ['starship', 'Starship'], ['crew', 'Crew'],
@@ -170,6 +170,19 @@ function render() {
   const views = { home: renderHome, character: renderCharacter, lifepath: renderLifepath, starship: renderStarship,
     crew: renderCrew, shipbuilder: renderShipBuilder, log: renderLog, library: renderLibrary, dice: renderDice, settings: renderSettings, more: renderMore };
   content.replaceChildren(views[state.page]());
+}
+
+function combinedPrivateCatalog(book, kind, step = null) {
+  if (!book?.bookPack) return [];
+  const sha = book.bookPack.sourceSha256;
+  const pageCount = book.bookPack.pageCount;
+  const legacy = kind === 'lifepath' ? optionsForStep(book.options, step, sha)
+    : kind === 'ship-class' ? normalizePrivateShips(book.ships, sha)
+    : kind === 'random-table' ? normalizePrivateTables(book.tables, sha) : [];
+  const compiled = compiledCatalog(book.compiledRecords, sha, pageCount, kind)
+    .filter(record => kind !== 'lifepath' || record.stage === categoryForStep(step));
+  const ids = new Set(legacy.map(record => record.id));
+  return [...legacy, ...compiled.filter(record => !ids.has(record.id))];
 }
 
 function renderHome() {
@@ -329,7 +342,7 @@ function renderLifepath() {
   root.append(nav);
   const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
   if (corebook && current.id !== 'finishing') {
-    const presets = optionsForStep(corebook.options, current.id, corebook.bookPack.sourceSha256);
+    const presets = combinedPrivateCatalog(corebook, 'lifepath', current.id);
     if (presets.length) {
       const list = el('select', { 'aria-label': 'Saved private lifepath choice' });
       for (const option of presets)
@@ -526,7 +539,7 @@ function renderShipBuilder() {
   root.append(nav);
   const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
   if (idx === 1 && corebook) {
-    const savedClasses = normalizePrivateShips(corebook.ships, corebook.bookPack.sourceSha256);
+    const savedClasses = combinedPrivateCatalog(corebook, 'ship-class');
     if (savedClasses.length) {
       const choose = el('select', { 'aria-label': 'Saved private starship or station class' });
       savedClasses.forEach(x => choose.append(el('option', { value: x.id, text: `${x.className} (${x.kind})` })));
@@ -855,7 +868,7 @@ function renderMissionActions(mission) {
   });
   cardNode.append(taskForm);
   const book = state.documents.find(d => d.role === 'corebook' && d.bookPack);
-  const tables = book ? normalizePrivateTables(book.tables, book.bookPack.sourceSha256) : [];
+  const tables = book ? combinedPrivateCatalog(book, 'random-table') : [];
   if (tables.length) {
     const choose = el('select', { 'aria-label': 'Private random table' });
     for (const table of tables) choose.append(el('option', { value: table.id, text: table.title }));
@@ -1219,7 +1232,13 @@ function renderPrivateCompiler(book) {
   const counts = el('p', { class: 'muted', text:
     records.filter(r => r.status === 'confirmed').length + ' confirmed · ' +
     records.filter(r => r.status !== 'confirmed').length + ' awaiting review' });
-  panel.append(counts);
+  panel.append(counts, button('Revalidate saved records', async () => {
+    try {
+      await mutateCompiledRecords(book.id, { type: 'revalidate' }, await currentDataGeneration());
+      await refresh();
+      notify('Private records revalidated. Changed or invalid entries require review.');
+    } catch (error) { failure(error); }
+  }, 'secondary'));
   const controls = el('form', { class: 'form-stack' }, [
     el('div', { class: 'field-grid' }, [
       field('PDF page', 'page', '1', { number: true, required: true }),
@@ -1397,6 +1416,17 @@ function renderPrivateCompiler(book) {
     ]));
   }
   if (records.length) panel.append(el('h3', { text: 'Saved compiler records' }), list);
+  const confirmedTalents = compiledCatalog(book.compiledRecords, sha, count, 'talent');
+  if (confirmedTalents.length) {
+    panel.append(el('h3', { text: 'Verified private talent references' }));
+    for (const talent of confirmedTalents)
+      panel.append(el('div', { class: 'document-item' }, [
+        el('strong', { text: talent.name }),
+        el('p', { class: 'muted', text: talent.description }),
+        talent.prerequisites ? el('p', { class: 'hint', text: talent.prerequisites }) : el('span'),
+        button('Open PDF page ' + talent.page, () => openPdf(book, talent.page).catch(failure), 'secondary')
+      ]));
+  }
   panel.append(review);
   return panel;
 }
@@ -1802,7 +1832,7 @@ function renderSettings() {
     el('p', { class: 'muted', text: 'Import a downloaded recovery draft as a new campaign without overwriting other saves.' }),
     recoveryInput
   ]));
-  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.19.1' })]));
+  root.append(card([el('h2', { text: 'About' }), el('p', { class: 'muted', text: 'SoloBridgeKit 0.19.2' })]));
   return root;
 }
 

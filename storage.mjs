@@ -5,7 +5,7 @@ import { validateBookPack, verifyPreparedBook } from './book-data.mjs';
 import { normalizePrivateTables } from './private-tables.mjs';
 import { normalizePrivateOptions } from './private-options.mjs';
 import { normalizePrivateShips } from './private-ships.mjs';
-import { normalizeCompiledRecords, upsertCompiledRecord, removeCompiledRecord } from './compiler-data.mjs';
+import { normalizeCompiledRecords, upsertCompiledRecord, removeCompiledRecord, revalidateCompiledRecords } from './compiler-data.mjs';
 
 const DB_NAME = 'solobridgekit';
 const STORE_NAMES = ['campaigns', 'documents', 'settings'];
@@ -218,7 +218,7 @@ export async function patchDocumentIfCurrent(id, changes, expectedGeneration) {
 // Compiler writes use the latest local document record in the same transaction.
 // Confirmed entries cannot overwrite unrelated private tables/options/bookmarks.
 export async function mutateCompiledRecords(documentId, operation, expectedGeneration = undefined) {
-  if (!documentId || !operation || !['upsert','remove'].includes(operation.type))
+  if (!documentId || !operation || !['upsert','remove','revalidate'].includes(operation.type))
     throw new Error('Invalid private compiler operation.');
   const generation = expectedGeneration ?? await currentDataGeneration();
   const db = await database();
@@ -249,7 +249,9 @@ export async function mutateCompiledRecords(documentId, operation, expectedGener
           const sha = doc.bookPack.sourceSha256, count = doc.bookPack.pageCount;
           const records = operation.type === 'upsert'
             ? upsertCompiledRecord(doc.compiledRecords, operation.record, sha, count)
-            : removeCompiledRecord(doc.compiledRecords, operation.id, sha, count);
+            : operation.type === 'remove'
+              ? removeCompiledRecord(doc.compiledRecords, operation.id, sha, count)
+              : revalidateCompiledRecords(doc.compiledRecords ?? [], sha, count);
           store.put({ ...doc, compiledRecords: records });
           result = records;
         } catch (error) {

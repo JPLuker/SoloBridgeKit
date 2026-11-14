@@ -247,3 +247,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - `storage.mutateCompiledRecords()` writes the reviewed record in one transaction and leaves unrelated book/private data intact.
 - Chrome smoke now tries scan → talent description → check box → confirmed record and validates SHA pairing. CI status must be checked before marking this batch complete.
 - Next: consume confirmed catalog in the existing lifepath/ship/table workflows, source revalidation/rebuild, and full browser backup/reimport verification. M2 remains open.
+
+## v0.19.2 — M2 connected consumers, source reconciliation
+
+- `app.combinedPrivateCatalog()` merges existing manually saved private options/ships/tables with confirmed compiler output, deduplicated by record ID. Unreviewed or invalidated records are invisible to gameplay.
+- `compiler-data.compiledCatalog()` ignores source-mismatched records; `revalidateCompiledRecords()` marks older or malformed records needs-review and preserves their values.
+- `storage.mutateCompiledRecords(..., {type:'revalidate'})` runs inside an atomic IndexedDB document transaction. Library includes Revalidate saved records button.
+- The mission/table/campaign export path continues referencing result IDs/page numbers, not publisher table prose.
+- Chrome synthetic test generates confirmed private talent, lifepath, ship and table records, rolls a compiled mission table and verifies opt-in private backup inclusion.
+- Remaining M2: full source-recompile safety and regression audit (including stale records, migration and data-only export), then build-only acceptance. Physical devices are deferred to M7.

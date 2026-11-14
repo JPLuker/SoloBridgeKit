@@ -1,3 +1,11 @@
+## [0.19.2] - 2026-11-13
+### M2 — Integrated compiler catalogs and revalidation (85% development)
+- Use confirmed source-validated records in existing lifepath selection, ship-class selection and mission random-table rolling.
+- Show confirmed private talents as source-linked references without applying unverified bonuses.
+- Revalidate saved records without deleting player edits; stale or invalid records become needs-review and cannot be consumed.
+- Permit removing old-source records; preserve corrections during compiler/schema migrations.
+- Test two-column table ambiguity, bad ranges, schema migration, typed catalog output, and private backup restoration in synthetic browser tests.
+
 ## [0.19.1] - 2026-11-13
 ### M2 — In-app compiler review (60% building)
 - Introduce Library review interface for source-page candidate scanning and manually entered private drafts.

@@ -242,3 +242,9 @@
 
 - Added a local PDF-page candidate browser, typed record review fields, explicit human confirmation, source-page opening and saved record list.
 - Confirmed data remains source-bound, while unreviewed candidates never act as verified game rules.
+
+## v0.19.2 — M2 verified catalog consumers
+
+- Confirmed local compiler results now power lifepath options, ship classes and mission random tables; talents remain source-linked references only.
+- Catalog revalidation preserves edited data and marks invalidated records needs-review; no silent source migration.
+- Chrome regression confirms local compiled catalog use and inclusion in opt-in private backups.

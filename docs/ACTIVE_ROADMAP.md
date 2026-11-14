@@ -42,7 +42,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 
 ### M2. Private game-data compiler
 
-**Development progress: 60% (v0.19.1).** Versioned schemas, candidate scan, review UI, explicit user confirmation, local persistence and backup compatibility are implemented. Next: confirmed data consumed by all existing gameplay selectors, source revalidation and full synthetic workflow tests.
+**Development progress: 85% (v0.19.2).** The compiler has a local review UI, typed validation, persistent versioned records, source reconciliation and confirmed catalog consumers across lifepath/ships/missions. Remaining: final source-change/rollback cases, browser backup round trip, acceptance and documentation.
 
 **Build**
 - Add private, versioned structured schemas for lifepath choices, talents, class records and random tables with `sourcePdfSha256`, source page, data type, extraction/confirmation state and schema version.

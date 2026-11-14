@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.19.1
+## Current build: 0.19.2
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -196,3 +196,7 @@ M1 is **100% finished for coding**; real-device acceptance was moved to M7 at th
 ### v0.19.1 guided local compiler review
 
 The Library now offers a **Private rules compiler** panel. Choose a page and record type (lifepath, talent, ship class or random table), scan that page for unverified candidates, or create a manual draft. Each candidate opens an editor with source-page navigation and structured fields. Only a user checking the explicit **verified against my PDF** box can confirm a valid record; drafts remain inactive. Records can be revisited or removed without affecting the original PDF or previously created characters. A real-browser regression demonstrates scan → edit → confirm → save using a synthetic, noncommercial PDF.
+
+### v0.19.2 reusable compiled catalogs and revalidation
+
+Confirmed private lifepath choices, ship classes and random tables are now available in the application's existing character, ship and mission selection controls. Talent records are available as source-linked, verified references only; no gameplay bonuses are invented or applied. Unreviewed, rejected and stale records are excluded. **Revalidate saved records** checks the local catalog after source/compiler changes without deleting user-edited payloads; records that no longer validate are preserved for review rather than silently trusted or lost. A synthetic Chrome workflow now confirms that a compiled table can be rolled during a mission and that the private PDF-inclusive backup retains the confirmed records.
