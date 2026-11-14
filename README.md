@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.24.0 (M7 automation verified; device acceptance pending)
+## Current build: 0.25.0 (M8 release-safety development; UNTESTED preview)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -23,7 +23,7 @@ The app is an **in-progress foundation**, not the complete publisher game. Core 
 A secure browser origin is needed for service workers; `localhost` qualifies.
 
 ```sh
-npm install --ignore-scripts --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
 npm start
 ```
 
@@ -33,6 +33,7 @@ Open `http://localhost:4173`. Node.js 22+ is needed to build/run the self-contai
 npm run check
 npm test
 npm run browser:a11y
+npm run audit:release
 ```
 
 **Storage:** IndexedDB under the browser profile for the exact origin. It is separate on each device/browser. Imported PDFs stay in that browser. Export a backup before clearing site data. JSON backup files are unencrypted and may include copyrighted PDFs; do not post them publicly.
@@ -245,3 +246,7 @@ Non-corebook PDFs may now be individually prepared for **local reference search*
 ### Multiple privately imported books (M6)
 
 Use **Prepare for search** on a supplement, form or reference PDF to build a short source-specific index locally. **Search my PDFs** identifies the originating document and PDF page; results are alternated across matching books so long corebooks do not bury supplements. Player-entered edition labels help distinguish revisions. A reference-only index cannot unlock game mechanics. **Rebuild corebook index** or **Rebuild search index** preserves the previous saved index if the operation fails. Importing or activating a different verified corebook makes it the only active corebook; other editions remain locally indexed as references. Removing an imported PDF warns about affected campaign sources, retains campaigns, but removes that document's own private compiled records. Back up personal PDF-containing data before intentionally removing a book.
+
+## Release provenance
+
+For each development build, `npm run audit:release` validates exact dependency versions/licensing and writes a complete SHA-256 file manifest under `test-output/`. CI attaches this as an **UNTESTED** provenance artifact alongside its source-free PWA preview. See [release readiness gates](docs/RELEASE-READINESS.md). Real-device validation, the public code license and official release approval are still pending; CI success does not make this an approved public 1.0 release.
