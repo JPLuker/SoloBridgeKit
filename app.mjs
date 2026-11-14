@@ -2100,7 +2100,7 @@ function renderSourcePreparation(book) {
         row.append(el('div',{class:'document-item'},[
           el('strong',{text:draft.label}),
           el('p',{class:'hint',text:'Saved for review · PDF page '+draft.page}),
-          button('Continue reviewing '+draft.label,()=>{
+          button('Continue reviewing',()=>{
             if(typeof compiler.openGuidedCandidate!=='function'){
               notify('The private review form needs repair.',true);return;
             }
