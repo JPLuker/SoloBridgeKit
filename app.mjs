@@ -26,6 +26,7 @@ import { sourceReadiness } from './source-readiness.mjs';
 import { verifiedChoicePreview, verifiedShipPreview, nextIncompleteCreationStep, nextIncompleteShipStep } from './guided-choice-preview.mjs';
 import { soloPlayPrompt } from './solo-play-guidance.mjs';
 import { localChoiceContext } from './source-choice-context.mjs';
+import { suggestExplicitBonuses } from './source-bonus-suggest.mjs';
 import { discoverStageCandidates } from './source-candidates.mjs';
 import { reviewBonusTotals, savedStageDrafts, checkSourceBonusBudget } from './source-review-assist.mjs';
 import { chooseVerifiedLifepathOption, auditGuidedLifepath, stageSourceStatus, applyGuidedLifepathToCharacter } from './character-guidance.mjs';
@@ -2425,6 +2426,30 @@ function renderPrivateCompiler(book) {
       form.addEventListener('input',updateTotals);
       updateTotals();
       form.append(totals);
+      form.append(button('Suggest printed bonuses (unverified)',()=>{
+        try{
+          const suggestion=suggestExplicitBonuses(pack,record);
+          if(!suggestion.found){
+            notify('No explicit bonus tokens found near this option. Check your PDF and use the +/− controls.',true);
+            return;
+          }
+          const keys=[...Object.keys(suggestion.attributes).map(key=>['attr_'+key,suggestion.attributes[key]]),
+            ...Object.keys(suggestion.disciplines).map(key=>['discipline_'+key,suggestion.disciplines[key]])];
+          const hasExisting=keys.some(([key])=>Number(form.querySelector('[name='+key+']')?.value||0)>0);
+          if(hasExisting&&!confirm('Replace existing values for the detected fields with UNVERIFIED PDF suggestions?'))return;
+          for(const [key,value] of keys){
+            const input=form.querySelector('[name='+key+']');
+            if(!input)continue;
+            input.value=String(value);
+            input.dispatchEvent(new Event('input',{bubbles:true}));
+          }
+          const checkbox=form.querySelector('input[aria-label="I verified the values against my own PDF"]');
+          if(checkbox)checkbox.checked=false;
+          notify('Unverified suggestions filled. Check every number against your own book before confirming.'+
+            (suggestion.ambiguous.length?' Conflicting values were skipped.':''));
+        }catch(error){failure(error);}
+      },'secondary'));
+      form.append(el('p',{class:'hint',text:'This searches only the nearby text in your private PDF for explicit +1-style bonuses. It can match a neighboring option or miss complex layouts; it never verifies a rule.'}));
       form.append(field('Value', 'value', data.record?.value ?? ''),
         field('Focuses', 'focuses', data.record?.focuses ?? '', { multiline: true }),
         field('Notes', 'notes', data.record?.notes ?? '', { multiline: true }));
