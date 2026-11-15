@@ -383,3 +383,7 @@
 ## v0.29.0 — Guided first-session continuity (pending CI)
 
 - Added local source text context (bounded, matching private PDF only), direct Library deep-links/return buttons for missing options, more reliable character/ship draft resume, and optional expanded mission record/scene planning. All licensed content remains on the user's device. Real first-time-player acceptance remains separate from synthetic CI.
+
+## v0.30.0 — Beginner-facing naming and protected drafts (pending CI)
+
+- Character/ship sheets include player-authored values, focuses, traits and talents; creation labels use plain language; explicit unsaved-change warnings protect builders and mission text. Source choice deep links and ship talent-based resume were refined. Real-book and owner acceptance remain outside synthetic CI.
