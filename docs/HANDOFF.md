@@ -473,3 +473,12 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Improved guided resume: validation-aware lifepath step selection; ship selection respects the published starship talent count and station optional talents, avoiding a false completion on one talent. Home resumes ship drafts.
 - Folded multi-act mission log fields and scene count adjustment under accessible optional details, keeping initial play writing and task rolls visible. Existing browser smoke opens the optional record editor for legacy scenarios.
 - Updated v0.29.0 cache/lockfile/CI labeling. **R1–R5 code under active development; do not declare full module completion without real rulebook and novice acceptance.**
+
+## v0.30.0 — data-preserving novice UX (pending CI)
+
+- Player-facing character/ship sheets display complete gameplay information (Values, Focuses, Traits, Talents, Equipment), with multiline content wrapped and raw editor forms under advanced disclosures. Character/ship wizard titles and entry labels no longer require the term “lifepath”.
+- `nextIncompleteCreationStep` now respects full stage validation in guided/manual modes. `nextIncompleteShipStep` respects starship talent count vs station maximum. Incomplete source preparation deep links back to its precise stage and preserves scroll/return navigation.
+- Main `go()` protects dirty character/ship wizard forms, player-authored mission log entry, and extended mission record against silent navigation; verified saves clear the dirty state. Browser test covers dismissing a navigation warning and using Save and exit.
+- Scene-count setup and extended mission logs remain available but optional. Full dice tools offer direct return to the active mission.
+- Wrote `docs/NOVICE-ACCEPTANCE.md` with an end-to-end real-owner test and explicit criteria, distinct from synthetic CI. Built artifacts remain UNTESTED, user data local, publisher options/text not included.
+- v0.30.0 CI pending; fix until green before advancing development.
