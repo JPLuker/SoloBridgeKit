@@ -379,3 +379,7 @@
 ## v0.28.0 — First adventure slice across R1–R5 (pending CI)
 
 - Source candidate confirmation is now player-facing; character and ship choice previews, local resume, collapsed editors, mobile-safe sheets, and next-scene prompt join the existing verified mechanics. Simplified navigation exposes advanced utilities under More. No source text/art or AI-written stories shipped. R1–R5 are still incomplete until real newcomer end-to-end acceptance.
+
+## v0.29.0 — Guided first-session continuity (pending CI)
+
+- Added local source text context (bounded, matching private PDF only), direct Library deep-links/return buttons for missing options, more reliable character/ship draft resume, and optional expanded mission record/scene planning. All licensed content remains on the user's device. Real first-time-player acceptance remains separate from synthetic CI.
