@@ -1,3 +1,11 @@
+## v0.29.0 — Guided return, source context and first-play continuity (pending CI)
+
+- User-owned PDF choice review can display a bounded, fingerprint-matched passage from the imported page in a folded disclosure; content remains in browser memory and does not ship in public packages.
+- Missing character/ship options lead directly to the corresponding local Library choice section, with an explicit way back to the builder.
+- Ship drafts resume from Home at the next required decision. Character resumption now respects stage validation and doesn't skip unfinished personal fields.
+- Optional multi-act mission records and scene-count planning are folded away during first-session play. Existing advanced controls are retained.
+- Updated browser and source-safety tests; synthetic content only. Owner's purchased-book usability approval remains open.
+
 ## v0.28.0 — First adventure flow (R1–R5 build checkpoint; pending CI)
 
 - R1: Move the selected source-choice review outside the advanced compiler so new players can confirm options directly from the guided source list; technical controls remain folded away.
