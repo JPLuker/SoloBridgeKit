@@ -433,6 +433,14 @@ try {
   check(linkedStage?.sourceRef?.recordId === 'synthetic-life' &&
     linkedStage?.attributes?.control === 1 && linkedStage?.attributes?.daring === 1,
     'Guided selection did not persist the original source record and its exact verified bonuses.');
+  await clickText('2. Environment');
+  await clickText('Prepare choices in Library');
+  check(await page.$eval('#content',node=>!!node.querySelector('.source-preparation-current') &&
+    node.textContent.includes('Return to character creation')),
+    'Missing lifepath choice did not open the relevant private source section with a return path.');
+  await clickText('Return to character creation');
+  check(await page.$eval('#content',node=>node.textContent.includes('Where did you grow up?')),
+    'Returning from source preparation lost the active guided character step.');
   // M4: retain a ship's name and registry while applying a private confirmed class.
   await navigate('Starship');
   await clickText('Guided ship setup');
