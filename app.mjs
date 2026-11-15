@@ -1493,7 +1493,11 @@ function renderLog() {
   root.append(renderMissionActions(selected));
   root.append(renderMissionThreads(selected));
   root.append(renderTaskHistory(selected));
-  root.append(missionForm);
+  root.append(el('details',{class:'mission-advanced-editor'},[
+    el('summary',{text:'Edit extended mission records (optional)'}),
+    el('p',{class:'hint',text:'These additional act logs, career events and value markers are optional. Your scene journal above is enough to start playing.'}),
+    missionForm
+  ]));
   return root;
 }
 
