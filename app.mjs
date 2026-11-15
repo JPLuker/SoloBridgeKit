@@ -149,9 +149,8 @@ async function persist() {
   }
 }
 function go(page) {
-  if(page!==state.page && ['lifepath','shipbuilder'].includes(state.page) &&
-     content.querySelector('form[data-creation-dirty="true"]') &&
-     !confirm('You have unsaved changes in this step. Leave without saving them? Use Save and exit to keep your draft.'))return;
+  if(page!==state.page && content.querySelector('form[data-creation-dirty="true"]') &&
+     !confirm('You have unsaved changes on this screen. Leave without saving them?'))return;
   state.navigationVersion++;
   state.page = page;
   render();
@@ -1461,13 +1460,15 @@ function renderLog() {
     field('Values used or challenged', 'valuesChallenged', act.valuesChallenged, { multiline: true })
   ]));
   missionForm.append(el('button', { class: 'button primary', type: 'submit', text: 'Save mission record' }));
+  missionForm.addEventListener('input',()=>{missionForm.dataset.creationDirty='true';});
+  missionForm.addEventListener('change',()=>{missionForm.dataset.creationDirty='true';});
   missionForm.addEventListener('submit', async event => {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(missionForm));
     Object.assign(selected, flatValues(values, ['summary', 'development', 'careerEvents']));
     selected.valueMarks = { minus: !!values.mark_minus, plus: !!values.mark_plus, challenged: !!values.mark_challenged };
     selected.actLogs = flatValues(values, ['actOne', 'actTwo', 'actThree', 'closing', 'valuesChallenged']);
-    try { await persist(); notify('Mission record saved.'); } catch (error) { failure(error); }
+    try { await persist(); missionForm.dataset.creationDirty='false'; notify('Mission record saved.'); } catch (error) { failure(error); }
   });
   const entries = el('div', { class: 'timeline' }, selected.entries.map(entry => {
     const item = el('article', { class: 'entry' });
@@ -1482,11 +1483,12 @@ function renderLog() {
   const form = el('form', { class: 'form-stack' });
   const textarea = el('textarea', { rows: '5', placeholder: 'Record what happened…', required: '', 'aria-label': 'New log entry' });
   form.append(textarea, el('button', { class: 'button primary', type: 'submit', text: 'Add log entry' }));
+  form.addEventListener('input',()=>{form.dataset.creationDirty='true';});
   form.addEventListener('submit', async event => {
     event.preventDefault();
     try {
       selected.entries.push({ ...createEntry(textarea.value), sceneId: resolveActiveSceneId(selected) });
-      await persist(); notify('Log entry saved.');
+      await persist(); form.dataset.creationDirty='false'; notify('Log entry saved.');
     }
     catch (error) { failure(error); }
   });
