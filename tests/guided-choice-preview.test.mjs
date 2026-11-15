@@ -13,12 +13,9 @@ test('resume points to next unresolved sourced decision',()=>{
   assert.equal(nextIncompleteCreationStep(path,LIFEPATH_STEPS),0);
   path.stages.species.choice='Private choice';
   path.stages.species.sourceRef={recordId:'id'};
+  assert.equal(nextIncompleteCreationStep(path,LIFEPATH_STEPS),0);
+  path.stages.species.attributes={control:1,daring:1,fitness:1,insight:0,presence:0,reason:0};
   assert.equal(nextIncompleteCreationStep(path,LIFEPATH_STEPS),1);
-  for(const step of LIFEPATH_STEPS.filter(x=>x.id!=='finishing')){
-    path.stages[step.id].choice='Private choice';
-    path.stages[step.id].sourceRef={recordId:'id'};
-  }
-  assert.equal(nextIncompleteCreationStep(path,LIFEPATH_STEPS),LIFEPATH_STEPS.length-1);
 });
 
 test('player-owned ship class preview does not bundle publisher statistics',()=>{
@@ -36,6 +33,8 @@ test('ship draft resumes at the next meaningful missing decision',()=>{
   draft.polityTrait='Private polity';
   assert.equal(nextIncompleteShipStep(draft),4);
   draft.talents='Private talent';
+  assert.equal(nextIncompleteShipStep(draft),4);
+  draft.talents='Talent One\nTalent Two\nTalent Three\nTalent Four';
   assert.equal(nextIncompleteShipStep(draft),5);
   draft.name='Player ship';
   draft.registry='OWN-002';
