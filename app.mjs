@@ -367,7 +367,11 @@ function renderCharacter() {
     el('h3',{text:'Attributes'}),
     el('div',{class:'field-grid ratings'},CHARACTER_ATTRIBUTES.map(name=>line(name,c.attributes?.[name.toLowerCase()]))),
     el('h3',{text:'Disciplines'}),
-    el('div',{class:'field-grid ratings'},CHARACTER_DISCIPLINES.map(name=>line(name,c.disciplines?.[name.toLowerCase()])))
+    el('div',{class:'field-grid ratings'},CHARACTER_DISCIPLINES.map(name=>line(name,c.disciplines?.[name.toLowerCase()]))),
+    el('h3',{text:'What matters to your character'}),
+    line('Values',c.values),line('Focuses',c.focuses),
+    line('Traits',c.traits),line('Equipment',c.equipment),
+    ...(c.notes?.trim()?[el('p',{class:'hint',text:c.notes})]:[])
   ]));
   root.append(el('details',{class:'sheet-advanced-editor'},[
     el('summary',{text:'Edit character details (advanced)'}),form
@@ -860,7 +864,10 @@ function renderStarship() {
     el('h3',{text:'Systems'}),
     el('div',{class:'field-grid ratings'},SHIP_SYSTEMS.map(name=>line(name,c.systems?.[name.toLowerCase()]))),
     el('h3',{text:'Departments'}),
-    el('div',{class:'field-grid ratings'},SHIP_DEPARTMENTS.map(name=>line(name,c.departments?.[name.toLowerCase()])))
+    el('div',{class:'field-grid ratings'},SHIP_DEPARTMENTS.map(name=>line(name,c.departments?.[name.toLowerCase()]))),
+    el('h3',{text:'Distinctive features'}),
+    line('Traits',c.traits),line('Talents',c.talents),
+    ...(c.notes?.trim()?[el('p',{class:'hint',text:c.notes})]:[])
   ]));
   root.append(el('details',{class:'sheet-advanced-editor'},[
     el('summary',{text:'Edit ship details (advanced)'}),form
