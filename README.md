@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.29.0 (guided-first adventure continuity, pending CI; UNTESTED preview)
+## Current build: 0.30.0 (guided-first adventure safety and readable sheets, pending CI; UNTESTED preview)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -266,3 +266,7 @@ If a step's suggested pages don't match your PDF edition, open **Can’t find th
 Home highlights the next character decision; verified character and ship options show effects in plain language. Full attribute and class rating editors are optional disclosures, and the regular character/ship screens prioritize readable play sheets. The Captain's log explains what to do with a first scene and offers direct player-written journal and dice actions. Crew, Dice and Settings are found in More. **Nothing generates campaign prose, art, options or official book statistics automatically.**
 
 When you need a missing character or ship choice, **Prepare choices in Library** now opens that exact section and offers a direct return to the builder. The private review can show nearby source text from your imported book without copying it into the software distribution. Home resumes incomplete character and vessel drafts; extended act logs and custom scene counts are optional controls.
+
+### First-time player release criteria
+
+The current development build is not a public 1.0 release. Real-book walkthrough criteria are at [`docs/NOVICE-ACCEPTANCE.md`](docs/NOVICE-ACCEPTANCE.md). All imported publisher documents and source-derived choices stay on the user's own device. The app must not be called beginner-accepted before someone with no tabletop RPG experience completes an uncoached first adventure and resumes it.
