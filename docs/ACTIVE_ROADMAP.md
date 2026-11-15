@@ -198,3 +198,7 @@ Current scope-only provisional progress: **R1 80%, R2 45%, R3 35%, R4 40%, R5 60
 ## v0.30.0 novice flow and save safety (pending CI)
 
 **Provisional coding progress:** R1 85%, R2 65%, R3 55%, R4 60%, R5 75%, R6 0% real-human acceptance. Improved sheet completeness, creation labels, source/ship resume and dirty-form navigation protection. `docs/NOVICE-ACCEPTANCE.md` is the objective real-book signoff gate. Do not finalize a module merely because code passes tests; all outstanding product requirements and owner acceptance are tracked in issues #3/#4.
+
+## R1 v0.31.0 coding checkpoint (pending CI)
+
+**Provisional R1 ~90% coding scope.** Added optional explicit-token modifier assistance while preserving source-owned content and manual confirmation. Still cannot claim every option is detected or validated against the full 2026 book. R1 release acceptance remains open until real source layout and new-player workflow are exercised; no publisher text/option lists are distributed.
