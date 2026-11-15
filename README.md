@@ -4,7 +4,7 @@ Offline-first solo tabletop roleplaying companion. The long-term goal is a D&D B
 
 This repository contains the **application**, not the commercial rulebooks. Bring your own legally obtained PDFs. SoloBridgeKit is an independent, unofficial fan utility and is not affiliated with the publisher or rights holders.
 
-## Current build: 0.30.0 (guided-first adventure safety and readable sheets, pending CI; UNTESTED preview)
+## Current build: 0.31.0 (optional local PDF bonus suggestions, pending CI; UNTESTED preview)
 
 - Multiple local campaigns with a resume action.
 - Character and starship sheets based on the Captain's Log v1.2 forms, plus editable crew roster records. Numeric ratings are entered by the owner, not invented.
@@ -270,3 +270,5 @@ When you need a missing character or ship choice, **Prepare choices in Library**
 ### First-time player release criteria
 
 The current development build is not a public 1.0 release. Real-book walkthrough criteria are at [`docs/NOVICE-ACCEPTANCE.md`](docs/NOVICE-ACCEPTANCE.md). All imported publisher documents and source-derived choices stay on the user's own device. The app must not be called beginner-accepted before someone with no tabletop RPG experience completes an uncoached first adventure and resumes it.
+
+In Library's private choice review, **Suggest printed bonuses (unverified)** optionally recognizes explicit numerical modifiers from a small nearby excerpt in your imported PDF. This is not AI, does not guess values, may miss or confuse printed layouts, and **never confirms a choice for you**. Verify every suggested number against your own book before confirmation.
