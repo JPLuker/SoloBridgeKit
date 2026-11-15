@@ -1,3 +1,12 @@
+## v0.30.0 — Readable sheets, beginner labels and unsaved-work protection (pending CI)
+
+- Character and ship sheets now show player-authored Values, Focuses, Traits, Talents and Equipment alongside the numerical ratings.
+- Replace novice-facing “lifepath” and “guided ship setup” headings with clear character/ship creation wording; source verification terminology remains accessible where needed.
+- Character/ship wizard navigation guards against leaving with unsaved edits. Mission journal and advanced mission records also warn before discarding unsaved changes.
+- Returning from book preparation preserves the exact source section. Ship draft resumption respects class validity and exact talent requirements.
+- Contextual dice has a direct return to the active mission; scene counts and extended act bookkeeping remain optional.
+- Added zero-RPG-experience acceptance criteria in `docs/NOVICE-ACCEPTANCE.md`; owner usability/real-book verification remains open.
+
 ## v0.29.0 — Guided return, source context and first-play continuity (pending CI)
 
 - User-owned PDF choice review can display a bounded, fingerprint-matched passage from the imported page in a folded disclosure; content remains in browser memory and does not ship in public packages.
