@@ -465,3 +465,11 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - R4 `solo-play-guidance.mjs` gives contextual non-narrative first/ongoing/closed-scene actions; Play now links journal focus and task tools without inventing story. All story remains player authored.
 - R5 primary navigation concentrates on Home/Character/Starship/Captain's log/Library/More. Crew, Dice and Settings remain in More. Character and ship screens display readable ratings by default, manual editing under details.
 - Build updated to v0.28.0, new modules included in offline cache and source distribution audit, synthetic Chrome tests updated. **Pending CI; owner real-book, first-time-player and final visual acceptance remain open.**
+
+## R1–R5 v0.29.0 continuation (pending CI)
+
+- Added `source-choice-context.mjs` with SHA-256 source-match and bounded local PDF excerpts in review. Content is displayed only inside the owner's browser and never baked into the repository, binary, logs or default backups. Browser and source unit tests use invented synthetic copy.
+- Missing lifepath and ship options now set `sourcePreparationStep` / `libraryReturnTo` so Library opens the relevant source section and shows a Return to builder action; navigation preserves the target scroll position. No saved campaign/source data migration.
+- Improved guided resume: validation-aware lifepath step selection; ship selection respects the published starship talent count and station optional talents, avoiding a false completion on one talent. Home resumes ship drafts.
+- Folded multi-act mission log fields and scene count adjustment under accessible optional details, keeping initial play writing and task rolls visible. Existing browser smoke opens the optional record editor for legacy scenarios.
+- Updated v0.29.0 cache/lockfile/CI labeling. **R1–R5 code under active development; do not declare full module completion without real rulebook and novice acceptance.**
