@@ -194,3 +194,7 @@ Current scope-only provisional progress: **R1 80%, R2 45%, R3 35%, R4 40%, R5 60
 ## v0.29.0 progress checkpoint (pending CI)
 
 **Provisional build scope:** R1 ~85%, R2 ~60%, R3 ~50%, R4 ~55%, R5 ~70%, R6 0% genuine human acceptance. More of the journey is available from a single next action: local book passages in review, section-aware Library returns, draft-resume validation, and optional advanced scene/mission bookkeeping. These figures count implemented code only; actual rulebook correctness, device testing, beginner navigation success and owner acceptance remain OPEN. Do not mistake green synthetic tests for a production-ready 1.0.
+
+## v0.30.0 novice flow and save safety (pending CI)
+
+**Provisional coding progress:** R1 85%, R2 65%, R3 55%, R4 60%, R5 75%, R6 0% real-human acceptance. Improved sheet completeness, creation labels, source/ship resume and dirty-form navigation protection. `docs/NOVICE-ACCEPTANCE.md` is the objective real-book signoff gate. Do not finalize a module merely because code passes tests; all outstanding product requirements and owner acceptance are tracked in issues #3/#4.
