@@ -2723,6 +2723,10 @@ function renderDice() {
   const campaign = state.campaign;
   const episode = campaign?.episodes.find(e => e.id === state.activeEpisodeId) ||
     campaign?.episodes.find(e => e.status === 'active');
+  if(episode)root.append(card([
+    el('p',{class:'hint',text:'Rolling for a mission? Your task result will remain associated with the current scene.'}),
+    button('Return to current mission',()=>go('log'),'secondary')
+  ]));
   if (campaign) {
     const char = campaign.character;
     const taskCard = card([
