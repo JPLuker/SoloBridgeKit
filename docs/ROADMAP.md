@@ -387,3 +387,7 @@
 ## v0.30.0 — Beginner-facing naming and protected drafts (pending CI)
 
 - Character/ship sheets include player-authored values, focuses, traits and talents; creation labels use plain language; explicit unsaved-change warnings protect builders and mission text. Source choice deep links and ship talent-based resume were refined. Real-book and owner acceptance remain outside synthetic CI.
+
+## v0.31.0 — Explicit PDF bonus assistance (pending CI)
+
+- Opt-in local extraction recognizes only literal printed stat modifiers near a source choice, marks them unverified and requires manual cross-check. Conflicting values are not filled. This reduces blank-form work without inventing rule mechanics or shipping publisher content.
