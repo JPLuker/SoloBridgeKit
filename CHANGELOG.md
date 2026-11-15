@@ -1,3 +1,9 @@
+## v0.31.0 — Optional local PDF modifier suggestions (pending CI)
+
+- In private lifepath choice review, an opt-in action scans only a bounded excerpt from the player's own imported PDF for explicit `Control +1` / `+1 Control`-style tokens.
+- Suggestions fill only detected fields and require user confirmation before overwriting existing entries; conflicting values are skipped. Verification checkbox is reset and nothing is confirmed without checking the actual PDF.
+- Unit and synthetic Chrome tests ensure suggestions remain unverified and cannot become source-backed game rules automatically; no publisher material is distributed.
+
 ## v0.30.0 — Readable sheets, beginner labels and unsaved-work protection (pending CI)
 
 - Character and ship sheets now show player-authored Values, Focuses, Traits, Talents and Equipment alongside the numerical ratings.
