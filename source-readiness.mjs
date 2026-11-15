@@ -7,10 +7,16 @@ import {optionsForStep} from './private-options.mjs';
 import {normalizePrivateShips} from './private-ships.mjs';
 import {validateBookPack} from './book-data.mjs';
 
+// General navigation offsets are metadata, not publisher option data.
+// The book's introduction to a stage can precede its actual selection list.
+const SELECTION_START_PAGES=Object.freeze({
+  species:100,environment:110,outlook:114,education:122,
+  career:129,event1:130,event2:130
+});
 export const SOURCE_PREPARATION_STEPS=Object.freeze([
   ...LIFEPATH_STEPS.filter(step=>step.id!=='finishing').map(step=>Object.freeze({
     id:step.id,title:step.title.replace(/^\d+\. /,''),
-    kind:'lifepath',page:step.page,
+    kind:'lifepath',page:SELECTION_START_PAGES[step.id]??step.page,
     explanation:step.id==='species'
       ? 'Choose the species you want to play. You can read choices from your private book before confirming their bonuses.'
       : 'Review a choice from this part of your rulebook before using it in the character builder.'
