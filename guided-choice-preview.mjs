@@ -1,3 +1,5 @@
+import {validateLifepathStep} from './lifepath.mjs';
+import {shipTalents,shipTalentLimit} from './shipbuilder.mjs';
 // R2: format verified, locally sourced option bonuses for accessible previews.
 // This module deliberately includes no publisher option names or stat blocks.
 const attributeOrder=['control','daring','fitness','insight','presence','reason'];
@@ -25,8 +27,11 @@ export function nextIncompleteCreationStep(path,steps){
   for(let i=0;i<steps.length;i++){
     const step=steps[i];
     if(step.id==='finishing')continue;
-    if(!String(stages[step.id]?.choice??'').trim() ||
-       !stages[step.id]?.sourceRef)return i;
+    const stage=stages[step.id];
+    if(!stage?.choice?.trim() || (path.mode==='guided'&&!stage.sourceRef))
+      return i;
+    try{if(validateLifepathStep(step.id,stage).length)return i;}
+    catch{return i;}
   }
   return Math.max(0,steps.length-1);
 }
@@ -52,8 +57,11 @@ export function nextIncompleteShipStep(ship){
      (ship.kind!=='station'&&!String(ship.className??'').trim())||
      (ship.mode==='guided'&&!ship.sourceRef))return 1;
   if(!String(ship.polityTrait??'').trim())return 2;
-  // Additional traits are optional. Talents are deliberately not inferred.
-  if(!String(ship.talents??'').trim())return 4;
+  // Additional traits are optional. Never invent a talent; check count only.
+  const talents=shipTalents(ship.talents);
+  const limit=shipTalentLimit(ship.kind,Number(ship.scale));
+  if(ship.kind==='starship'&&talents.length!==limit)return 4;
+  if(ship.kind==='station'&&talents.length>limit)return 4;
   if(!String(ship.name??'').trim()||
      (ship.kind!=='station'&&!String(ship.registry??'').trim()))return 5;
   return 5;
