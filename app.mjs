@@ -153,7 +153,9 @@ function go(page) {
   state.page = page;
   render();
   content.focus({ preventScroll: true });
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  const target=content.querySelector('.source-preparation-current');
+  if(target)target.scrollIntoView({block:'start',behavior:'instant'});
+  else window.scrollTo({ top: 0, behavior: 'instant' });
 }
 function navigation() {
   const makeButton = ([id, label]) => {
