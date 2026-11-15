@@ -1,3 +1,10 @@
+## v0.32.0 — Real-book-informed private option discovery (pending CI)
+
+- Inspected the owner's complete 336-page 2026 rulebook **locally only**, revealing that generic first-line extraction surfaced prose and started before the actual choice lists.
+- Replaced early-stop page scanning in guided creation with bounded, category-ranked heading discovery. Character species/environment/education/event choices and ship classes use different heading layouts; unverified suggestions remain drafts until source values are checked.
+- Updated creation-section starting-page hints and scan windows to match the book's section transitions. A full-book local search fallback remains available for other PDF editions.
+- Added synthetic tests for prose rejection, numbered event headings and title-case ship classes. **No actual book text, licensed option names, source index or PDF entered the repository or preview build.**
+
 ## v0.31.0 — Optional local PDF modifier suggestions (pending CI)
 
 - In private lifepath choice review, an opt-in action scans only a bounded excerpt from the player's own imported PDF for explicit `Control +1` / `+1 Control`-style tokens.
