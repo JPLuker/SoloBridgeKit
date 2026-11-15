@@ -499,6 +499,10 @@ try {
     [...document.querySelectorAll('#content button')].some(x=>x.textContent.trim()==='Apply to ship sheet'&&!x.disabled),{timeout:15000});
   await clickText('Apply to ship sheet');
   await waitForSave('Ship setup applied.');
+  check(await page.$eval('#content',node=>node.textContent.includes('Distinctive features') &&
+    node.textContent.includes('Private Talent Four') &&
+    node.querySelector('details.sheet-advanced-editor')?.open===false),
+    'R5 ship play sheet omitted talents or exposed numeric edit fields by default.');
   const completeShip=await page.evaluate(async()=>{
     const {all}=await import('./storage.mjs');
     const ship=(await all('campaigns'))[0].ship;
@@ -556,6 +560,9 @@ try {
   await page.type('input[name=discipline_command]', '3');
   await clickText('Save character');
   await waitForSave('Character saved.');
+  check(await page.$eval('#content',node=>node.textContent.includes('What matters to your character') &&
+    node.querySelector('details.sheet-advanced-editor')?.open===false),
+    'R5 character sheet did not return to readable mode after saving.');
   await navigate("Captain's log");
   await heading("Captain's log");
   await page.type('input[placeholder="New mission title"]', 'Synthetic test mission');
