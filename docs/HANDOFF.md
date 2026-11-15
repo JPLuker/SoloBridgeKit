@@ -482,3 +482,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Scene-count setup and extended mission logs remain available but optional. Full dice tools offer direct return to the active mission.
 - Wrote `docs/NOVICE-ACCEPTANCE.md` with an end-to-end real-owner test and explicit criteria, distinct from synthetic CI. Built artifacts remain UNTESTED, user data local, publisher options/text not included.
 - v0.30.0 CI pending; fix until green before advancing development.
+
+## R1 v0.31.0 optional explicit-modifier suggestions (pending CI)
+
+- Added `source-bonus-suggest.mjs`: opt-in, bounded nearby-text regex matching for *explicit* `+1`–`+5` modifiers beside names of the 12 already supported attributes/disciplines. Only player-imported, SHA-matching source pages are examined. Conflicting matches are dropped; absent values stay blank. No invented bonuses or automatic verification.
+- Private source review button **Suggest printed bonuses (unverified)** offers preview fill and prompts before overwriting existing nonzero fields, then resets verification checkbox. Human comparison to purchased PDF and existing bonus caps remain authoritative.
+- Added `tests/source-bonus-suggest.test.mjs`, enriched entirely fictional `synthetic-book.mjs` test page, and synthetic Chrome check for unverified suggestions. Public dist and service worker include only the detector code, never extracted source data.
+- v0.31.0 CI pending. Real full 2026 publisher book compatibility and owner novice acceptance remain outside synthetic coverage.
