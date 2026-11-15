@@ -9,7 +9,7 @@ const PAGE_WINDOWS=Object.freeze({
   event1:5,event2:5,'ship-class':12
 });
 const GENERIC=/^(?:chapter\s|step\s|attributes?\b|disciplines?\b|focus(?:es)?\b|values?\b|systems?\b|departments?\b|d20\b|table\b|scale\b|comms\b|computers\b|engines\b|sensors\b|structure\b|weapons\b|command\b|conn\b|security\b|engineering\b|science\b|medicine\b|your\s|the\s|creating\s|starting\s|finishing\s|roll\s|random\s|generating\s|career\sevents?\b|lifepath\b|reporting\sfor\s|upbringing\b)/i;
-const NOISE=/^(?:[\d\s|.]+|[\p{L}\s]{1,3}|.*[.!?,;:]$)/u;
+const NOISE=/(?:^[\d\s|.]+$|^[\p{L}\s]{1,3}$|[.!?,;:]$)/u;
 
 export function scorePrivateHeading(raw,stepId){
   const label=String(raw??'').trim().replace(/^\|\s*/, '').replace(/\s+/g,' ');
