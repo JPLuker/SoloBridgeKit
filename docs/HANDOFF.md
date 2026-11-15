@@ -489,3 +489,10 @@ Follow `AGENTS.md`, internal guidelines and `docs/NO_LIST.md`; privacy/local-fir
 - Private source review button **Suggest printed bonuses (unverified)** offers preview fill and prompts before overwriting existing nonzero fields, then resets verification checkbox. Human comparison to purchased PDF and existing bonus caps remain authoritative.
 - Added `tests/source-bonus-suggest.test.mjs`, enriched entirely fictional `synthetic-book.mjs` test page, and synthetic Chrome check for unverified suggestions. Public dist and service worker include only the detector code, never extracted source data.
 - v0.31.0 CI pending. Real full 2026 publisher book compatibility and owner novice acceptance remain outside synthetic coverage.
+
+## v0.32.0 — real-owner-book discovery repair (pending CI)
+
+- Located the owner's complete *Captain's Log* 2026 PDF in their authorized private Library ZIP and inspected the book only in the local private container. Private source and any extracted text/options must NEVER be committed, uploaded or added to fixtures or public artifacts. The private PDF has 336 pages. Earlier synthetic-only candidate discovery stopped at first 12 prose lines and often had wrong candidate start offsets.
+- Generic `source-candidates.mjs` now ranks heading-like candidates by typography preserved in indexed text (uppercase or titlecase, numbered events, ship-class titlecase), skips generic narrative/labels and searches bounded stage windows without returning early; candidates remain `draft` and need verification. `source-readiness.mjs` starts near local selection-list pages, not introductions. Full-book search fallback remains for other page offsets.
+- Private-only PyMuPDF dry-run across actual book found strong candidate heading clusters at corrected selection pages, including numbered career events and ship classes. This is **not** a full PDF.js end-to-end acceptance and does not verify option-specific rules or completeness.
+- New synthetic tests only use invented titles. No book-derived text, PDF, stat blocks, names, species/class lists or art were distributed. Owner real-device/novice UX acceptance remains pending.
