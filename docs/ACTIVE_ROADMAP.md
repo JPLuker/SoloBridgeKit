@@ -190,3 +190,7 @@ The public software **must not include publisher PDFs, book prose, proprietary t
 ## v0.28.0 R1–R5 implementation checkpoint (pending CI)
 
 Current scope-only provisional progress: **R1 80%, R2 45%, R3 35%, R4 40%, R5 60%, R6 0% human acceptance**. These represent built UX features, NOT passed player acceptance. First-time player can now open guided source review without technical compiler, see source-backed character/ship previews, resume drafts, inspect clear sheets, enter missions with contextual prompts, and find advanced utilities under More. Continue polishing extraction quality, source-confirmed option data, guided on-sheet actions, responsive play path and actual owner acceptance. No 1.0 milestone or public release approval.
+
+## v0.29.0 progress checkpoint (pending CI)
+
+**Provisional build scope:** R1 ~85%, R2 ~60%, R3 ~50%, R4 ~55%, R5 ~70%, R6 0% genuine human acceptance. More of the journey is available from a single next action: local book passages in review, section-aware Library returns, draft-resume validation, and optional advanced scene/mission bookkeeping. These figures count implemented code only; actual rulebook correctness, device testing, beginner navigation success and owner acceptance remain OPEN. Do not mistake green synthetic tests for a production-ready 1.0.
