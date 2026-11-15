@@ -249,6 +249,20 @@ try {
     node.textContent.includes('attributes: 0 of 3 points assigned') &&
     [...node.querySelectorAll('button')].some(b=>b.textContent.trim()==='+ control')),
     'The beginner review is missing stage-budget guidance and point steppers.');
+  await clickText('Suggest printed bonuses (unverified)');
+  check(await page.$eval('#content',node=>
+    node.textContent.includes('attributes: 3 of 3 points assigned') &&
+    node.querySelector('input[name=attr_control]')?.value==='1' &&
+    node.querySelector('input[name=attr_daring]')?.value==='1' &&
+    node.querySelector('input[name=attr_fitness]')?.value==='1' &&
+    !node.querySelector('input[aria-label="I verified the values against my own PDF"]')?.checked),
+    'R1 printed-bonus suggestions must remain unverified and use only local source text.');
+  await page.evaluate(()=>{
+    for(const key of ['control','daring','fitness']){
+      const input=document.querySelector('input[name=attr_'+key+']');
+      input.value='0';input.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+  });
   await page.evaluate(()=>{
     const button=[...document.querySelectorAll('#content button')]
       .find(b=>b.textContent.trim()==='+ control');
