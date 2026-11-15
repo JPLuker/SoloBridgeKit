@@ -91,3 +91,7 @@
   border:1px solid var(--edge);border-radius:10px;font-weight:650}
 .mission-advanced-editor[open]>summary{margin-bottom:12px}
 .mission-advanced-editor>.form-stack{min-width:0;max-width:100%}
+
+/* Long player-authored sheet notes remain readable on small screens. */
+.card .line{min-width:0;max-width:100%}
+.card .line strong{min-width:0;max-width:100%;overflow-wrap:anywhere;white-space:pre-line}
