@@ -202,3 +202,7 @@ Current scope-only provisional progress: **R1 80%, R2 45%, R3 35%, R4 40%, R5 60
 ## R1 v0.31.0 coding checkpoint (pending CI)
 
 **Provisional R1 ~90% coding scope.** Added optional explicit-token modifier assistance while preserving source-owned content and manual confirmation. Still cannot claim every option is detected or validated against the full 2026 book. R1 release acceptance remains open until real source layout and new-player workflow are exercised; no publisher text/option lists are distributed.
+
+## R1 real-source extraction checkpoint — v0.32.0 (pending CI)
+
+The full 336-page owner book is available **privately** for parser validation. Generic candidate extraction was repaired for page offsets, uppercase species/environment/education headings, numbered career events and titlecase ship-class tables. No proprietary options/statistics were added to the repository. R1 coding advances to **~95% provisional**, but actual PDF.js runtime matching, publisher bonus correctness, human selection usability and owner acceptance remain OPEN. Do not close R1 merely on this private parser sanity check or synthetic CI.
