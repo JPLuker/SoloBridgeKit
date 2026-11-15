@@ -41,7 +41,7 @@ const PAGES = [
 ];
 const MOBILE_PAGES = ['home', 'character', 'log', 'library', 'more'];
 const state = { page: 'home', campaigns: [], activeId: null, campaign: null, documents: [],
-  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, roll: null, taskRoll: null, taskMeta: null, busy: false, navigationVersion: 0, recoveryDraft: null };
+  activeEpisodeId: null, activeScene: null, activeCrewId: null, openDocumentId: null, lifepathIndex: 0, shipStep: 0, sourcePreparationStep: null, libraryReturnTo: null, roll: null, taskRoll: null, taskMeta: null, busy: false, navigationVersion: 0, recoveryDraft: null };
 const $ = selector => document.querySelector(selector);
 const content = $('#content');
 
@@ -189,6 +189,8 @@ function render() {
   const views = { home: renderHome, character: renderCharacter, lifepath: renderLifepath, starship: renderStarship,
     crew: renderCrew, shipbuilder: renderShipBuilder, log: renderLog, library: renderLibrary, dice: renderDice, settings: renderSettings, more: renderMore };
   content.replaceChildren(views[state.page]());
+  const current=content.querySelector('.source-preparation-current');
+  if(current)current.scrollIntoView({block:'start',behavior:'instant'});
 }
 
 function combinedPrivateCatalog(book, kind, step = null) {
@@ -676,7 +678,9 @@ function renderLifepath() {
         el('p',{text:'No choices for this step have been confirmed yet. The app cannot safely invent them or package the publisher’s list. You can read the matching PDF page, enter one choice manually, or prepare reusable choices once in the Library.'}),
         el('div',{class:'actions'},[
           button('Read this step in PDF',()=>openPdf(corebook,current.page).catch(failure),'secondary'),
-          button('Prepare choices in Library',()=>go('library'),'secondary')
+          button('Prepare choices in Library',()=>{
+            state.sourcePreparationStep=current.id;state.libraryReturnTo='lifepath';go('library');
+          },'secondary')
         ])
       ]));
     }
@@ -1061,7 +1065,9 @@ function renderShipBuilder() {
         el('p',{text:'No class statistics have been confirmed from your PDF. Open the class page and enter its published ratings, or prepare a verified class once in the Library so you can choose it next time.'}),
         el('div',{class:'actions'},[
           button('Open class PDF page',()=>openPdf(corebook,SHIP_STEPS[idx][1]).catch(failure),'secondary'),
-          button('Prepare class in Library',()=>go('library'),'secondary')
+          button('Prepare class in Library',()=>{
+            state.sourcePreparationStep='ship-class';state.libraryReturnTo='shipbuilder';go('library');
+          },'secondary')
         ])
       ]));
     }
@@ -2138,6 +2144,14 @@ function renderSourcePreparation(book) {
     el('p',{class:'hint',text:`${status.steps.filter(step=>step.hasChoice).length} of ${status.steps.length} sections have at least one confirmed choice. This does not mean every option in the book has been imported.`})
   ]);
   panel.classList.add('source-preparation');
+  if(state.libraryReturnTo==='lifepath'||state.libraryReturnTo==='shipbuilder'){
+    panel.append(button(state.libraryReturnTo==='lifepath'?
+      'Return to character creation':'Return to ship creation',()=>{
+      const destination=state.libraryReturnTo;
+      state.libraryReturnTo=null;state.sourcePreparationStep=null;
+      go(destination);
+    },'secondary'));
+  }
   const advanced=el('details',{class:'source-preparation-tools'},[
     el('summary',{text:'Review suggestions and correct rules (advanced tools)'})
   ]);
@@ -2227,8 +2241,13 @@ function renderSourcePreparation(book) {
         ]));
       }
     }
+    if(state.sourcePreparationStep===step.id){
+      row.classList.add('source-preparation-current');
+      showCandidates();
+    }
     panel.append(row);
   }
+  if(state.sourcePreparationStep)state.sourcePreparationStep=null;
   panel.append(reviewWorkspace,advanced);
   if(status.complete){
     panel.append(el('p',{class:'hint',text:'You have at least one confirmed choice in each section. You can return to confirm more at any time.'}),
