@@ -311,7 +311,7 @@ function flatValues(values, names) {
 function renderCharacter() {
   const root = el('div', { class: 'page' });
   root.append(title('Character'));
-  if (state.campaign) root.append(el('div', { class: 'actions' }, [button('Guided lifepath', () => go('lifepath'), 'secondary')]));
+  if (state.campaign) root.append(el('div', { class: 'actions' }, [button('Create or edit character', () => go('lifepath'), 'secondary')]));
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const c = state.campaign.character;
   const form = el('form', { class: 'form-stack' });
@@ -362,7 +362,7 @@ function renderCharacter() {
   });
   root.append(card([
     el('h2',{text:c.name?.trim()||'Your character'}),
-    el('p',{class:'hint',text:'Your playable character sheet. Use Guided lifepath to make the official choices, and Edit details only when a field needs correction.'}),
+    el('p',{class:'hint',text:'Your playable character sheet. Use Create or edit character to make the official choices, and Edit details only when a field needs correction.'}),
     line('Species',c.species),line('Rank',c.rank),line('Assignment',c.assignment),
     el('h3',{text:'Attributes'}),
     el('div',{class:'field-grid ratings'},CHARACTER_ATTRIBUTES.map(name=>line(name,c.attributes?.[name.toLowerCase()]))),
@@ -578,7 +578,7 @@ function renderGuidedExplanation(data,number=null,total=null){
 
 function renderLifepath() {
   const root = el('div', { class: 'page' });
-  root.append(title('Character lifepath'));
+  root.append(title('Create your character'));
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const c = state.campaign.character;
   const path = normalizeLifepath(c.lifepath || createLifepath());
@@ -594,7 +594,7 @@ function renderLifepath() {
     .flatMap(s => combinedPrivateCatalog(corebook, 'lifepath', s.id)) : [];
   const provenance = auditGuidedLifepath(path, allOptions, corebook?.bookPack?.sourceSha256);
   const modePanel = card([
-    el('h2', { text: 'Creation method' }),
+    el('h2', { text: 'How to create your character' }),
     el('p', { class: 'muted', text: path.mode === 'guided'
       ? `Verified choices · ${provenance.count}/${provenance.total} stages sourced from your book`
       : 'Manual lifepath · existing choices and drafts are preserved.' }),
@@ -819,7 +819,7 @@ function renderLifepath() {
 function renderStarship() {
   const root = el('div', { class: 'page' });
   root.append(title('Starship / station'));
-  if (state.campaign) root.append(el('div', { class: 'actions' }, [button('Guided ship setup', () => go('shipbuilder'), 'secondary'), button('Crew roster', () => go('crew'), 'secondary')]));
+  if (state.campaign) root.append(el('div', { class: 'actions' }, [button('Create or edit ship', () => go('shipbuilder'), 'secondary'), button('Crew roster', () => go('crew'), 'secondary')]));
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const c = state.campaign.ship;
   const form = el('form', { class: 'form-stack' });
@@ -859,7 +859,7 @@ function renderStarship() {
   });
   root.append(card([
     el('h2',{text:c.name?.trim()||'Your ship or station'}),
-    el('p',{class:'hint',text:'Review your vessel during play. Guided ship setup chooses a source-verified class; detailed rating corrections are optional.'}),
+    el('p',{class:'hint',text:'Review your vessel during play. Create or edit ship chooses a source-verified class; detailed rating corrections are optional.'}),
     line('Class',c.className),line('Registry',c.registry),line('Scale',c.scale),
     el('h3',{text:'Systems'}),
     el('div',{class:'field-grid ratings'},SHIP_SYSTEMS.map(name=>line(name,c.systems?.[name.toLowerCase()]))),
@@ -987,7 +987,7 @@ const SHIP_STEPS = [
   ['Setting', 147], ['Class and ratings', 149], ['Polity', 147], ['Unique trait', 174], ['Talents', 175], ['Identity', 180]
 ];
 function renderShipBuilder() {
-  const root = el('div', { class: 'page' }, [title('Guided ship setup')]);
+  const root = el('div', { class: 'page' }, [title('Create your ship')]);
   if (!state.campaign) { root.append(campaignRequired()); return root; }
   const ship = state.campaign.ship;
   const builder = normalizeShipBuilder(ship.builder || createShipBuilder());
@@ -1019,7 +1019,7 @@ function renderShipBuilder() {
   const classes = corebook ? combinedPrivateCatalog(corebook,'ship-class') : [];
   const sourceStatus = shipSourceStatus(builder,classes,corebook?.bookPack?.sourceSha256);
   root.append(card([
-    el('h2',{text:'Creation method'}),
+    el('h2',{text:'How to build your ship'}),
     el('p',{class:'muted',text:builder.mode==='guided' ?
       'Verified class · '+sourceStatus.replaceAll('-',' ') :
       'Manual class · existing draft preserved.'}),
