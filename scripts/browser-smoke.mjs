@@ -408,8 +408,8 @@ try {
   await navigate('Character');
   check(await page.$eval('#content',node=>node.querySelector('details.sheet-advanced-editor')?.open===false),
     'R5 character screen must prioritize the readable sheet over raw edit fields.');
-  await clickText('Guided lifepath');
-  await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Character lifepath'), { timeout: 15000 });
+  await clickText('Create or edit character');
+  await page.waitForFunction(() => document.querySelector('#content')?.textContent?.includes('Create your character'), { timeout: 15000 });
   check(await page.$eval('#content', node => node.textContent.includes('Verified choices · 0/7')),
     'New characters should default to verified-guidance mode.');
   check(await page.$eval('#content', node =>
@@ -445,8 +445,8 @@ try {
     'Returning from source preparation lost the active guided character step.');
   // M4: retain a ship's name and registry while applying a private confirmed class.
   await navigate('Starship');
-  await clickText('Guided ship setup');
-  await page.waitForFunction(() => document.querySelector('#content h1')?.textContent?.includes('Guided ship setup'), {timeout:15000});
+  await clickText('Create or edit ship');
+  await page.waitForFunction(() => document.querySelector('#content h1')?.textContent?.includes('Create or edit ship'), {timeout:15000});
   await clickText('6. Identity');
   await page.waitForSelector('#content form input[name=name]',{timeout:15000});
   await page.type('input[name=name]','Player-owned survey ship');
