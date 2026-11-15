@@ -149,6 +149,9 @@ async function persist() {
   }
 }
 function go(page) {
+  if(page!==state.page && ['lifepath','shipbuilder'].includes(state.page) &&
+     content.querySelector('form[data-creation-dirty="true"]') &&
+     !confirm('You have unsaved changes in this step. Leave without saving them? Use Save and exit to keep your draft.'))return;
   state.navigationVersion++;
   state.page = page;
   render();
@@ -637,7 +640,10 @@ function renderLifepath() {
     path.appliedAt = null;
     c.lifepath = path;
     await persist();
+    form.dataset.creationDirty='false';
   };
+  form.addEventListener('input',()=>{form.dataset.creationDirty='true';});
+  form.addEventListener('change',()=>{form.dataset.creationDirty='true';});
   for (let i = 0; i < LIFEPATH_STEPS.length; i++) {
     const step = LIFEPATH_STEPS[i];
     const buttonNode = button(step.title, async () => {
@@ -1014,7 +1020,9 @@ function renderShipBuilder() {
     next.appliedAt=null;
     return next;
   };
-  const save = async () => {ship.builder=read();await persist();};
+  const save = async () => {ship.builder=read();await persist();form.dataset.creationDirty='false';};
+  form.addEventListener('input',()=>{form.dataset.creationDirty='true';});
+  form.addEventListener('change',()=>{form.dataset.creationDirty='true';});
   const corebook = state.documents.find(d => d.role === 'corebook' && d.bookPack);
   const classes = corebook ? combinedPrivateCatalog(corebook,'ship-class') : [];
   const sourceStatus = shipSourceStatus(builder,classes,corebook?.bookPack?.sourceSha256);
