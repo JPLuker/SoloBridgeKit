@@ -391,3 +391,7 @@
 ## v0.31.0 — Explicit PDF bonus assistance (pending CI)
 
 - Opt-in local extraction recognizes only literal printed stat modifiers near a source choice, marks them unverified and requires manual cross-check. Conflicting values are not filled. This reduces blank-form work without inventing rule mechanics or shipping publisher content.
+
+## v0.32.0 — Real private book heading extraction corrected (pending CI)
+
+- Private inspection of the owner-supplied 336-page 2026 rulebook exposed false-positive prose headings. Updated generic local option discovery to rank likely headings and account for page offsets and table formatting. No copyrighted source pages or option entries were published. Candidate accuracy must still be accepted in the actual browser.
