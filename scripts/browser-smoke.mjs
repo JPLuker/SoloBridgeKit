@@ -434,6 +434,8 @@ try {
     linkedStage?.attributes?.control === 1 && linkedStage?.attributes?.daring === 1,
     'Guided selection did not persist the original source record and its exact verified bonuses.');
   await clickText('2. Environment');
+  await page.waitForFunction(()=>document.querySelector('#content')?.textContent?.includes('Where did you grow up?'),
+    {timeout:15000});
   await clickText('Prepare choices in Library');
   check(await page.$eval('#content',node=>!!node.querySelector('.source-preparation-current') &&
     node.textContent.includes('Return to character creation')),
