@@ -1626,7 +1626,11 @@ function renderSceneTracker(mission) {
       await persist();
     } catch (error) { failure(error); }
   });
-  tracker.append(form);
+  tracker.append(el('details',{class:'scene-plan-settings'},[
+    el('summary',{text:'Adjust number of scenes (optional)'}),
+    el('p',{class:'hint',text:'The default plan is enough to begin. Change the scene count only if you want a shorter or longer adventure.'}),
+    form
+  ]));
   const scenes = el('div', { class: 'scene-acts' });
   for (let act = 1; act <= 3; act++) {
     const group = el('div', { class: 'scene-act' }, [el('h3', { text: `Act ${act}` })]);
