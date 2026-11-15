@@ -671,6 +671,9 @@ try {
   // M5: traverse all three acts and preserve the author's opening,
   // middle, ending and closing entries after an offline-safe reload.
   await navigate("Captain's log");
+  check(await page.$eval('#content',node=>node.querySelector('details.mission-advanced-editor')?.open===false),
+    'R5 must hide optional detailed mission records from first-session play.');
+  await page.$eval('details.mission-advanced-editor',node=>{node.open=true;});
   await page.type('textarea[name=actOne]','Player authored an opening log.');
   await page.type('textarea[name=actTwo]','Player authored a second-act log.');
   await page.type('textarea[name=actThree]','Player authored a third-act log.');
