@@ -14,7 +14,9 @@ export function syntheticPdf(pages = 210) {
     const content = 'BT /F1 11 Tf 72 720 Td (Synthetic sample page lifepath mission starship momentum threat focus for testing) Tj ET' +
       (i === 96 ? '\nBT /F1 14 Tf 72 682 Td (Synthetic Example Choice Alpha) Tj ET' +
                     '\nBT /F1 14 Tf 72 658 Td (Synthetic Example Choice Beta) Tj ET' +
-                    '\nBT /F1 11 Tf 72 634 Td (Control +1, Daring +1, Fitness +1) Tj ET' : '');
+                    '\nBT /F1 11 Tf 72 634 Td (Control +1, Daring +1, Fitness +1) Tj ET' : '') +
+      (i === 99 ? '\nBT /F1 14 Tf 72 690 Td (SYNTHETIC SPECIES ALPHA) Tj ET' +
+                    '\nBT /F1 11 Tf 72 663 Td (Control +1, Daring +1, Fitness +1) Tj ET' : '');
     objects[contentId] = `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`;
   }
   objects[fontId] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
