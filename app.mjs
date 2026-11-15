@@ -674,7 +674,7 @@ function renderLifepath() {
           ])
         ))
       ]));
-    } else if (path.mode === 'guided') {
+    } else {
       root.append(card([
         el('h2',{text:'Choose from your book'}),
         el('p',{text:'No choices for this step have been confirmed yet. The app cannot safely invent them or package the publisher’s list. You can read the matching PDF page, enter one choice manually, or prepare reusable choices once in the Library.'}),
