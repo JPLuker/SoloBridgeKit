@@ -443,6 +443,20 @@ try {
   await clickText('Return to character creation');
   check(await page.$eval('#content',node=>node.textContent.includes('Where did you grow up?')),
     'Returning from source preparation lost the active guided character step.');
+  await page.$eval('details.guided-choice-editor',node=>{node.open=true;});
+  await page.type('input[name=choice]','Unsaved private draft');
+  let blockedNavigation=false;
+  page.once('dialog',async dialog=>{
+    blockedNavigation=dialog.type()==='confirm'&&dialog.message().includes('unsaved changes');
+    await dialog.dismiss();
+  });
+  await navigate('Home');
+  check(blockedNavigation && await page.$eval('#content',node=>node.textContent.includes('Where did you grow up?')),
+    'Unsaved lifepath edits were lost without a warning when navigating away.');
+  await clickText('Save and exit');
+  await waitForSave('Character creation draft saved.');
+  check(await page.$eval('#content',node=>node.textContent.includes('Continue character')),
+    'Save and exit did not preserve a private character draft.');
   // M4: retain a ship's name and registry while applying a private confirmed class.
   await navigate('Starship');
   await clickText('Create or edit ship');
