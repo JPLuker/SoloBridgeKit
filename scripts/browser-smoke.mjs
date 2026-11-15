@@ -460,7 +460,7 @@ try {
   // M4: retain a ship's name and registry while applying a private confirmed class.
   await navigate('Starship');
   await clickText('Create or edit ship');
-  await page.waitForFunction(() => document.querySelector('#content h1')?.textContent?.includes('Create or edit ship'), {timeout:15000});
+  await page.waitForFunction(() => document.querySelector('#content h1')?.textContent?.includes('Create your ship'), {timeout:15000});
   await clickText('6. Identity');
   await page.waitForSelector('#content form input[name=name]',{timeout:15000});
   await page.type('input[name=name]','Player-owned survey ship');
